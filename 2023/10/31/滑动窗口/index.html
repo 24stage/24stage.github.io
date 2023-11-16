@@ -13,7 +13,7 @@
         name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1"
       />
-      <title>移除元素 |  24stage</title>
+      <title>滑动窗口 |  24stage</title>
   <meta name="generator" content="hexo-theme-ayer">
       
       <link rel="shortcut icon" href="/smile.ico" />
@@ -55,7 +55,7 @@
     <main class="content on">
       <section class="outer">
   <article
-  id="post-移除元素"
+  id="post-滑动窗口"
   class="article article-type-post"
   itemscope
   itemprop="blogPost"
@@ -66,7 +66,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  移除元素
+  滑动窗口
 </h1>
  
 
@@ -74,15 +74,15 @@
     </header>
      
     <div class="article-meta">
-      <a href="/2023/10/29/%E7%A7%BB%E9%99%A4%E5%85%83%E7%B4%A0/" class="article-date">
-  <time datetime="2023-10-29T15:01:03.000Z" itemprop="datePublished">2023-10-29</time>
+      <a href="/2023/10/31/%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3/" class="article-date">
+  <time datetime="2023-10-31T14:49:20.000Z" itemprop="datePublished">2023-10-31</time>
 </a>   
 <div class="word_count">
     <span class="post-time">
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">438</span>
+            <span class="post-count">695</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">1 min</span>
+            <span class="post-count">2 min</span>
         </span>
     </span>
 </div>
@@ -106,15 +106,32 @@
   
     <div class="article-entry" itemprop="articleBody">
        
-  <h1 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h1><p>要知道数组的元素在内存地址中是连续的，不能单独删除数组中的某个元素，只能覆盖。  </p>
-<h2 id="双指针法"><a href="#双指针法" class="headerlink" title="双指针法"></a>双指针法</h2><p>双指针法（快慢指针法）： 通过一个快指针和慢指针在一个for循环下完成两个for循环的工作。</p>
-<p>定义快慢指针</p>
-<p>快指针：寻找新数组的元素 ，新数组就是不含有目标元素的数组<br>慢指针：指向更新 新数组下标的位置</p>
-<h1 id="example-code"><a href="#example-code" class="headerlink" title="example code"></a>example code</h1><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 时间复杂度：O(n)</span></span><br><span class="line"><span class="comment">// 空间复杂度：O(1)</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">removeElement</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; nums, <span class="type">int</span> val)</span> </span>&#123;</span><br><span class="line">        <span class="type">int</span> slowIndex = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> fastIndex = <span class="number">0</span>; fastIndex &lt; nums.<span class="built_in">size</span>(); fastIndex++) &#123;</span><br><span class="line">            <span class="keyword">if</span> (val != nums[fastIndex]) &#123;</span><br><span class="line">                nums[slowIndex++] = nums[fastIndex];</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> slowIndex;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+  <h1 id="滑动窗口-laughing-O-n"><a href="#滑动窗口-laughing-O-n" class="headerlink" title="滑动窗口 :laughing: O(n)"></a>滑动窗口 :laughing: O(n)</h1><p>滑动窗口也可以理解为双指针法的一种！只不过这种解法更像是一个窗口的移动，所以叫做滑动窗口更适合一些。</p>
+<p>所谓滑动窗口，就是不断的调节子序列的起始位置和终止位置，从而得出我们要想的结果。</p>
+<p>滑动窗口的精妙之处在于根据当前子序列和大小的情况，不断调节子序列的起始位置。</p>
+<ol>
+<li><p>窗口就是 满足其和 ≥ s 的长度最小的 连续 子数组。</p>
+</li>
+<li><p>窗口的起始位置如何移动：如果当前窗口的值大于s了，窗口就要向前移动了（也就是该缩小了）。</p>
+</li>
+<li><p>窗口的结束位置如何移动：窗口的结束位置就是遍历数组的指针，也就是for循环里的索引。</p>
+</li>
+</ol>
+<h1 id="时间复杂度问题"><a href="#时间复杂度问题" class="headerlink" title="时间复杂度问题"></a>时间复杂度问题</h1><p>每个元素在滑动窗口往右扩大时进来一次，窗口缩小时出去一次，每个元素都是被操作两次，所以时间复杂度是 2 × n 也就是O(n)</p>
+<h1 id="leetcode-209-长度最小的子数组"><a href="#leetcode-209-长度最小的子数组" class="headerlink" title="leetcode 209 长度最小的子数组"></a>leetcode 209 长度最小的子数组</h1><h2 id="题目"><a href="#题目" class="headerlink" title="题目"></a>题目</h2><h2 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h2><ol>
+<li>我们在数组nums 中使用双指针中的左右指针技巧，初始化 left &#x3D; right &#x3D; 0，把索引区间 [left, right] 称为一个「窗口」。</li>
+<li>left不动，不断地增加 right 指针扩大窗口，直到窗口符合要求（窗口内数值之和&gt;&#x3D;target）。</li>
+<li>此时，我们停止增加 right，转而不断增加 left 指针缩小窗口 ，直到窗口不再符合要求。</li>
+<li>重复第 2 和第 3 步，直到 right 到达数组末尾。</li>
+</ol>
+<ul>
+<li>第 2 步相当于在寻找一个「可行解」，然后第 3 步在优化这个「可行解」，最终找到最优解，也就是最短的覆盖子串。左右指针轮流前进，窗口大小增增减减，窗口不断向右滑动，这就是「滑动窗口」</li>
+</ul>
+<h2 id="code"><a href="#code" class="headerlink" title="code"></a>code</h2><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">minSubArrayLen</span><span class="params">(<span class="type">int</span> target, vector&lt;<span class="type">int</span>&gt;&amp; nums)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="type">int</span> fast = <span class="number">0</span>;</span><br><span class="line">        <span class="type">int</span> slow = <span class="number">0</span>;</span><br><span class="line">        <span class="type">int</span> shortest = INT32_MAX;</span><br><span class="line">        <span class="type">int</span> sum = <span class="number">0</span>;</span><br><span class="line">        <span class="type">int</span> count = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span> (fast &lt; nums.<span class="built_in">size</span>())</span><br><span class="line">        &#123;</span><br><span class="line">            sum+=nums[fast];</span><br><span class="line"></span><br><span class="line">            <span class="keyword">while</span> (sum &gt;= target)<span class="comment">//while不断比较子序列是否符合条件</span></span><br><span class="line">            &#123;</span><br><span class="line">                count = fast - slow + <span class="number">1</span>;</span><br><span class="line">                shortest = count &gt; shortest ? shortest : count;</span><br><span class="line">                sum -= nums[slow++];<span class="comment">//这里体现出滑动窗口的精髓之处，不断变更子序列的起始位置</span></span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line">            fast++;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 如果shortest没有被赋值的话，就返回0，说明没有符合条件的子序列</span></span><br><span class="line">        <span class="keyword">return</span> shortest == INT32_MAX ? <span class="number">0</span> : shortest;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 
-<h1 id="leetcode-26"><a href="#leetcode-26" class="headerlink" title="leetcode 26"></a>leetcode 26</h1><h2 id="题目"><a href="#题目" class="headerlink" title="题目"></a>题目</h2><p>给你一个 非严格递增排列 的数组 nums ，请你 原地 删除重复出现的元素，使每个元素 只出现一次 ，返回删除后数组的新长度。元素的 相对顺序 应该保持 一致 。然后返回 nums 中唯一元素的个数。</p>
-<h2 id="code"><a href="#code" class="headerlink" title="code"></a>code</h2><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">removeDuplicates</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; nums)</span> </span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="type">int</span> fast_index = <span class="number">1</span>;</span><br><span class="line">        <span class="type">int</span> slow_index = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span> (fast_index &lt; nums.<span class="built_in">size</span>())</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (nums[fast_index] != nums[slow_index])</span><br><span class="line">            &#123;</span><br><span class="line">                slow_index++;</span><br><span class="line">                nums[slow_index] = nums[fast_index];</span><br><span class="line">            &#125;</span><br><span class="line">            fast_index++;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> slow_index + <span class="number">1</span>;</span><br><span class="line">        <span class="comment">//slow_index表示向前移动的数目，如果slow_index=1，那么表示向后移动一位，还要加上他原本的位置，即 +1</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-<h2 id="想法-blush"><a href="#想法-blush" class="headerlink" title="想法 :blush:"></a>想法 :blush:</h2><p>&#x2F;&#x2F;关于slow_index + 1 的理解<br>&#x2F;&#x2F;对于普通的移除元素而言，有多少 nums[fastIndex] !&#x3D; val slowIndex就等于几，数组长度等于slow_index<br>&#x2F;&#x2F;而对于此题，同样有多少 nums[fast_index] !&#x3D; nums[slow_index] slowIndex就等于几，但是因为fastIndex &#x3D; 1,相当于始终少计算了一个数组，因此数组长度&#x3D;slowIndex + 1</p>
+<h1 id="leetcode-904-摘水果"><a href="#leetcode-904-摘水果" class="headerlink" title="leetcode 904 摘水果"></a>leetcode 904 摘水果</h1><blockquote>
+<p>上来就是一波判断猛如虎。结果运行的时候各种问题，然后开始各种修修补补，最后发现改了这里那里有问题，改了那里这里又跑不起来了。(真实写照hahahah)</p>
+</blockquote>
  
       <!-- reward -->
       
@@ -134,9 +151,9 @@
   <nav class="article-nav">
     
     
-      <a href="/2023/10/25/%E4%BA%8C%E5%88%86%E6%9F%A5%E6%89%BE/" class="article-nav-link">
+      <a href="/2023/10/29/%E5%8F%8C%E6%8C%87%E9%92%88/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">二分查找</div>
+        <div class="article-nav-title">双指针</div>
       </a>
     
   </nav>
