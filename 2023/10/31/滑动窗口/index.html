@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">695</span>
+            <span class="post-count">771</span>
         </span>
     </span>
 
@@ -118,7 +118,8 @@
 </li>
 </ol>
 <h1 id="时间复杂度问题"><a href="#时间复杂度问题" class="headerlink" title="时间复杂度问题"></a>时间复杂度问题</h1><p>每个元素在滑动窗口往右扩大时进来一次，窗口缩小时出去一次，每个元素都是被操作两次，所以时间复杂度是 2 × n 也就是O(n)</p>
-<h1 id="leetcode-209-长度最小的子数组"><a href="#leetcode-209-长度最小的子数组" class="headerlink" title="leetcode 209 长度最小的子数组"></a>leetcode 209 长度最小的子数组</h1><h2 id="题目"><a href="#题目" class="headerlink" title="题目"></a>题目</h2><h2 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h2><ol>
+<h1 id="leetcode-209-长度最小的子数组"><a href="#leetcode-209-长度最小的子数组" class="headerlink" title="leetcode 209 长度最小的子数组"></a>leetcode 209 长度最小的子数组</h1><h2 id="题目"><a href="#题目" class="headerlink" title="题目"></a>题目</h2><p>给定一个含有 n 个正整数的数组和一个正整数 target 。<br>找出该数组中满足其总和大于等于 target 的长度最小的 连续子数组 [numsl, numsl+1, …, numsr-1, numsr] ，并返回其长度。如果不存在符合条件的子数组，返回 0 。</p>
+<h2 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h2><ol>
 <li>我们在数组nums 中使用双指针中的左右指针技巧，初始化 left &#x3D; right &#x3D; 0，把索引区间 [left, right] 称为一个「窗口」。</li>
 <li>left不动，不断地增加 right 指针扩大窗口，直到窗口符合要求（窗口内数值之和&gt;&#x3D;target）。</li>
 <li>此时，我们停止增加 right，转而不断增加 left 指针缩小窗口 ，直到窗口不再符合要求。</li>
@@ -142,13 +143,22 @@
     
     <footer class="article-footer">
        
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%AE%97%E6%B3%95/" rel="tag">算法</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%AE%97%E6%B3%95-%E6%95%B0%E7%BB%84/" rel="tag">算法 数组</a></li></ul>
 
     </footer>
   </div>
 
    
   <nav class="article-nav">
+    
+      <a href="/2024/03/19/%E5%BD%B1%E8%A7%86%E9%89%B4%E8%B5%8F/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            影视鉴赏
+          
+        </div>
+      </a>
     
     
       <a href="/2023/10/29/%E5%8F%8C%E6%8C%87%E9%92%88/" class="article-nav-link">
@@ -178,7 +188,7 @@
     <ul>
       <li>
         Copyrights &copy;
-        2023
+        2023-2024
         <i class="ri-heart-fill heart_icon"></i> Hexo
       </li>
     </ul>
