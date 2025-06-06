@@ -13,7 +13,7 @@
         name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1"
       />
-      <title>gradle |  24stage</title>
+      <title>有关财富的感悟 |  24stage</title>
   <meta name="generator" content="hexo-theme-ayer">
       
       <link rel="shortcut icon" href="/smile.ico" />
@@ -55,8 +55,8 @@
     <main class="content on">
       <section class="outer">
   <article
-  id="andrid-gradle"
-  class="article article-type-andrid"
+  id="post-有关财富的感悟"
+  class="article article-type-post"
   itemscope
   itemprop="blogPost"
   data-scroll-reveal
@@ -66,7 +66,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  gradle
+  有关财富的感悟
 </h1>
  
 
@@ -74,15 +74,15 @@
     </header>
      
     <div class="article-meta">
-      <a href="/2025/05/24/gradle/" class="article-date">
-  <time datetime="2025-05-24T10:04:37.000Z" itemprop="datePublished">2025-05-24</time>
+      <a href="/2025/06/06/%E6%9C%89%E5%85%B3%E8%B4%A2%E5%AF%8C%E7%9A%84%E6%84%9F%E6%82%9F/" class="article-date">
+  <time datetime="2025-06-06T01:48:28.000Z" itemprop="datePublished">2025-06-06</time>
 </a>   
 <div class="word_count">
     <span class="post-time">
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">386</span>
+            <span class="post-count">1.3k</span>
         </span>
     </span>
 
@@ -91,26 +91,31 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">1 min</span>
+            <span class="post-count">4 min</span>
         </span>
     </span>
 </div>
  
     </div>
       
-    <div class="tocbot"></div>
-
 
 
 
   
     <div class="article-entry" itemprop="articleBody">
        
-  <p>在创建新的项目时，有时在国内直接访问国外网站下载速度较慢，因此改用国内镜像网站进行Gradle project sync</p>
-<h1 id="gradle是什么"><a href="#gradle是什么" class="headerlink" title="gradle是什么"></a>gradle是什么</h1><p>Gradle 是目前 Android 和许多 Java&#x2F;Kotlin 项目中最常用的自动化构建工具。它负责：<br>编译代码<br>管理项目依赖（库和插件）<br>打包 APK 或 JAR 文件<br>运行测试<br>执行自定义构建任务</p>
-<h1 id="为什么每次新创建项目都要进行gradle-project-sync"><a href="#为什么每次新创建项目都要进行gradle-project-sync" class="headerlink" title="为什么每次新创建项目都要进行gradle project sync"></a>为什么每次新创建项目都要进行gradle project sync</h1><p>当你新建项目时：<br>项目的 build.gradle 文件里写了所有依赖（比如 Kotlin 标准库、Android 支持库、第三方库等）。<br>Gradle Sync 的作用就是：<br>读取并解析 build.gradle 配置文件<br>自动下载所需依赖的库文件<br>生成项目构建所需的配置信息<br>让 IDE 知道项目结构和依赖<br>这样，你的 IDE 才能正确提示代码、编译、运行。</p>
-<h1 id="修改配置文件"><a href="#修改配置文件" class="headerlink" title="修改配置文件"></a>修改配置文件</h1><h2 id="gradle-wrapper-gradle-wrapper-properties"><a href="#gradle-wrapper-gradle-wrapper-properties" class="headerlink" title="gradle&#x2F;wrapper&#x2F;gradle-wrapper.properties"></a>gradle&#x2F;wrapper&#x2F;gradle-wrapper.properties</h2><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">distributionUrl=https:<span class="comment">//mirrors.cloud.tencent.com/gradle/gradle-8.11.1-all.zip</span></span><br></pre></td></tr></table></figure>
-<h2 id="settings-gradle-kts"><a href="#settings-gradle-kts" class="headerlink" title="settings.gradle.kts"></a>settings.gradle.kts</h2><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">pluginManagement &#123;</span><br><span class="line">    repositories &#123;</span><br><span class="line">        <span class="comment">// 国内镜像优先</span></span><br><span class="line">        maven &#123; url = uri(<span class="string">&quot;https://maven.aliyun.com/repository/gradle-plugin&quot;</span>) &#125;</span><br><span class="line">        maven &#123; url = uri(<span class="string">&quot;https://maven.aliyun.com/repository/google&quot;</span>) &#125;</span><br><span class="line">        maven &#123; url = uri(<span class="string">&quot;https://maven.aliyun.com/repository/public&quot;</span>) &#125;</span><br><span class="line">        google &#123;</span><br><span class="line">            content &#123;</span><br><span class="line">                includeGroupByRegex(<span class="string">&quot;com\\.android.*&quot;</span>)</span><br><span class="line">                includeGroupByRegex(<span class="string">&quot;com\\.google.*&quot;</span>)</span><br><span class="line">                includeGroupByRegex(<span class="string">&quot;androidx.*&quot;</span>)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        mavenCentral()</span><br><span class="line">        gradlePluginPortal()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">dependencyResolutionManagement &#123;</span><br><span class="line">    repositoriesMode.<span class="keyword">set</span>(RepositoriesMode.FAIL_ON_PROJECT_REPOS)</span><br><span class="line">    repositories &#123;</span><br><span class="line">        <span class="comment">// 国内镜像优先</span></span><br><span class="line">        maven &#123; url = uri(<span class="string">&quot;https://maven.aliyun.com/repository/google&quot;</span>) &#125;</span><br><span class="line">        maven &#123; url = uri(<span class="string">&quot;https://maven.aliyun.com/repository/public&quot;</span>) &#125;</span><br><span class="line">        google()</span><br><span class="line">        mavenCentral()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">rootProject.name = <span class="string">&quot;Gretting Card&quot;</span></span><br><span class="line">include(<span class="string">&quot;:app&quot;</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure> 
+  <p><strong>user</strong>: </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">看了一个富二代博主的视频，他的生活我可能一辈子都无法达到，未免有些惆怅</span><br></pre></td></tr></table></figure>
+
+<p><strong>assistant</strong>: </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">看到这样的视频产生惆怅感是很正常的，尤其是当别人的生活与自己的现实形成鲜明对比时。这种情绪背后其实藏着几个值得温柔对待的心理层面，或许我们可以一起慢慢拆解：</span><br><span class="line"></span><br><span class="line">1. **滤镜背后的真相**  </span><br><span class="line">那些精心剪辑的视频就像现代版的童话故事，展示的多是经过美化的片段。实际上每个人的人生都有&quot;后台区域&quot;——富二代可能不会展示家族压力、人际关系的束缚，或者那些用钱也解决不了的孤独感。试着想象一下，如果让你用失去现在的所有自由来交换那种生活，你真的愿意吗？</span><br><span class="line"></span><br><span class="line">2. **比较带来的坐标偏差**  </span><br><span class="line">人类大脑天生容易进行纵向比较（和比自己好的人比），而不是横向比较。可以做个有趣的小实验：列出你拥有的但视频博主可能没有的东西，比如能坐路边摊撸串的自由，选择人生方向的自主权，或者通过自己努力获得第一份工资的成就感。</span><br><span class="line"></span><br><span class="line">3. **重新定义&quot;富有&quot;**  </span><br><span class="line">心理学上的&quot;主观幸福感&quot;主要来自三个方面：有意义的人际关系、能带来心流体验的活动、对生活的自主掌控感。这些恰恰都是金钱不能直接购买的。不妨记录下今天让你感到温暖的三个小瞬间，你会发现另一种形式的富裕。</span><br><span class="line"></span><br><span class="line">4. **把惆怅转化为创作**  </span><br><span class="line">这种情绪其实是很好的创作素材。很多打动人的艺术作品都诞生于对生活的敏感体察。你可以写段小故事、画幅插画，甚至用手机拍个&quot;普通人的美好日常&quot;短视频。</span><br><span class="line"></span><br><span class="line">建议做个小小的时间胶囊实验：现在写下你对理想生活的具体想象（不是&quot;有钱&quot;这种抽象概念，而是&quot;周三下午能坐在阳光里看书&quot;这类细节），三个月后回看，你会发现很多愿望其实早已实现，只是当时忙着看别人的生活，忘了看见自己的。</span><br><span class="line"></span><br><span class="line">**人生的参照系不该只有一种刻度，你的存在本身就是一种无需比较的完整。** 那些让你感到酸涩的情绪，正说明你的心灵依然保持着对美好的感知力——这种能力，才是真正奢侈的财富。</span><br></pre></td></tr></table></figure>
+
+<p><strong>user</strong>: </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">人生本就是一场旅途，到最后不带半根草去，有些东西有了也就不过尔尔，最重要的是....</span><br></pre></td></tr></table></figure>
+
+<p><strong>assistant</strong>: </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">你这句话里藏着很深的智慧。**人生确如逆旅，而真正的珍贵往往在&quot;有了也就不过尔尔&quot;之后才浮现。** 或许我们可以试着把这种感悟拆解得更具体些：</span><br><span class="line"></span><br><span class="line">1. **&quot;不过尔尔&quot;的顿悟时刻**  </span><br><span class="line">那些曾经向往的奢侈品、豪车、豪宅，真正拥有后总会经历&quot;兴奋期-适应期-平淡期&quot;的心理曲线。神经科学发现，大脑对物质刺激的快乐阈值会不断抬高。就像吃完糖的舌头再尝蜂蜜会觉得甜度下降，**人最擅长的其实是习惯幸福**。</span><br><span class="line"></span><br><span class="line">2. **旅途中的隐藏彩蛋**  </span><br><span class="line">如果把人生比作游戏，富二代可能开局就拿到了金币作弊码，但游戏乐趣恰恰在于解锁成就的过程。你此刻经历的纠结、奋斗、甚至偶尔的匮乏感，都是他们永远无法获得的&quot;剧情体验包&quot;。就像《海上钢琴师》说的：&quot;琴键有尽头，但音乐没有。&quot;</span><br><span class="line"></span><br><span class="line">3. **比&quot;拥有&quot;更重要的动词**  </span><br><span class="line">观察那些真正活得通透的人，他们更常用的是这些动词：  </span><br><span class="line">▸ **创造**（一张画/一首诗/一道家常菜）  </span><br><span class="line">▸ **分享**（深夜的真心话/路边发现的蒲公英）  </span><br><span class="line">▸ **见证**（父母的白发/四季的变换）  </span><br><span class="line">这些不需要门槛的举动，反而最容易产生持久的心灵回声。</span><br><span class="line"></span><br><span class="line">4. **终局思维实践**  </span><br><span class="line">可以玩个冥想游戏：想象自己80岁躺在摇椅上回忆人生，此刻最可能浮现在脑海的，会是某个名牌包的开箱时刻，还是大雨天和好友共撑一把伞的狼狈欢笑？**记忆自动过滤掉的，往往就是此刻我们过度追逐的。**</span><br><span class="line"></span><br><span class="line">有个很妙的心理学现象叫&quot;斑马线效应&quot;——我们总盯着对面红灯路口等待的人流，羡慕他们即将通行的方向，却忘了自己这边的绿灯马上就要亮起。你现在惆怅的情绪，其实就是灵魂在提醒：该把目光收回到自己脚下的通行权了。</span><br></pre></td></tr></table></figure>
+ 
       <!-- reward -->
       
     </div>
@@ -120,7 +125,7 @@
     
     <footer class="article-footer">
        
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Andriod/" rel="tag">Andriod</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%8A%80%E6%9C%AF/" rel="tag">技术</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%84%9F%E6%82%9F/" rel="tag">感悟</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%94%9F%E6%B4%BB/" rel="tag">生活</a></li></ul>
 
     </footer>
   </div>
@@ -128,19 +133,10 @@
    
   <nav class="article-nav">
     
-      <a href="/2025/06/06/%E6%9C%89%E5%85%B3%E8%B4%A2%E5%AF%8C%E7%9A%84%E6%84%9F%E6%82%9F/" class="article-nav-link">
-        <strong class="article-nav-caption">上一篇</strong>
-        <div class="article-nav-title">
-          
-            有关财富的感悟
-          
-        </div>
-      </a>
     
-    
-      <a href="/2024/06/30/%E6%95%B0%E7%8B%AC/" class="article-nav-link">
+      <a href="/2025/05/24/gradle/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">数独</div>
+        <div class="article-nav-title">gradle</div>
       </a>
     
   </nav>
