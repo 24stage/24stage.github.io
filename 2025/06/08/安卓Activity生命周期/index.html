@@ -13,7 +13,7 @@
         name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1"
       />
-      <title>tags |  24stage</title>
+      <title>安卓Activity生命周期 |  24stage</title>
   <meta name="generator" content="hexo-theme-ayer">
       
       <link rel="shortcut icon" href="/smile.ico" />
@@ -54,13 +54,253 @@
       
     <main class="content on">
       <section class="outer">
+  <article
+  id="post-安卓Activity生命周期"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  安卓Activity生命周期
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2025/06/08/%E5%AE%89%E5%8D%93Activity%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/" class="article-date">
+  <time datetime="2025-06-08T02:38:26.000Z" itemprop="datePublished">2025-06-08</time>
+</a>   
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> Word count:</span>
+            <span class="post-count">753</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> Reading time≈</span>
+            <span class="post-count">3 min</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
   
-    <h1 class="page-type-title">Tags</h1>
-    <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Andriod/" rel="tag">Andriod</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Android/" rel="tag">Android</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0/" rel="tag">学习</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%84%9F%E6%82%9F/" rel="tag">感悟</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E6%9C%AF/" rel="tag">技术</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E7%BB%84/" rel="tag">数组</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%88%B1%E5%A5%BD/" rel="tag">爱好</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%94%9F%E6%B4%BB/" rel="tag">生活</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%AE%97%E6%B3%95/" rel="tag">算法</a></li></ul>
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="Android-Activity-生命周期完整总结（回调方法）"><a href="#Android-Activity-生命周期完整总结（回调方法）" class="headerlink" title="Android Activity 生命周期完整总结（回调方法）"></a>Android Activity 生命周期完整总结（回调方法）</h1><h2 id="🧭-生命周期总览"><a href="#🧭-生命周期总览" class="headerlink" title="🧭 生命周期总览"></a>🧭 生命周期总览</h2><p>Android 中的 <code>Activity</code> 生命周期可从三个层次来理解：</p>
+<ol>
+<li><strong>完整生命周期</strong>：从创建到销毁</li>
+<li><strong>可见生命周期</strong>：界面是否对用户可见</li>
+<li><strong>前台生命周期</strong>：是否允许与用户交互</li>
+</ol>
+<h2 id="🟩-1-完整生命周期（Activity-的诞生与死亡）"><a href="#🟩-1-完整生命周期（Activity-的诞生与死亡）" class="headerlink" title="🟩 1. 完整生命周期（Activity 的诞生与死亡）"></a>🟩 1. 完整生命周期（Activity 的诞生与死亡）</h2><table>
+<thead>
+<tr>
+<th>回调方法</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>onCreate()</code></td>
+<td>Activity 首次创建时调用。用于初始化界面、绑定视图等。</td>
+</tr>
+<tr>
+<td><code>onDestroy()</code></td>
+<td>Activity 被销毁前调用。用于释放资源。系统有时直接 kill 进程不会调用该方法。</td>
+</tr>
+</tbody></table>
+<h2 id="🟨-2-可见生命周期（Activity-是否显示在用户眼前）"><a href="#🟨-2-可见生命周期（Activity-是否显示在用户眼前）" class="headerlink" title="🟨 2. 可见生命周期（Activity 是否显示在用户眼前）"></a>🟨 2. 可见生命周期（Activity 是否显示在用户眼前）</h2><table>
+<thead>
+<tr>
+<th>回调方法</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>onStart()</code></td>
+<td>Activity 即将变为可见时调用。界面显示但尚不可交互。</td>
+</tr>
+<tr>
+<td><code>onStop()</code></td>
+<td>Activity 完全不可见时调用（例如进入后台）。此时应释放 UI 相关资源。</td>
+</tr>
+</tbody></table>
+<h2 id="🟥-3-前台生命周期（Activity-是否可与用户交互）"><a href="#🟥-3-前台生命周期（Activity-是否可与用户交互）" class="headerlink" title="🟥 3. 前台生命周期（Activity 是否可与用户交互）"></a>🟥 3. 前台生命周期（Activity 是否可与用户交互）</h2><table>
+<thead>
+<tr>
+<th>回调方法</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>onResume()</code></td>
+<td>Activity 进入前台并可以与用户交互。此时拥有焦点、接收输入。</td>
+</tr>
+<tr>
+<td><code>onPause()</code></td>
+<td>Activity 正在失去焦点（可能被新 Activity 遮挡或进入后台）。此时应暂停动画、保存状态等。</td>
+</tr>
+</tbody></table>
+<h2 id="🔄-4-其他辅助回调"><a href="#🔄-4-其他辅助回调" class="headerlink" title="🔄 4. 其他辅助回调"></a>🔄 4. 其他辅助回调</h2><table>
+<thead>
+<tr>
+<th>回调方法</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>onRestart()</code></td>
+<td>当 Activity 从 <code>onStop()</code> 状态重新进入前台前调用。适合用于恢复状态或刷新数据。</td>
+</tr>
+</tbody></table>
+<h2 id="📊-生命周期流程图"><a href="#📊-生命周期流程图" class="headerlink" title="📊 生命周期流程图"></a>📊 生命周期流程图</h2><p>首次启动：</p>
+<p>onCreate() → onStart() → onResume()<br>（Activity 正常运行中）<br>→ onPause() → onStop() → onDestroy()</p>
+<p>按下 Home 键返回桌面再回应用：</p>
+<p>onPause() → onStop()<br>→ onRestart() → onStart() → onResume()</p>
+<p>切换到其他 Activity：</p>
+<p>A: onPause()<br>B: onCreate() → onStart() → onResume()<br>A（可选）: onStop()</p>
+<h2 id="🧠-实用开发建议"><a href="#🧠-实用开发建议" class="headerlink" title="🧠 实用开发建议"></a>🧠 实用开发建议</h2><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>推荐用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>onCreate()</code></td>
+<td>初始化界面，绑定数据，设置监听器</td>
+</tr>
+<tr>
+<td><code>onStart()</code></td>
+<td>注册 BroadcastReceiver，启动轻量资源</td>
+</tr>
+<tr>
+<td><code>onResume()</code></td>
+<td>启动摄像头、动画、位置监听等交互功能</td>
+</tr>
+<tr>
+<td><code>onPause()</code></td>
+<td>保存状态、暂停动画、释放临时资源</td>
+</tr>
+<tr>
+<td><code>onStop()</code></td>
+<td>释放大型资源（网络、Bitmap、后台任务等）</td>
+</tr>
+<tr>
+<td><code>onDestroy()</code></td>
+<td>清理资源，防止内存泄漏</td>
+</tr>
+<tr>
+<td><code>onRestart()</code></td>
+<td>用于从后台返回时刷新界面或重启任务</td>
+</tr>
+</tbody></table>
+<h2 id="✅-快速记忆口诀"><a href="#✅-快速记忆口诀" class="headerlink" title="✅ 快速记忆口诀"></a>✅ 快速记忆口诀</h2><p>创建时：onCreate<br>可见时：onStart<br>可交互：onResume<br>离前台：onPause<br>不可见：onStop<br>被销毁：onDestroy<br>回前台：onRestart</p>
+<h2 id="📦-Jetpack-Compose-特别说明"><a href="#📦-Jetpack-Compose-特别说明" class="headerlink" title="📦 Jetpack Compose 特别说明"></a>📦 Jetpack Compose 特别说明</h2><p>在 Jetpack Compose 中，虽然 <code>Activity</code> 生命周期仍然存在，但 UI 逻辑大多迁移到 <code>@Composable</code> 和 <code>ViewModel</code> 中，建议配合以下 API：</p>
+<ul>
+<li><code>LaunchedEffect</code>：用于触发协程副作用</li>
+<li><code>remember</code>：用于状态保存</li>
+<li><code>DisposableEffect</code>：用于感知组件进入&#x2F;离开 Composition</li>
+<li><code>ViewModel</code> + <code>LifecycleObserver</code>：用于生命周期感知逻辑抽离</li>
+</ul>
+<hr>
+<h2 id="✨-示例：打印所有生命周期日志"><a href="#✨-示例：打印所有生命周期日志" class="headerlink" title="✨ 示例：打印所有生命周期日志"></a>✨ 示例：打印所有生命周期日志</h2><pre><code class="kotlin">class MainActivity : ComponentActivity() &#123;
+    override fun onCreate(savedInstanceState: Bundle?) &#123;
+        super.onCreate(savedInstanceState)
+        Log.d(&quot;Life&quot;, &quot;onCreate()&quot;)
+    &#125;
+
+    override fun onStart() &#123;
+        super.onStart()
+        Log.d(&quot;Life&quot;, &quot;onStart()&quot;)
+    &#125;
+
+    override fun onResume() &#123;
+        super.onResume()
+        Log.d(&quot;Life&quot;, &quot;onResume()&quot;)
+    &#125;
+
+    override fun onPause() &#123;
+        super.onPause()
+        Log.d(&quot;Life&quot;, &quot;onPause()&quot;)
+    &#125;
+
+    override fun onStop() &#123;
+        super.onStop()
+        Log.d(&quot;Life&quot;, &quot;onStop()&quot;)
+    &#125;
+
+    override fun onDestroy() &#123;
+        super.onDestroy()
+        Log.d(&quot;Life&quot;, &quot;onDestroy()&quot;)
+    &#125;
+
+    override fun onRestart() &#123;
+        super.onRestart()
+        Log.d(&quot;Life&quot;, &quot;onRestart()&quot;)
+    &#125;
+&#125;
+</code></pre>
+ 
+      <!-- reward -->
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <footer class="article-footer">
+       
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Android/" rel="tag">Android</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0/" rel="tag">学习</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%8A%80%E6%9C%AF/" rel="tag">技术</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+    
+      <a href="/2025/06/06/%E6%9C%89%E5%85%B3%E8%B4%A2%E5%AF%8C%E7%9A%84%E6%84%9F%E6%82%9F/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">有关财富的感悟</div>
+      </a>
+    
+  </nav>
+
   
+   
+  
+   
+    <script src="https://cdn.staticfile.org/twikoo/1.4.18/twikoo.all.min.js"></script>
+    <div id="twikoo" class="twikoo"></div>
+    <script>
+        twikoo.init({
+            envId: ""
+        })
+    </script>
+ 
+</article>
+
 </section>
-
-
       <footer class="footer">
   <div class="outer">
     <ul>
@@ -179,6 +419,22 @@
 <script src="/js/lazyload.min.js"></script>
 
 <!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
 
 <script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
 <link
