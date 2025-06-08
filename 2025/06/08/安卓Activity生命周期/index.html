@@ -222,44 +222,7 @@
 <li><code>DisposableEffect</code>：用于感知组件进入&#x2F;离开 Composition</li>
 <li><code>ViewModel</code> + <code>LifecycleObserver</code>：用于生命周期感知逻辑抽离</li>
 </ul>
-<hr>
-<h2 id="✨-示例：打印所有生命周期日志"><a href="#✨-示例：打印所有生命周期日志" class="headerlink" title="✨ 示例：打印所有生命周期日志"></a>✨ 示例：打印所有生命周期日志</h2><pre><code class="kotlin">class MainActivity : ComponentActivity() &#123;
-    override fun onCreate(savedInstanceState: Bundle?) &#123;
-        super.onCreate(savedInstanceState)
-        Log.d(&quot;Life&quot;, &quot;onCreate()&quot;)
-    &#125;
-
-    override fun onStart() &#123;
-        super.onStart()
-        Log.d(&quot;Life&quot;, &quot;onStart()&quot;)
-    &#125;
-
-    override fun onResume() &#123;
-        super.onResume()
-        Log.d(&quot;Life&quot;, &quot;onResume()&quot;)
-    &#125;
-
-    override fun onPause() &#123;
-        super.onPause()
-        Log.d(&quot;Life&quot;, &quot;onPause()&quot;)
-    &#125;
-
-    override fun onStop() &#123;
-        super.onStop()
-        Log.d(&quot;Life&quot;, &quot;onStop()&quot;)
-    &#125;
-
-    override fun onDestroy() &#123;
-        super.onDestroy()
-        Log.d(&quot;Life&quot;, &quot;onDestroy()&quot;)
-    &#125;
-
-    override fun onRestart() &#123;
-        super.onRestart()
-        Log.d(&quot;Life&quot;, &quot;onRestart()&quot;)
-    &#125;
-&#125;
-</code></pre>
+<h2 id="✨-示例：打印所有生命周期日志"><a href="#✨-示例：打印所有生命周期日志" class="headerlink" title="✨ 示例：打印所有生命周期日志"></a>✨ 示例：打印所有生命周期日志</h2><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">MainActivity</span> : <span class="type">ComponentActivity</span>() &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onCreate</span><span class="params">(savedInstanceState: <span class="type">Bundle</span>?)</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState)</span><br><span class="line">        Log.d(<span class="string">&quot;Life&quot;</span>, <span class="string">&quot;onCreate()&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onStart</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.onStart()</span><br><span class="line">        Log.d(<span class="string">&quot;Life&quot;</span>, <span class="string">&quot;onStart()&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onResume</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.onResume()</span><br><span class="line">        Log.d(<span class="string">&quot;Life&quot;</span>, <span class="string">&quot;onResume()&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onPause</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.onPause()</span><br><span class="line">        Log.d(<span class="string">&quot;Life&quot;</span>, <span class="string">&quot;onPause()&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onStop</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.onStop()</span><br><span class="line">        Log.d(<span class="string">&quot;Life&quot;</span>, <span class="string">&quot;onStop()&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onDestroy</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.onDestroy()</span><br><span class="line">        Log.d(<span class="string">&quot;Life&quot;</span>, <span class="string">&quot;onDestroy()&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onRestart</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.onRestart()</span><br><span class="line">        Log.d(<span class="string">&quot;Life&quot;</span>, <span class="string">&quot;onRestart()&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
  
       <!-- reward -->
       
