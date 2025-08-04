@@ -13,7 +13,7 @@
         name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1"
       />
-      <title>tags |  24stage</title>
+      <title>Android测试依赖项 |  24stage</title>
   <meta name="generator" content="hexo-theme-ayer">
       
       <link rel="shortcut icon" href="/smile.ico" />
@@ -54,13 +54,114 @@
       
     <main class="content on">
       <section class="outer">
+  <article
+  id="post-Android测试依赖项"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Android测试依赖项
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2025/06/15/Android%E6%B5%8B%E8%AF%95%E4%BE%9D%E8%B5%96%E9%A1%B9/" class="article-date">
+  <time datetime="2025-06-15T01:04:25.000Z" itemprop="datePublished">2025-06-15</time>
+</a>   
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> Word count:</span>
+            <span class="post-count">465</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> Reading time≈</span>
+            <span class="post-count">1 min</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
   
-    <h1 class="page-type-title">Tags</h1>
-    <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Andriod/" rel="tag">Andriod</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Android/" rel="tag">Android</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0/" rel="tag">学习</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%84%9F%E6%82%9F/" rel="tag">感悟</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E6%9C%AF/" rel="tag">技术</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E7%BB%84/" rel="tag">数组</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B5%8B%E8%AF%95/" rel="tag">测试</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%88%B1%E5%A5%BD/" rel="tag">爱好</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%94%9F%E6%B4%BB/" rel="tag">生活</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%AE%97%E6%B3%95/" rel="tag">算法</a></li></ul>
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="添加-androidTest-依赖项"><a href="#添加-androidTest-依赖项" class="headerlink" title="添加 androidTest 依赖项"></a>添加 androidTest 依赖项</h1><p>使用 Gradle 构建工具为特定模块添加依赖项。此功能可防止对依赖项进行不必要的编译。在项目中添加依赖项时，您已经熟悉了 implementation 配置。您已经使用此关键字在应用模块的 build.gradle.kts 文件中导入依赖项。使用 implementation 关键字可将该依赖项提供给该模块中的所有源代码集使用；在本课程的这一阶段，您已经具备处理 main、test 和 androidTest 源代码集的经验。</p>
+<p>界面测试位于各自的源代码集中，名称为 androidTest。一些依赖项仅需要用于此模块，对于这种情况，不需要为其他模块（例如包含应用代码的 main 模块）编译这些依赖项。在添加仅供界面测试使用的依赖项时，请使用 androidTestImplementation 关键字在应用模块的 build.gradle.kts 文件中声明依赖项。这样做可确保仅在您运行界面测试时才会编译界面测试依赖项。</p>
+<h3 id="添加编写界面测试所需的依赖项"><a href="#添加编写界面测试所需的依赖项" class="headerlink" title="添加编写界面测试所需的依赖项"></a>添加编写界面测试所需的依赖项</h3><ol>
+<li>打开 build.gradle.kts(Module :app) 文件。</li>
+<li>将以下依赖项添加到该文件的 dependencies 部分：<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">androidTestImplementation(platform(<span class="string">&quot;androidx.compose:compose-bom:2023.05.01&quot;</span>))</span><br><span class="line">androidTestImplementation(<span class="string">&quot;androidx.compose.ui:ui-test-junit4&quot;</span>)</span><br><span class="line">androidTestImplementation(<span class="string">&quot;androidx.navigation:navigation-testing:2.6.0&quot;</span>)</span><br><span class="line">androidTestImplementation(<span class="string">&quot;androidx.test.espresso:espresso-intents:3.5.1&quot;</span>)</span><br><span class="line">androidTestImplementation(<span class="string">&quot;androidx.test.ext:junit:1.1.5&quot;</span>)</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h1 id="创建界面测试目录"><a href="#创建界面测试目录" class="headerlink" title="创建界面测试目录"></a>创建界面测试目录</h1><ol>
+<li>右键点击项目视图中的 src 目录，然后依次选择 New &gt; Directory。</li>
+<li>选择 androidTest&#x2F;java 选项。</li>
+</ol>
+<h1 id="创建测试软件包"><a href="#创建测试软件包" class="headerlink" title="创建测试软件包"></a>创建测试软件包</h1><ol>
+<li>右键点击项目窗口中的 androidTest&#x2F;java 目录，然后依次选择 New &gt; Package。</li>
+<li>将软件包命名为 com.example.yourProjectName.test</li>
+<li>创建导航测试类<br>(测试包和文件名称与项目文件名称一致)</li>
+</ol>
+ 
+      <!-- reward -->
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <footer class="article-footer">
+       
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Android/" rel="tag">Android</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0/" rel="tag">学习</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%B5%8B%E8%AF%95/" rel="tag">测试</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+    
+      <a href="/2025/06/08/%E5%AE%89%E5%8D%93Activity%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">安卓Activity生命周期</div>
+      </a>
+    
+  </nav>
+
   
+   
+  
+   
+    <script src="https://cdn.staticfile.org/twikoo/1.4.18/twikoo.all.min.js"></script>
+    <div id="twikoo" class="twikoo"></div>
+    <script>
+        twikoo.init({
+            envId: ""
+        })
+    </script>
+ 
+</article>
+
 </section>
-
-
       <footer class="footer">
   <div class="outer">
     <ul>
@@ -179,6 +280,22 @@
 <script src="/js/lazyload.min.js"></script>
 
 <!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
 
 <script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
 <link
