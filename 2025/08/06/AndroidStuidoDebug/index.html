@@ -13,7 +13,7 @@
         name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1"
       />
-      <title>Archives |  24stage</title>
+      <title>AndroidStuidoDebug |  24stage</title>
   <meta name="generator" content="hexo-theme-ayer">
       
       <link rel="shortcut icon" href="/smile.ico" />
@@ -54,278 +54,123 @@
       
     <main class="content on">
       <section class="outer">
+  <article
+  id="post-AndroidStuidoDebug"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  AndroidStuidoDebug
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2025/08/06/AndroidStuidoDebug/" class="article-date">
+  <time datetime="2025-08-06T05:19:05.000Z" itemprop="datePublished">2025-08-06</time>
+</a>   
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> Word count:</span>
+            <span class="post-count">207</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> Reading time≈</span>
+            <span class="post-count">1 min</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
   
-  <ul class="ads">
-    
-        <li>
-            <a href="">
-                <img src="" width="300" alt="">
-            </a>
-        </li>
-    
+    <div class="article-entry" itemprop="articleBody">
+       
+  <p><strong>记录一些在Android开发过程中遇到的一些Bug以及解决方法</strong></p>
+<h2 id="一-Emulator-failed-to-connect-within-5-minutes"><a href="#一-Emulator-failed-to-connect-within-5-minutes" class="headerlink" title="一. Emulator failed to connect within 5 minutes"></a>一. Emulator failed to connect within 5 minutes</h2><p>此报错常见于电脑死机未能正常关闭Android Studio的情况，意味着 Android 模拟器在启动过程中卡住，未能在 5 分钟内成功运行。这通常是由于系统资源不足、虚拟设备配置问题，或模拟器数据损坏引起的。</p>
+<h4 id="✅-解决步骤（按顺序尝试）"><a href="#✅-解决步骤（按顺序尝试）" class="headerlink" title="✅ 解决步骤（按顺序尝试）"></a>✅ 解决步骤（按顺序尝试）</h4><ol>
+<li><strong>完全退出所有 Android 模拟器进程</strong></li>
+</ol>
+<p>打开任务管理器（Ctrl + Shift + Esc），强制结束以下进程：</p>
+<ul>
+<li><p>emulator.exe</p>
+</li>
+<li><p>qemu-system-x86_64.exe</p>
+</li>
+<li><p>adb.exe</p>
+</li>
 </ul>
-  
-  
-  <article class="articles">
-    
-    
-    <h1 class="page-type-title">Archives</h1>
-    
-    
-  
-  
-  
-  
-  
-  
-  <div class="archives-wrap">
-    <div class="archive-year-wrap">
-      <a href="/archives/2025" class="archive-year">2025</a>
-    </div>
-    <div class="archives">
-      
-      <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2025/08/06/AndroidStuidoDebug/" class="archive-article-date">
-  <time datetime="2025-08-06T05:19:05.000Z" itemprop="datePublished">08/06</time>
-</a>
-       
-<h2 itemprop="name">
-  <a class="archive-article-title" href="/2025/08/06/AndroidStuidoDebug/"
-    >AndroidStuidoDebug</a> 
-</h2>
- 
-
-    </header>
-    
-    
-  </div>
-</article>
-      
-  
-  
-      <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2025/06/15/Android%E6%B5%8B%E8%AF%95%E4%BE%9D%E8%B5%96%E9%A1%B9/" class="archive-article-date">
-  <time datetime="2025-06-15T01:04:25.000Z" itemprop="datePublished">06/15</time>
-</a>
-       
-<h2 itemprop="name">
-  <a class="archive-article-title" href="/2025/06/15/Android%E6%B5%8B%E8%AF%95%E4%BE%9D%E8%B5%96%E9%A1%B9/"
-    >Android测试依赖项</a> 
-</h2>
- 
-
-    </header>
-    
-    
-  </div>
-</article>
-      
-  
-  
-      <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2025/06/08/%E5%AE%89%E5%8D%93Activity%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/" class="archive-article-date">
-  <time datetime="2025-06-08T02:38:26.000Z" itemprop="datePublished">06/08</time>
-</a>
-       
-<h2 itemprop="name">
-  <a class="archive-article-title" href="/2025/06/08/%E5%AE%89%E5%8D%93Activity%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/"
-    >安卓Activity生命周期</a> 
-</h2>
- 
-
-    </header>
-    
-    
-  </div>
-</article>
-      
-  
-  
-      <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2025/06/06/%E6%9C%89%E5%85%B3%E8%B4%A2%E5%AF%8C%E7%9A%84%E6%84%9F%E6%82%9F/" class="archive-article-date">
-  <time datetime="2025-06-06T01:48:28.000Z" itemprop="datePublished">06/06</time>
-</a>
-       
-<h2 itemprop="name">
-  <a class="archive-article-title" href="/2025/06/06/%E6%9C%89%E5%85%B3%E8%B4%A2%E5%AF%8C%E7%9A%84%E6%84%9F%E6%82%9F/"
-    >有关财富的感悟</a> 
-</h2>
- 
-
-    </header>
-    
-    
-  </div>
-</article>
-      
-  
-  
-      <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2025/05/24/gradle/" class="archive-article-date">
-  <time datetime="2025-05-24T10:04:37.000Z" itemprop="datePublished">05/24</time>
-</a>
-       
-<h2 itemprop="name">
-  <a class="archive-article-title" href="/2025/05/24/gradle/"
-    >gradle</a> 
-</h2>
- 
-
-    </header>
-    
-    
-  </div>
-</article>
-      
-  
-  
-  
-  </div>
-  </div>
-  
-  
-  <div class="archives-wrap">
-    <div class="archive-year-wrap">
-      <a href="/archives/2024" class="archive-year">2024</a>
-    </div>
-    <div class="archives">
-      
-      <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2024/06/30/%E6%95%B0%E7%8B%AC/" class="archive-article-date">
-  <time datetime="2024-06-30T09:52:18.000Z" itemprop="datePublished">06/30</time>
-</a>
-       
-<h2 itemprop="name">
-  <a class="archive-article-title" href="/2024/06/30/%E6%95%B0%E7%8B%AC/"
-    >数独</a> 
-</h2>
- 
-
-    </header>
-    
-    
-  </div>
-</article>
-      
-  
-  
-      <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2024/03/19/markdown%E7%9A%84%E4%B8%80%E4%BA%9B%E5%B8%B8%E7%94%A8%E8%AF%AD%E6%B3%95/" class="archive-article-date">
-  <time datetime="2024-03-19T13:28:35.000Z" itemprop="datePublished">03/19</time>
-</a>
-       
-<h2 itemprop="name">
-  <a class="archive-article-title" href="/2024/03/19/markdown%E7%9A%84%E4%B8%80%E4%BA%9B%E5%B8%B8%E7%94%A8%E8%AF%AD%E6%B3%95/"
-    >markdown的一些常用语法</a> 
-</h2>
- 
-
-    </header>
-    
-    
-  </div>
-</article>
-      
-  
-  
-      <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2024/03/19/%E5%BD%B1%E8%A7%86%E9%89%B4%E8%B5%8F/" class="archive-article-date">
-  <time datetime="2024-03-19T12:47:09.000Z" itemprop="datePublished">03/19</time>
-</a>
-       
-<h2 itemprop="name">
-  <a class="archive-article-title" href="/2024/03/19/%E5%BD%B1%E8%A7%86%E9%89%B4%E8%B5%8F/"
-    >影视鉴赏</a> 
-</h2>
- 
-
-    </header>
-    
-    
-  </div>
-</article>
-      
-  
-  
-      <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2024/03/17/%E4%B8%B2%E6%B5%81%E5%AE%9E%E7%8E%B0%E8%BF%9C%E7%A8%8B%E6%A1%8C%E9%9D%A2/" class="archive-article-date">
-  <time datetime="2024-03-17T10:34:23.000Z" itemprop="datePublished">03/17</time>
-</a>
-       
-<h2 itemprop="name">
-  <a class="archive-article-title" href="/2024/03/17/%E4%B8%B2%E6%B5%81%E5%AE%9E%E7%8E%B0%E8%BF%9C%E7%A8%8B%E6%A1%8C%E9%9D%A2/"
-    >串流实现远程桌面</a> 
-</h2>
- 
-
-    </header>
-    
-    
-  </div>
-</article>
-      
-  
-  
-  
-  </div>
-  </div>
-  
-  
-  <div class="archives-wrap">
-    <div class="archive-year-wrap">
-      <a href="/archives/2023" class="archive-year">2023</a>
-    </div>
-    <div class="archives">
-      
-      <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2023/11/04/%E8%9E%BA%E6%97%8B%E7%9F%A9%E9%98%B5/" class="archive-article-date">
-  <time datetime="2023-11-04T12:52:57.000Z" itemprop="datePublished">11/04</time>
-</a>
-       
-<h2 itemprop="name">
-  <a class="archive-article-title" href="/2023/11/04/%E8%9E%BA%E6%97%8B%E7%9F%A9%E9%98%B5/"
-    >螺旋矩阵</a> 
-</h2>
- 
-
-    </header>
-    
-    
-  </div>
-</article>
-      
+<p>然后重启 Android Studio。</p>
+<ol start="2">
+<li><strong>清除 AVD 缓存和锁文件</strong></li>
+</ol>
+<p>打开AVD配置目录：<code>C:\Users\&lt;你的用户名&gt;\.android\avd\&lt;your_avd_name&gt;</code><br>删除里面的这几类文件：</p>
+<ul>
+<li>*.lock</li>
+<li>cache.img</li>
+<li>userdata-qemu.img</li>
+</ul>
+<hr>
+<h2 id="二"><a href="#二" class="headerlink" title="二."></a>二.</h2> 
+      <!-- reward -->
       
     </div>
-  </div>
-  
-  
-
-  
-  <nav class="page-nav">
     
-    <span class="page-number current">1</span><a class="page-number" href="/archives/page/2/">2</a><a class="extend next" rel="next" href="/archives/page/2/">下一页</a>
+
+    <!-- copyright -->
+    
+    <footer class="article-footer">
+       
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Android/" rel="tag">Android</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0/" rel="tag">学习</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%8A%80%E6%9C%AF/" rel="tag">技术</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+    
+      <a href="/2025/06/15/Android%E6%B5%8B%E8%AF%95%E4%BE%9D%E8%B5%96%E9%A1%B9/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Android测试依赖项</div>
+      </a>
+    
   </nav>
+
   
+   
+  
+   
+    <script src="https://cdn.staticfile.org/twikoo/1.4.18/twikoo.all.min.js"></script>
+    <div id="twikoo" class="twikoo"></div>
+    <script>
+        twikoo.init({
+            envId: ""
+        })
+    </script>
+ 
+</article>
+
 </section>
       <footer class="footer">
   <div class="outer">
@@ -445,6 +290,22 @@
 <script src="/js/lazyload.min.js"></script>
 
 <!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
 
 <script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
 <link
