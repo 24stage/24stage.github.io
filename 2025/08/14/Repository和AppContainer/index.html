@@ -13,7 +13,7 @@
         name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1"
       />
-      <title>AndroidStuidoDebug |  24stage</title>
+      <title>Repository和AppContainer |  24stage</title>
   <meta name="generator" content="hexo-theme-ayer">
       
       <link rel="shortcut icon" href="/smile.ico" />
@@ -55,7 +55,7 @@
     <main class="content on">
       <section class="outer">
   <article
-  id="post-AndroidStuidoDebug"
+  id="post-Repository和AppContainer"
   class="article article-type-post"
   itemscope
   itemprop="blogPost"
@@ -66,7 +66,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  AndroidStuidoDebug
+  Repository和AppContainer
 </h1>
  
 
@@ -74,15 +74,15 @@
     </header>
      
     <div class="article-meta">
-      <a href="/2025/08/06/AndroidStuidoDebug/" class="article-date">
-  <time datetime="2025-08-06T05:19:05.000Z" itemprop="datePublished">2025-08-06</time>
+      <a href="/2025/08/14/Repository%E5%92%8CAppContainer/" class="article-date">
+  <time datetime="2025-08-14T12:37:50.000Z" itemprop="datePublished">2025-08-14</time>
 </a>   
 <div class="word_count">
     <span class="post-time">
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">650</span>
+            <span class="post-count">504</span>
         </span>
     </span>
 
@@ -106,67 +106,42 @@
   
     <div class="article-entry" itemprop="articleBody">
        
-  <p><strong>记录一些在Android开发过程中遇到的一些Bug以及解决方法</strong></p>
-<h1 id="一-模拟器无法正常打开"><a href="#一-模拟器无法正常打开" class="headerlink" title="一. 模拟器无法正常打开"></a>一. 模拟器无法正常打开</h1><p><code>Emulator failed to connect within 5 minutes</code><br>此报错常见于电脑死机未能正常关闭Android Studio的情况，意味着 Android 模拟器在启动过程中卡住，未能在 5 分钟内成功运行。这通常是由于系统资源不足、虚拟设备配置问题，或模拟器数据损坏引起的。</p>
-<h3 id="✅-解决步骤（按顺序尝试）"><a href="#✅-解决步骤（按顺序尝试）" class="headerlink" title="✅ 解决步骤（按顺序尝试）"></a>✅ 解决步骤（按顺序尝试）</h3><ol>
-<li><strong>完全退出所有 Android 模拟器进程</strong></li>
-</ol>
-<p>打开任务管理器（Ctrl + Shift + Esc），强制结束以下进程：</p>
-<ul>
-<li><p>emulator.exe</p>
-</li>
-<li><p>qemu-system-x86_64.exe</p>
-</li>
-<li><p>adb.exe</p>
-</li>
-</ul>
-<p>然后重启 Android Studio。</p>
-<ol start="2">
-<li><strong>清除 AVD 缓存和锁文件</strong></li>
-</ol>
-<p>打开AVD配置目录：<code>C:\Users\&lt;你的用户名&gt;\.android\avd\&lt;your_avd_name&gt;</code><br>删除里面的这几类文件：</p>
-<ul>
-<li>*.lock</li>
-<li>cache.img</li>
-<li>userdata-qemu.img</li>
-</ul>
-<hr>
-<h1 id="二-ksp-Exception"><a href="#二-ksp-Exception" class="headerlink" title="二. ksp Exception"></a>二. ksp Exception</h1><h2 id="1-常见报错"><a href="#1-常见报错" class="headerlink" title="1. 常见报错"></a>1. 常见报错</h2><h3 id="1-1-StreamCorruptedException-invalid-stream-header-00000000"><a href="#1-1-StreamCorruptedException-invalid-stream-header-00000000" class="headerlink" title="1.1 StreamCorruptedException: invalid stream header: 00000000"></a>1.1 <code>StreamCorruptedException: invalid stream header: 00000000</code></h3><ul>
-<li><strong>原因</strong>: KSP 或 Gradle 缓存文件损坏，通常是增量编译产生的临时文件异常。</li>
-<li><strong>症状</strong>: 项目编译失败，错误发生在 <code>:app:kspDebugKotlin</code> 或类似任务。</li>
-</ul>
-<h3 id="1-2-Kotlin-与-KSP-版本不匹配"><a href="#1-2-Kotlin-与-KSP-版本不匹配" class="headerlink" title="1.2 Kotlin 与 KSP 版本不匹配"></a>1.2 Kotlin 与 KSP 版本不匹配</h3><ul>
-<li><strong>原因</strong>: KSP 插件版本前半段必须与 Kotlin 版本一致，否则会报错或生成损坏的代码。</li>
-<li><strong>症状</strong>: 编译报错或生成的代码异常。</li>
-</ul>
-<h2 id="2-快速修复步骤"><a href="#2-快速修复步骤" class="headerlink" title="2. 快速修复步骤"></a>2. 快速修复步骤</h2><h3 id="2-1-保证版本匹配"><a href="#2-1-保证版本匹配" class="headerlink" title="2.1 保证版本匹配"></a>2.1 保证版本匹配</h3><ul>
-<li><p><code>build.gradle.kts (Project)</code> :</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//apply false: 不在当前（根）模块应用，只是在子模块（比如 app）需要的时候再 apply</span></span><br><span class="line">plugins &#123;</span><br><span class="line">    id(<span class="string">&quot;com.android.application&quot;</span>) version <span class="string">&quot;8.7.3&quot;</span> apply <span class="literal">false</span></span><br><span class="line">    id(<span class="string">&quot;com.android.library&quot;</span>) version <span class="string">&quot;8.7.3&quot;</span> apply <span class="literal">false</span></span><br><span class="line">    id(<span class="string">&quot;org.jetbrains.kotlin.android&quot;</span>) version <span class="string">&quot;2.1.0&quot;</span> apply <span class="literal">false</span></span><br><span class="line">    id(<span class="string">&quot;org.jetbrains.kotlin.plugin.compose&quot;</span>) version <span class="string">&quot;2.1.0&quot;</span> apply <span class="literal">false</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p><code>build.gradle.kts (app)</code> :</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">plugins &#123;</span><br><span class="line">    id(<span class="string">&quot;com.android.application&quot;</span>)</span><br><span class="line">    id(<span class="string">&quot;com.google.devtools.ksp&quot;</span>) version <span class="string">&quot;2.1.0-1.0.29&quot;</span></span><br><span class="line">    id(<span class="string">&quot;org.jetbrains.kotlin.android&quot;</span>) </span><br><span class="line">    id(<span class="string">&quot;org.jetbrains.kotlin.plugin.compose&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
-</ul>
-<ul>
-<li>Kotlin 前半段版本必须和 KSP 前半段一致。</li>
-<li>Compose 插件也应与 Kotlin 版本兼容。</li>
-</ul>
-<h3 id="2-2-清理缓存和增量编译文件"><a href="#2-2-清理缓存和增量编译文件" class="headerlink" title="2.2 清理缓存和增量编译文件"></a>2.2 清理缓存和增量编译文件</h3><p><strong>Android Studio GUI 方式</strong></p>
+  <p><strong>三种文件的关系：</strong><br>应用层 (InventoryApplication)<br>    ↓<br>容器层 (AppContainer + AppDataContainer)<br>    ↓<br>数据层 (ItemsRepository + OfflineItemsRepository)</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">graph TB</span><br><span class="line">    subgraph &quot;应用层&quot;</span><br><span class="line">        A[InventoryApplication]</span><br><span class="line">    end</span><br><span class="line">    </span><br><span class="line">    subgraph &quot;容器层&quot;</span><br><span class="line">        B[AppContainer 接口]</span><br><span class="line">        C[AppDataContainer 实现]</span><br><span class="line">    end</span><br><span class="line">    </span><br><span class="line">    subgraph &quot;数据层&quot;</span><br><span class="line">        D[ItemsRepository 接口]</span><br><span class="line">        E[OfflineItemsRepository 实现]</span><br><span class="line">    end</span><br><span class="line">    </span><br><span class="line">    A --&gt; B</span><br><span class="line">    A --&gt; C</span><br><span class="line">    C --&gt; D</span><br><span class="line">    C --&gt; E</span><br><span class="line">    </span><br><span class="line">    style A fill:#e3f2fd</span><br><span class="line">    style B fill:#f3e5f5</span><br><span class="line">    style C fill:#e8f5e8</span><br><span class="line">    style D fill:#fff3e0</span><br><span class="line">    style E fill:#fce4ec</span><br></pre></td></tr></table></figure>
+
+<h2 id="✅-Repository"><a href="#✅-Repository" class="headerlink" title="✅ Repository"></a>✅ Repository</h2><p>创建 <code>Repository</code> 的目的:</p>
 <ol>
-<li><strong>Build → Clean Project</strong></li>
-<li><strong>Build → Rebuild Project</strong></li>
-<li><strong>File → Sync Project with Gradle Files</strong></li>
+<li>简化操作：你不需要知道数据存在哪里（数据库、网络、文件）</li>
+<li>统一接口：不管数据来源是什么，都用同样的方法操作</li>
+<li>便于测试：测试时可以轻松替换成”假数据”</li>
 </ol>
-<h3 id="2-3-检查-Kotlin-编译器版本"><a href="#2-3-检查-Kotlin-编译器版本" class="headerlink" title="2.3 检查 Kotlin 编译器版本"></a>2.3 检查 Kotlin 编译器版本</h3><p><strong>命令行方式:</strong></p>
-<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./gradlew app:dependencies <span class="literal">--configuration</span> debugCompileClasspath | findstr <span class="string">&quot;kotlin-stdlib&quot;</span></span><br></pre></td></tr></table></figure>
+<p><code>ItemsRepository.kt</code>:</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">ItemsRepository</span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">getAllItemsStream</span><span class="params">()</span></span>: Flow&lt;List&lt;Item&gt;&gt;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">getItemStream</span><span class="params">(id: <span class="type">Int</span>)</span></span>: Flow&lt;Item&gt;</span><br><span class="line">    <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">insertItem</span><span class="params">(item: <span class="type">Item</span>)</span></span></span><br><span class="line">    <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">deleteItem</span><span class="params">(item: <span class="type">Item</span>)</span></span></span><br><span class="line">    <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">updateItem</span><span class="params">(item: <span class="type">Item</span>)</span></span></span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>OfflineItemsRepository.kt</code>:</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">OfflineItemsRepository</span>(<span class="keyword">private</span> <span class="keyword">val</span> itemDao: ItemDao) : ItemsRepository&#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">getAllItemsStream</span><span class="params">()</span></span>: Flow&lt;List&lt;Item&gt;&gt; = itemDao.getAllItems()</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">getItemStream</span><span class="params">(id: <span class="type">Int</span>)</span></span>: Flow&lt;Item&gt; = itemDao.getItem(id)</span><br><span class="line">    <span class="keyword">override</span> <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">insertItem</span><span class="params">(item: <span class="type">Item</span>)</span></span> = itemDao.insert(item)</span><br><span class="line">    <span class="keyword">override</span> <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">deleteItem</span><span class="params">(item: <span class="type">Item</span>)</span></span> = itemDao.delete(item)</span><br><span class="line">    <span class="keyword">override</span> <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">updateItem</span><span class="params">(item: <span class="type">Item</span>)</span></span> = itemDao.update(item)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 
-<h2 id="3-小贴士"><a href="#3-小贴士" class="headerlink" title="3. 小贴士"></a>3. 小贴士</h2><ol>
-<li>升级 Kotlin 或 KSP 时，先清理项目再同步依赖，避免旧缓存干扰。</li>
-<li>使用 <code>apply false</code> 在根项目声明插件版本，子模块再应用，可以统一版本管理。</li>
-<li>Windows 下如果报缓存或锁文件问题，可关闭 Android Studio，删除 <code>.gradle</code> 和 <code>build</code> 文件夹，再重启。</li>
+<h2 id="✅依赖项注入-AppContainer"><a href="#✅依赖项注入-AppContainer" class="headerlink" title="✅依赖项注入 AppContainer"></a>✅依赖项注入 AppContainer</h2><p>依赖项注入: 在运行时提供依赖项，而不是将其硬编码到调用类中。通俗点说就是在一个类中将所需的对象作为实参传入。</p>
+<p>容器: 是一个包含应用所需的依赖项的对象</p>
+<p>AppContainer 的目的:</p>
+<ol>
+<li>集中管理：所有需要的”工具”都在一个地方</li>
+<li>自动创建：你不需要手动创建每个工具</li>
+<li>统一配置：所有工具都按照统一的方式配置</li>
 </ol>
-<hr>
-<h1 id="三"><a href="#三" class="headerlink" title="三."></a>三.</h1> 
+<p><code>AppContainer.kt</code>:</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">AppContainer</span> &#123;</span><br><span class="line">    <span class="keyword">val</span> itemsRepository: ItemsRepository</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">AppDataContainer</span>(<span class="keyword">private</span> <span class="keyword">val</span> context: Context) : AppContainer &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="keyword">val</span> itemsRepository: ItemsRepository <span class="keyword">by</span> lazy &#123;</span><br><span class="line">        OfflineItemsRepository(InventoryDatabase.getDatabase(context).itemDao())</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="✅Application文件"><a href="#✅Application文件" class="headerlink" title="✅Application文件"></a>✅Application文件</h2><p>作用：</p>
+<ol>
+<li>创建并管理 AppContainer 实例</li>
+<li>所有需要依赖的类都可以通过这个容器获取</li>
+<li>确保整个应用使用同一个依赖注入容器</li>
+</ol>
+<p><code>InventoryApplication.kt</code>:</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">InventoryApplication</span> : <span class="type">Application</span>() &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * AppContainer instance used by the rest of classes to obtain dependencies</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">lateinit</span> <span class="keyword">var</span> container: AppContainer</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onCreate</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate()</span><br><span class="line">        container = AppDataContainer(<span class="keyword">this</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure> 
       <!-- reward -->
       
     </div>
@@ -176,7 +151,7 @@
     
     <footer class="article-footer">
        
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Android/" rel="tag">Android</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0/" rel="tag">学习</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%8A%80%E6%9C%AF/" rel="tag">技术</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Android/" rel="tag">Android</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0/" rel="tag">学习</a></li></ul>
 
     </footer>
   </div>
@@ -184,19 +159,10 @@
    
   <nav class="article-nav">
     
+    
       <a href="/2025/08/08/%E5%AE%89%E5%8D%93Room/" class="article-nav-link">
-        <strong class="article-nav-caption">上一篇</strong>
-        <div class="article-nav-title">
-          
-            安卓Room
-          
-        </div>
-      </a>
-    
-    
-      <a href="/2025/06/15/Android%E6%B5%8B%E8%AF%95%E4%BE%9D%E8%B5%96%E9%A1%B9/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">Android测试依赖项</div>
+        <div class="article-nav-title">安卓Room</div>
       </a>
     
   </nav>

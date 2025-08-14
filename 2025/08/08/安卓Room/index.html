@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-hans">
+  
+
+    <head>
+      <meta charset="utf-8" />
+        
+      <meta name="description" content="24stage Blog" />
+      
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>安卓Room |  24stage</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/smile.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-安卓Room"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  安卓Room
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2025/08/08/%E5%AE%89%E5%8D%93Room/" class="article-date">
+  <time datetime="2025-08-08T10:31:57.000Z" itemprop="datePublished">2025-08-08</time>
+</a>   
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> Word count:</span>
+            <span class="post-count">1.1k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> Reading time≈</span>
+            <span class="post-count">4 min</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h2 id="✅-Room-的三个核心组件"><a href="#✅-Room-的三个核心组件" class="headerlink" title="✅ Room 的三个核心组件"></a>✅ Room 的三个核心组件</h2><table>
+<thead>
+<tr>
+<th>组件</th>
+<th>注解</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Entity</td>
+<td><code>@Entity</code></td>
+<td>定义表结构，每个类表示数据库中的一张表</td>
+</tr>
+<tr>
+<td>DAO</td>
+<td><code>@Dao</code></td>
+<td>定义数据操作方法，如增删查改等</td>
+</tr>
+<tr>
+<td>Database</td>
+<td><code>@Database</code></td>
+<td>声明数据库类，连接 Entity 和 Dao</td>
+</tr>
+</tbody></table>
+<h2 id="✅添加-Room-依赖项"><a href="#✅添加-Room-依赖项" class="headerlink" title="✅添加 Room 依赖项"></a>✅添加 Room 依赖项</h2><ol>
+<li><p>向 Gradle 文件添加所需的 Room 组件库。</p>
+</li>
+<li><p>打开模块级 Gradle 文件 build.gradle.kts (Module: app)<br>在 dependencies 代码块中，为 Room 库添加依赖项，如以下代码所示。</p>
+</li>
+</ol>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//Room</span></span><br><span class="line">implementation(<span class="string">&quot;androidx.room:room-runtime:<span class="subst">$&#123;rootProject.extra[<span class="string">&quot;room_version&quot;</span>]&#125;</span>&quot;</span>)</span><br><span class="line">ksp(<span class="string">&quot;androidx.room:room-compiler:<span class="subst">$&#123;rootProject.extra[<span class="string">&quot;room_version&quot;</span>]&#125;</span>&quot;</span>)</span><br><span class="line">implementation(<span class="string">&quot;androidx.room:room-ktx:<span class="subst">$&#123;rootProject.extra[<span class="string">&quot;room_version&quot;</span>]&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>打开项目级 Gradle 文件 build.gradle.kts (Project)</li>
+</ol>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">buildscript &#123;</span><br><span class="line">    extra.apply &#123;</span><br><span class="line">        <span class="keyword">set</span>(<span class="string">&quot;room_version&quot;</span>, <span class="string">&quot;2.7,2&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="✅Room-Dao中的-Query"><a href="#✅Room-Dao中的-Query" class="headerlink" title="✅Room Dao中的@Query"></a>✅Room Dao中的@Query</h2><p>建议在持久性层中使用 Flow。将返回值类型设为 Flow 后，只要数据库中的数据发生更改，就会收到通知。Room 会保持更新此 Flow，也就是说，只需要显式获取一次数据。<br>由于返回值类型为 Flow，Room 还会在后台线程上运行该查询。无需将其明确设为 suspend 函数并在协程作用域内调用它。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Dao</span></span><br><span class="line"><span class="keyword">interface</span> <span class="title class_">ItemDao</span> &#123;</span><br><span class="line">    <span class="meta">@Insert(onConflict = OnConflictStrategy.IGNORE)</span></span><br><span class="line">    <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">insert</span><span class="params">(item: <span class="type">Item</span>)</span></span></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Update</span></span><br><span class="line">    <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">update</span><span class="params">(item: <span class="type">Item</span>)</span></span></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Delete</span></span><br><span class="line">    <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">delete</span><span class="params">(item: <span class="type">Item</span>)</span></span></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Query(<span class="string">&quot;SELECT * from items WHERE id = :id&quot;</span>)</span>    <span class="comment">//:id 在查询中使用英文冒号来引用函数中的参数。</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">getItem</span><span class="params">(id: <span class="type">Int</span>)</span></span>: Flow&lt;Item&gt;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Query(<span class="string">&quot;SELECT * from items ORDER BY name ASC&quot;</span>)</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">getAllItems</span><span class="params">()</span></span>: Flow&lt;List&lt;Item&gt;&gt;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="✅Room-Database-标准单例写法"><a href="#✅Room-Database-标准单例写法" class="headerlink" title="✅Room Database 标准单例写法"></a>✅Room Database 标准单例写法</h2><p>这段代码定义了一个名为 <code>InventoryDatabase</code> 的Room 数据库类，并通过 getDatabase() 方法确保全应用只创建一次数据库实例（单例模式）</p>
+<p>可以将此代码用作项目的模板。创建 RoomDatabase 实例的方式与该步骤中的过程类似。只需要替换特定应用的<code>Entity</code> 和 <code>DAO</code>。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//告诉 Room：数据库包含哪些表（entities）、版本号是多少、是否导出架构</span></span><br><span class="line"><span class="meta">@Database(entities = [Item::class], version = 1, exportSchema = false)</span></span><br><span class="line"><span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">InventoryDatabase</span> : <span class="type">RoomDatabase</span>()&#123;</span><br><span class="line"><span class="comment">//    声明一个返回 ItemDao 的抽象函数</span></span><br><span class="line">    <span class="keyword">abstract</span> <span class="function"><span class="keyword">fun</span> <span class="title">itemDao</span><span class="params">()</span></span>: ItemDao</span><br><span class="line">    <span class="comment">//所有定义在 companion object 中的函数/变量都可以用类名直接访问</span></span><br><span class="line">    <span class="keyword">companion</span> <span class="keyword">object</span> &#123;</span><br><span class="line">        <span class="meta">@Volatile</span>      <span class="comment">//这是一个线程安全相关的注解,确保多线程访问这个变量时能看到最新值，避免创建多个实例</span></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">var</span> Instance: InventoryDatabase ?= <span class="literal">null</span></span><br><span class="line"><span class="comment">//        提供一个公开的函数来返回数据库实例,若已存在直接返回；否则创建一个新的</span></span><br><span class="line">        <span class="function"><span class="keyword">fun</span> <span class="title">getDatabase</span><span class="params">(context: <span class="type">Context</span>)</span></span>: InventoryDatabase&#123;</span><br><span class="line">            <span class="keyword">return</span> Instance ?: synchronized(<span class="keyword">this</span>)&#123;</span><br><span class="line">                Room.databaseBuilder(context, InventoryDatabase::<span class="keyword">class</span>.java, <span class="string">&quot;item_database&quot;</span>)</span><br><span class="line">                    .build()</span><br><span class="line">                    .also &#123; Instance = it &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>补充：<code>Elvis </code>运算符的语法<br><code>val result = a ?: b</code><br>如果 a !&#x3D; null，则 result &#x3D; a<br>如果 a &#x3D;&#x3D; null，则 result &#x3D; b</p>
+<h2 id="✅Flow-和-StateFlow"><a href="#✅Flow-和-StateFlow" class="headerlink" title="✅Flow 和 StateFlow"></a>✅Flow 和 StateFlow</h2><p>向 <code>ItemDao</code> 添加用于获取商品的 <code>getItem()</code> 和 <code>getAllItems() </code>方法时，将 <code>Flow</code> 指定为返回值类型。回想一下，<code>Flow </code>代表通用数据流。通过返回 <code>Flow</code>，只需在指定生命周期内明确调用 <code>DAO</code> 中的方法一次即可。<code>Room </code>以异步方式处理底层数据的更新。<br>但直接使用<code>Flow</code>会存在一些问题：</p>
+<ul>
+<li>配置更改等生命周期事件（例如旋转设备）会导致重新创建 activity，进而导致重组，并从 <code>Flow</code> 重新收集数据。</li>
+<li>将值缓存为状态，这样现有数据就不会在生命周期事件之间丢失。</li>
+<li>如果没有任何观察器（例如在可组合项的生命周期结束后），则应取消数据流。</li>
+</ul>
+<p>为了解决这些问题，如需从 <code>ViewModel</code> 公开 <code>Flow</code>，推荐使用 <code>StateFlow</code>。无论界面生命周期如何，使用 <code>StateFlow</code> 均可保存和观察数据。如需将 <code>Flow</code> 转换为 <code>StateFlow</code>，您可以使用 <code>stateIn</code> 操作符。</p>
+<p><code>Flow</code> 用在一次性事件或后台数据流（比如从 R<code>oom</code> 订阅变化）<br><code>StateFlow </code>常用来存储 <code>ViewModel</code> 中的 <code>UI</code> 状态，然后在 <code>Compose</code> 里用 <code>collectAsState()</code> 转成 <code>Compose</code> 的 <code>State</code></p>
+<p>下面是在<code>HomeViewModel</code>中使用<code>StateFlow</code>的示例</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ItemDetailsViewModel</span>(</span><br><span class="line">    savedStateHandle: SavedStateHandle,</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> itemsRepository: ItemsRepository</span><br><span class="line">) : ViewModel() &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> itemId: <span class="built_in">Int</span> = checkNotNull(savedStateHandle[ItemDetailsDestination.itemIdArg])</span><br><span class="line"></span><br><span class="line">    <span class="keyword">companion</span> <span class="keyword">object</span> &#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">const</span> <span class="keyword">val</span> TIMEOUT_MILLIS = <span class="number">5_000L</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> uiState: StateFlow&lt;ItemDetailsUiState&gt; =</span><br><span class="line">        itemsRepository.getItemStream(itemId)   <span class="comment">//这里 getItemStream(itemId) 返回的是 Flow&lt;Item&gt;</span></span><br><span class="line">            .filterNotNull()</span><br><span class="line">            .map &#123;  <span class="comment">//.map &#123; ... &#125; 把每个 Item 转换成 ItemDetailsUiState,结果为得到 Flow&lt;ItemDetailsUiState&gt;</span></span><br><span class="line">                ItemDetailsUiState(itemDetails = it.toItemDetails())</span><br><span class="line">            &#125;.stateIn(  <span class="comment">//stateIn将结果最终转换成 StateFlow&lt;ItemDetailsUiState&gt;</span></span><br><span class="line">                scope = viewModelScope,</span><br><span class="line">                started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),</span><br><span class="line">                initialValue = ItemDetailsUiState()</span><br><span class="line">            )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+ 
+      <!-- reward -->
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <footer class="article-footer">
+       
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Android/" rel="tag">Android</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0/" rel="tag">学习</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2025/08/14/Repository%E5%92%8CAppContainer/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            Repository和AppContainer
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2025/08/06/AndroidStuidoDebug/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">AndroidStuidoDebug</div>
+      </a>
+    
+  </nav>
+
+  
+   
+  
+   
+    <script src="https://cdn.staticfile.org/twikoo/1.4.18/twikoo.all.min.js"></script>
+    <div id="twikoo" class="twikoo"></div>
+    <script>
+        twikoo.init({
+            envId: ""
+        })
+    </script>
+ 
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2023-2025
+        <i class="ri-heart-fill heart_icon"></i> Hexo
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/smile-circle-side.svg" alt="24stage"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2023/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.jpg">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    
+
+  </div>
+</body>
+
+</html>
