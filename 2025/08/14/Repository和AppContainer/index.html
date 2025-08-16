@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">504</span>
+            <span class="post-count">567</span>
         </span>
     </span>
 
@@ -109,7 +109,7 @@
   <p><strong>三种文件的关系：</strong><br>应用层 (InventoryApplication)<br>    ↓<br>容器层 (AppContainer + AppDataContainer)<br>    ↓<br>数据层 (ItemsRepository + OfflineItemsRepository)</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">graph TB</span><br><span class="line">    subgraph &quot;应用层&quot;</span><br><span class="line">        A[InventoryApplication]</span><br><span class="line">    end</span><br><span class="line">    </span><br><span class="line">    subgraph &quot;容器层&quot;</span><br><span class="line">        B[AppContainer 接口]</span><br><span class="line">        C[AppDataContainer 实现]</span><br><span class="line">    end</span><br><span class="line">    </span><br><span class="line">    subgraph &quot;数据层&quot;</span><br><span class="line">        D[ItemsRepository 接口]</span><br><span class="line">        E[OfflineItemsRepository 实现]</span><br><span class="line">    end</span><br><span class="line">    </span><br><span class="line">    A --&gt; B</span><br><span class="line">    A --&gt; C</span><br><span class="line">    C --&gt; D</span><br><span class="line">    C --&gt; E</span><br><span class="line">    </span><br><span class="line">    style A fill:#e3f2fd</span><br><span class="line">    style B fill:#f3e5f5</span><br><span class="line">    style C fill:#e8f5e8</span><br><span class="line">    style D fill:#fff3e0</span><br><span class="line">    style E fill:#fce4ec</span><br></pre></td></tr></table></figure>
 
-<h2 id="✅-Repository"><a href="#✅-Repository" class="headerlink" title="✅ Repository"></a>✅ Repository</h2><p>创建 <code>Repository</code> 的目的:</p>
+<h2 id="✅-Repository"><a href="#✅-Repository" class="headerlink" title="✅ Repository"></a>✅ Repository</h2><p><strong>创建 <code>Repository</code> 的目的:</strong></p>
 <ol>
 <li>简化操作：你不需要知道数据存在哪里（数据库、网络、文件）</li>
 <li>统一接口：不管数据来源是什么，都用同样的方法操作</li>
@@ -124,7 +124,7 @@
 
 <h2 id="✅依赖项注入-AppContainer"><a href="#✅依赖项注入-AppContainer" class="headerlink" title="✅依赖项注入 AppContainer"></a>✅依赖项注入 AppContainer</h2><p>依赖项注入: 在运行时提供依赖项，而不是将其硬编码到调用类中。通俗点说就是在一个类中将所需的对象作为实参传入。</p>
 <p>容器: 是一个包含应用所需的依赖项的对象</p>
-<p>AppContainer 的目的:</p>
+<p><strong>AppContainer 的目的:</strong></p>
 <ol>
 <li>集中管理：所有需要的”工具”都在一个地方</li>
 <li>自动创建：你不需要手动创建每个工具</li>
@@ -134,14 +134,18 @@
 <figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">AppContainer</span> &#123;</span><br><span class="line">    <span class="keyword">val</span> itemsRepository: ItemsRepository</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">AppDataContainer</span>(<span class="keyword">private</span> <span class="keyword">val</span> context: Context) : AppContainer &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="keyword">val</span> itemsRepository: ItemsRepository <span class="keyword">by</span> lazy &#123;</span><br><span class="line">        OfflineItemsRepository(InventoryDatabase.getDatabase(context).itemDao())</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 
-<h2 id="✅Application文件"><a href="#✅Application文件" class="headerlink" title="✅Application文件"></a>✅Application文件</h2><p>作用：</p>
+<h2 id="✅Application文件"><a href="#✅Application文件" class="headerlink" title="✅Application文件"></a>✅Application文件</h2><p><strong>作用：</strong></p>
 <ol>
 <li>创建并管理 AppContainer 实例</li>
 <li>所有需要依赖的类都可以通过这个容器获取</li>
 <li>确保整个应用使用同一个依赖注入容器</li>
 </ol>
 <p><code>InventoryApplication.kt</code>:</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">InventoryApplication</span> : <span class="type">Application</span>() &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * AppContainer instance used by the rest of classes to obtain dependencies</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">lateinit</span> <span class="keyword">var</span> container: AppContainer</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onCreate</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate()</span><br><span class="line">        container = AppDataContainer(<span class="keyword">this</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure> 
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">InventoryApplication</span> : <span class="type">Application</span>() &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * AppContainer instance used by the rest of classes to obtain dependencies</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">lateinit</span> <span class="keyword">var</span> container: AppContainer</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onCreate</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate()</span><br><span class="line">        container = AppDataContainer(<span class="keyword">this</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>在 AndroidManifest.xml 文件的 <code>application</code> 标记内，添加以下代码行。</strong><br>将 <code>InventoryApplication</code> 类定义为应用的入口点。此代码用于在启动 <code>MainActivity</code> 之前，初始化 <code>InventoryApplication</code>类中定义的依赖项。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;application</span><br><span class="line">    android:name=<span class="string">&quot;.InventoryApplication&quot;</span></span><br><span class="line">    ...</span><br><span class="line">&lt;/application&gt;</span><br></pre></td></tr></table></figure>
+
+ 
       <!-- reward -->
       
     </div>
