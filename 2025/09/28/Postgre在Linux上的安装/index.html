@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">1k</span>
+            <span class="post-count">1.5k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">4 min</span>
+            <span class="post-count">6 min</span>
         </span>
     </span>
 </div>
@@ -106,7 +106,7 @@
   
     <div class="article-entry" itemprop="articleBody">
        
-  <h1 id="在-Ubuntu-上从源码使用-Autoconf-Make-安装-PostgreSQL-16-8"><a href="#在-Ubuntu-上从源码使用-Autoconf-Make-安装-PostgreSQL-16-8" class="headerlink" title="在 Ubuntu 上从源码使用 Autoconf + Make 安装 PostgreSQL 16.8"></a>在 Ubuntu 上从源码使用 Autoconf + Make 安装 PostgreSQL 16.8</h1><p>本文档记录了在 Ubuntu 上用 Autoconf + Make 编译安装 PostgreSQL (版本 16.8) 的完整步骤，适合学习 DBA 或需要自定义安装环境的场景。</p>
+  <h1 id="在-Ubuntu-上从源码使用-Autoconf-Make-安装-PostgreSQL-16-8"><a href="#在-Ubuntu-上从源码使用-Autoconf-Make-安装-PostgreSQL-16-8" class="headerlink" title="在 Ubuntu 上从源码使用 Autoconf + Make 安装 PostgreSQL 16.8"></a>在 Ubuntu 上从源码使用 Autoconf + Make 安装 PostgreSQL 16.8</h1><p>本文档记录了在 Ubuntu 上用 Autoconf + Make 编译安装 PostgreSQL (版本 16.8) 的完整步骤</p>
 <hr>
 <h2 id="前提说明"><a href="#前提说明" class="headerlink" title="前提说明"></a>前提说明</h2><ul>
 <li>操作系统：Ubuntu</li>
@@ -164,24 +164,34 @@
 
 <p>这一步会创建系统所需目录结构、默认数据库、系统表格、默认配置文件（如 <code>postgresql.conf</code>、<code>pg_hba.conf</code> 等）。</p>
 <hr>
-<h2 id="步骤六：启动-PostgreSQL-实例"><a href="#步骤六：启动-PostgreSQL-实例" class="headerlink" title="步骤六：启动 PostgreSQL 实例"></a>步骤六：启动 PostgreSQL 实例</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /usr/local/pgsql/data</span><br><span class="line">/usr/local/pgsql/bin/pg_ctl -D /usr/local/pgsql/data -l /usr/local/pgsql/logfile start</span><br></pre></td></tr></table></figure>
+<h2 id="步骤六：启动-PostgreSQL-服务器进程"><a href="#步骤六：启动-PostgreSQL-服务器进程" class="headerlink" title="步骤六：启动 PostgreSQL 服务器进程"></a>步骤六：启动 PostgreSQL 服务器进程</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /usr/local/pgsql/data</span><br><span class="line">/usr/local/pgsql/bin/pg_ctl -D /usr/local/pgsql/data -l /usr/local/pgsql/data/logfile start</span><br></pre></td></tr></table></figure>
 
 <ul>
+<li><code>pg_ctl</code> 是 PostgreSQL 的管理工具，用来启动、停止、重启数据库服务。</li>
 <li><code>-D</code>：数据目录  </li>
 <li><code>-l logfile</code>：日志文件路径</li>
 </ul>
 <p>可以通过以下方式确认是否成功启动：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ps aux | grep postgres</span><br><span class="line">/usr/local/pgsql/bin/psql -d postgres -c <span class="string">&quot;SELECT version();&quot;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ps aux | grep postgres</span><br></pre></td></tr></table></figure>
 
 <hr>
 <h2 id="步骤七：配置环境变量，便于使用"><a href="#步骤七：配置环境变量，便于使用" class="headerlink" title="步骤七：配置环境变量，便于使用"></a>步骤七：配置环境变量，便于使用</h2><p>将 PostgreSQL 的可执行路径加入 <code>PATH</code>，并设置 <code>PGDATA</code> 环境变量：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;export PATH=/usr/local/pgsql/bin:$PATH&#x27;</span> &gt;&gt; ~/.bashrc</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;export PGDATA=/usr/local/pgsql/data&#x27;</span> &gt;&gt; ~/.bashrc</span><br><span class="line"><span class="built_in">source</span> ~/.bashrc</span><br></pre></td></tr></table></figure>
 
-<p>这样你就可以直接在终端使用 <code>psql</code>、<code>pg_ctl</code> 等命令，而无需写完整路径。</p>
-<hr>
-<h2 id="步骤八：连接、创建用户与数据库"><a href="#步骤八：连接、创建用户与数据库" class="headerlink" title="步骤八：连接、创建用户与数据库"></a>步骤八：连接、创建用户与数据库</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">psql -d postgres</span><br></pre></td></tr></table></figure>
-
-<p>在 <code>psql</code> 中执行：</p>
+<h2 id="这样你就可以直接在终端使用-psql、pg-ctl-等命令，而无需写完整路径。例如以后启动数据库服务时可以直接这样写：关闭PostgreSQL服务进程模式：-smart：等所有连接断开后关库（默认）。-fast：立刻断开连接并做检查点（推荐）。-immediate：紧急停止（类似-kill）。"><a href="#这样你就可以直接在终端使用-psql、pg-ctl-等命令，而无需写完整路径。例如以后启动数据库服务时可以直接这样写：关闭PostgreSQL服务进程模式：-smart：等所有连接断开后关库（默认）。-fast：立刻断开连接并做检查点（推荐）。-immediate：紧急停止（类似-kill）。" class="headerlink" title="这样你就可以直接在终端使用 psql、pg_ctl 等命令，而无需写完整路径。例如以后启动数据库服务时可以直接这样写：关闭PostgreSQL服务进程模式：- smart：等所有连接断开后关库（默认）。- fast：立刻断开连接并做检查点（推荐）。- immediate：紧急停止（类似 kill）。"></a>这样你就可以直接在终端使用 <code>psql</code>、<code>pg_ctl</code> 等命令，而无需写完整路径。<br>例如以后启动数据库服务时可以直接这样写：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pg_ctl -l /usr/local/pgsql/data/logfile start</span><br></pre></td></tr></table></figure><br><strong>关闭PostgreSQL服务进程</strong><br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pg_ctl -D /usr/local/pgsql/data stop</span><br></pre></td></tr></table></figure><br>模式：<br>- <code>smart</code>：等所有连接断开后关库（默认）。<br>- <code>fast</code>：立刻断开连接并做检查点（推荐）。<br>- <code>immediate</code>：紧急停止（类似 kill）。</h2><h2 id="步骤八：创建、访问数据库，用客户端-psql-连接数据库，进入交互式-SQL-命令行"><a href="#步骤八：创建、访问数据库，用客户端-psql-连接数据库，进入交互式-SQL-命令行" class="headerlink" title="步骤八：创建、访问数据库，用客户端 psql 连接数据库，进入交互式 SQL 命令行"></a>步骤八：创建、访问数据库，用客户端 psql 连接数据库，进入交互式 SQL 命令行</h2><p>首先来创建一个数据库</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">createdb mydb</span><br></pre></td></tr></table></figure>
+<p>如果不产生任何响应则表示该步骤成功。</p>
+<p><strong>一旦你创建了数据库，你就可以通过以下方式访问它：</strong></p>
+<ul>
+<li>运行PostgreSQL的交互式终端程序，它被称为psql， 它允许你交互地输入、编辑和执行SQL命令。</li>
+<li>使用一种已有的图形化前端工具，比如pgAdmin或者带ODBC或JDBC支持的办公套件来创建和管理数据库。</li>
+<li>使用多种绑定发行的语言中的一种写一个自定义的应用。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">psql -d mydb</span><br></pre></td></tr></table></figure>
+<p>在psql中，你将看到下面的欢迎信息：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">psql (16.8)</span><br><span class="line">Type <span class="string">&quot;help&quot;</span> <span class="keyword">for</span> <span class="built_in">help</span>.</span><br><span class="line"></span><br><span class="line">mydb=&gt;</span><br></pre></td></tr></table></figure>
+<p>最后一行也可能是：mydb&#x3D;#  ,这个提示符意味着你是数据库超级用户，最可能出现在你自己安装了 PostgreSQL实例的情况下。 作为超级用户意味着你不受访问控制的限制。 </p>
+<p>这个时候你就可以敲入 SQL查询在此<code>psql</code>维护的工作区中：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> version();</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> dbauser <span class="keyword">WITH</span> PASSWORD <span class="string">&#x27;dbapassword&#x27;</span>;</span><br><span class="line"><span class="keyword">CREATE</span> DATABASE dba_demo OWNER dbauser;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">ALL</span> PRIVILEGES <span class="keyword">ON</span> DATABASE dba_demo <span class="keyword">TO</span> dbauser;</span><br><span class="line">\q</span><br></pre></td></tr></table></figure>
 
 <hr>
@@ -194,7 +204,18 @@
 </li>
 <li><p><strong>修改配置 &#x2F; 重新做 <code>configure</code> 无效</strong><br>若更改 <code>configure</code> 选项或依赖后构建不生效，建议先执行 <code>make distclean</code> 清除旧的构建产物，然后重新 <code>./configure</code> + <code>make</code>。</p>
 </li>
+<li><p><strong>pg_ctl start、createdb mydb、psql mydb 这三个命令的关系</strong></p>
+</li>
 </ul>
+<ol>
+<li><p>pg_ctl -l &#x2F;usr&#x2F;local&#x2F;pgsql&#x2F;data&#x2F;logfile start<br>作用：启动 PostgreSQL 服务器进程（后台守护进程）。</p>
+</li>
+<li><p>createdb mydb<br>作用：在 已经运行的数据库服务 里创建一个新的数据库 mydb。</p>
+</li>
+<li><p>psql mydb<br>作用：用客户端 psql 连接到 mydb 数据库，进入交互式 SQL 命令行。</p>
+</li>
+</ol>
+<p>所以 顺序关系就是：<br><code>👉 启动数据库服务 → 创建数据库 → 进入数据库执行 SQL</code></p>
 <hr>
 <p>end</p>
  
