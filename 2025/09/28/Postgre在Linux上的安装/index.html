@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">1.8k</span>
+            <span class="post-count">1.5k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">7 min</span>
+            <span class="post-count">6 min</span>
         </span>
     </span>
 </div>
@@ -175,13 +175,22 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ps aux | grep postgres</span><br></pre></td></tr></table></figure>
 
 <hr>
-<h2 id="步骤七：配置环境变量，便于使用"><a href="#步骤七：配置环境变量，便于使用" class="headerlink" title="步骤七：配置环境变量，便于使用"></a>步骤七：配置环境变量，便于使用</h2><p>将 PostgreSQL 的可执行路径加入 <code>PATH</code>，并设置 <code>PGDATA</code> 环境变量：</p>
+<h2 id="步骤七：配置环境变量"><a href="#步骤七：配置环境变量" class="headerlink" title="步骤七：配置环境变量"></a>步骤七：配置环境变量</h2><p>将 PostgreSQL 的可执行路径加入 <code>PATH</code>，并设置 <code>PGDATA</code> 环境变量：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;export PATH=/usr/local/pgsql/bin:$PATH&#x27;</span> &gt;&gt; ~/.bashrc</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;export PGDATA=/usr/local/pgsql/data&#x27;</span> &gt;&gt; ~/.bashrc</span><br><span class="line"><span class="built_in">source</span> ~/.bashrc</span><br></pre></td></tr></table></figure>
 <p>这样你就可以直接在终端使用 <code>psql</code>、<code>pg_ctl</code> 等命令，而无需写完整路径。<br>例如以后启动数据库服务时可以直接这样写：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pg_ctl -l /usr/local/pgsql/data/logfile start</span><br></pre></td></tr></table></figure>
+
 <p><strong>关闭PostgreSQL服务进程</strong></p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pg_ctl -D /usr/local/pgsql/data stop</span><br></pre></td></tr></table></figure>
-<h2 id="模式：-smart：等所有连接断开后关库（默认）。-fast：立刻断开连接并做检查点（推荐）。-immediate：紧急停止（类似-kill）。"><a href="#模式：-smart：等所有连接断开后关库（默认）。-fast：立刻断开连接并做检查点（推荐）。-immediate：紧急停止（类似-kill）。" class="headerlink" title="模式：- smart：等所有连接断开后关库（默认）。- fast：立刻断开连接并做检查点（推荐）。- immediate：紧急停止（类似 kill）。"></a>模式：<br>- <code>smart</code>：等所有连接断开后关库（默认）。<br>- <code>fast</code>：立刻断开连接并做检查点（推荐）。<br>- <code>immediate</code>：紧急停止（类似 kill）。</h2><h2 id="步骤八：创建、访问数据库，用客户端-psql-连接数据库，进入交互式-SQL-命令行"><a href="#步骤八：创建、访问数据库，用客户端-psql-连接数据库，进入交互式-SQL-命令行" class="headerlink" title="步骤八：创建、访问数据库，用客户端 psql 连接数据库，进入交互式 SQL 命令行"></a>步骤八：创建、访问数据库，用客户端 psql 连接数据库，进入交互式 SQL 命令行</h2><p>首先来创建一个数据库</p>
+
+<p>模式：</p>
+<ul>
+<li><code>smart</code>：等所有连接断开后关库（默认）。  </li>
+<li><code>fast</code>：立刻断开连接并做检查点（推荐）。  </li>
+<li><code>immediate</code>：紧急停止（类似 kill）。</li>
+</ul>
+<hr>
+<h2 id="步骤八：创建、访问数据库，用客户端-psql-连接数据库，进入交互式-SQL-命令行"><a href="#步骤八：创建、访问数据库，用客户端-psql-连接数据库，进入交互式-SQL-命令行" class="headerlink" title="步骤八：创建、访问数据库，用客户端 psql 连接数据库，进入交互式 SQL 命令行"></a>步骤八：创建、访问数据库，用客户端 psql 连接数据库，进入交互式 SQL 命令行</h2><p>首先来创建一个数据库</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">createdb mydb</span><br></pre></td></tr></table></figure>
 <p>如果不产生任何响应则表示该步骤成功。</p>
 <p><strong>一旦你创建了数据库，你就可以通过以下方式访问它：</strong></p>
@@ -219,62 +228,8 @@
 </li>
 </ol>
 <p>所以 顺序关系就是：<br><code>👉 启动数据库服务 → 创建数据库 → 进入数据库执行 SQL</code></p>
-<h1 id="psql-常用-命令清单"><a href="#psql-常用-命令清单" class="headerlink" title="psql 常用 \ 命令清单"></a>psql 常用 <code>\</code> 命令清单</h1><h2 id="1-基本帮助"><a href="#1-基本帮助" class="headerlink" title="1. 基本帮助"></a>1. 基本帮助</h2><ul>
-<li><code>\?</code> ：显示所有可用的 <code>psql</code> 命令帮助  </li>
-<li><code>\h</code> ：显示 SQL 命令的语法帮助（如：<code>\h SELECT</code>）</li>
-</ul>
 <hr>
-<h2 id="2-数据库相关"><a href="#2-数据库相关" class="headerlink" title="2. 数据库相关"></a>2. 数据库相关</h2><ul>
-<li><code>\l</code> 或 <code>\list</code> ：列出所有数据库  </li>
-<li><code>\c dbname</code> 或 <code>\connect dbname</code> ：连接到数据库  </li>
-<li><code>\conninfo</code> ：显示当前连接信息</li>
-</ul>
-<hr>
-<h2 id="3-表和模式"><a href="#3-表和模式" class="headerlink" title="3. 表和模式"></a>3. 表和模式</h2><ul>
-<li><code>\dt</code> ：列出当前模式下的所有表  </li>
-<li><code>\dt *.*</code> ：列出所有模式下的所有表  </li>
-<li><code>\d tablename</code> ：描述表的结构（字段、类型、约束等）  </li>
-<li><code>\d+ tablename</code> ：详细描述表（包括存储、大小信息）  </li>
-<li><code>\ds</code> ：列出序列  </li>
-<li><code>\dv</code> ：列出视图  </li>
-<li><code>\df</code> ：列出函数  </li>
-<li><code>\di</code> ：列出索引</li>
-</ul>
-<hr>
-<h2 id="4-查询结果显示"><a href="#4-查询结果显示" class="headerlink" title="4. 查询结果显示"></a>4. 查询结果显示</h2><ul>
-<li><code>\x</code> ：切换扩展显示模式（横向&#x2F;纵向显示结果）  </li>
-<li><code>\pset border 2</code> ：设置表格边框样式  </li>
-<li><code>\pset pager off</code> ：禁用分页</li>
-</ul>
-<hr>
-<h2 id="5-SQL-执行与脚本"><a href="#5-SQL-执行与脚本" class="headerlink" title="5. SQL 执行与脚本"></a>5. SQL 执行与脚本</h2><ul>
-<li><code>\e</code> ：打开外部编辑器编辑 SQL（默认 vim&#x2F;nano）  </li>
-<li><code>\i filename.sql</code> ：执行 SQL 文件  </li>
-<li><code>\o filename</code> ：把查询结果输出到文件（再用 <code>\o</code> 关闭输出）  </li>
-<li><code>\! command</code> ：执行操作系统命令（例如 <code>\! ls</code>）</li>
-</ul>
-<hr>
-<h2 id="6-历史与变量"><a href="#6-历史与变量" class="headerlink" title="6. 历史与变量"></a>6. 历史与变量</h2><ul>
-<li><code>\s</code> ：查看命令历史  </li>
-<li><code>\s filename</code> ：保存命令历史到文件  </li>
-<li><code>\set</code> ：设置变量  </li>
-<li><code>\echo :var</code> ：输出变量值</li>
-</ul>
-<hr>
-<h2 id="7-事务与连接管理"><a href="#7-事务与连接管理" class="headerlink" title="7. 事务与连接管理"></a>7. 事务与连接管理</h2><ul>
-<li><code>\password</code> ：修改当前用户密码  </li>
-<li><code>\q</code> ：退出 <code>psql</code></li>
-</ul>
-<hr>
-<h1 id="常见组合示例"><a href="#常见组合示例" class="headerlink" title="常见组合示例"></a>常见组合示例</h1><pre><code class="sql">\c mydb          -- 连接到 mydb 数据库
-\dt              -- 列出当前数据库中的表
-\d weather       -- 查看 weather 表的结构
-\h INSERT        -- 查看 INSERT 语法帮助
-\q               -- 退出 psql
-
----
-end
-</code></pre>
+<p>end</p>
  
       <!-- reward -->
       

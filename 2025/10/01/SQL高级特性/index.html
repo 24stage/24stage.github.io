@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">423</span>
+            <span class="post-count">2.3k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">1 min</span>
+            <span class="post-count">8 min</span>
         </span>
     </span>
 </div>
@@ -147,7 +147,239 @@
 <p>让 <code>weather.city</code> 引用 <code>cities.name</code>：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> weather</span><br><span class="line"><span class="keyword">ADD</span> <span class="keyword">CONSTRAINT</span> weather_city_fkey</span><br><span class="line"><span class="keyword">FOREIGN</span> KEY (city) <span class="keyword">REFERENCES</span> cities(name);</span><br></pre></td></tr></table></figure>
 <p><code>weather_city_fkey</code>是外键名<br>一个表可以有多个外键。</p>
-<h2 id="删除外键"><a href="#删除外键" class="headerlink" title="删除外键"></a><strong>删除外键</strong><br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> orders</span><br><span class="line"><span class="keyword">DROP</span> <span class="keyword">CONSTRAINT</span> weather_city_fkey;</span><br></pre></td></tr></table></figure></h2> 
+<p><strong>删除外键</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> orders</span><br><span class="line"><span class="keyword">DROP</span> <span class="keyword">CONSTRAINT</span> weather_city_fkey;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="事务"><a href="#事务" class="headerlink" title="事务"></a>事务</h2><p>事务是所有数据库系统的基础概念。事务最重要的一点是它将多个步骤捆绑成了一个单一的、要么全完成要么全不完成的操作。步骤之间的中间状态对于其他并发事务是不可见的，并且如果有某些错误发生导致事务不能完成，则其中任何一个步骤都不会对数据库造成影响。</p>
+<h3 id="事务与-ACID"><a href="#事务与-ACID" class="headerlink" title="事务与 ACID"></a>事务与 ACID</h3><ul>
+<li><strong>原子性（Atomicity）</strong>：事务内的所有操作要么全部成功（COMMIT），要么全部撤销（ROLLBACK）。  </li>
+<li><strong>一致性（Consistency）</strong>：事务结束时，数据库从一个一致状态转到另一个一致状态（例如外键、约束未被破坏）。  </li>
+<li><strong>隔离性（Isolation）</strong>：并发事务之间互不干扰；一个事务在提交前的中间修改对其他事务不可见。  </li>
+<li><strong>持久性（Durability）</strong>：一旦事务提交，修改被持久保存（WAL 日志保证）。</li>
+</ul>
+<h3 id="基本事务控制语句（PostgreSQL）"><a href="#基本事务控制语句（PostgreSQL）" class="headerlink" title="基本事务控制语句（PostgreSQL）"></a>基本事务控制语句（PostgreSQL）</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 显式事务块</span></span><br><span class="line"><span class="keyword">BEGIN</span>;           <span class="comment">-- 或 START TRANSACTION;</span></span><br><span class="line">  <span class="comment">-- 若干 DML/DDL/查询</span></span><br><span class="line"><span class="keyword">COMMIT</span>;          <span class="comment">-- 提交</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 如果要撤销</span></span><br><span class="line"><span class="keyword">ROLLBACK</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 保存点</span></span><br><span class="line"><span class="keyword">SAVEPOINT</span> sp1;</span><br><span class="line"><span class="keyword">ROLLBACK</span> <span class="keyword">TO</span> sp1;</span><br><span class="line"><span class="keyword">RELEASE</span> <span class="keyword">SAVEPOINT</span> sp1;</span><br></pre></td></tr></table></figure>
+
+<h3 id="自动提交（Autocommit）"><a href="#自动提交（Autocommit）" class="headerlink" title="自动提交（Autocommit）"></a>自动提交（Autocommit）</h3><ul>
+<li>PostgreSQL 默认 <strong>自动提交</strong> 模式：如果不显式使用 BEGIN，数据库会把每条独立语句当作一个隐式事务执行（成功则立即提交）。</li>
+</ul>
+<h3 id="隔离级别与并发现象（简述）"><a href="#隔离级别与并发现象（简述）" class="headerlink" title="隔离级别与并发现象（简述）"></a>隔离级别与并发现象（简述）</h3><p>PostgreSQL 支持标准的隔离级别（但实际 READ UNCOMMITTED 被视作 READ COMMITTED）：</p>
+<ol>
+<li><p><strong>READ COMMITTED（默认）</strong>  </p>
+<ul>
+<li>每个语句只能看到其他事务已提交的更改。  </li>
+<li>可能发生“不可重复读”（同一事务内相同查询得到不同结果）。</li>
+</ul>
+</li>
+<li><p><strong>REPEATABLE READ</strong>  </p>
+<ul>
+<li>事务范围内的相同查询返回一致结果（解决不可重复读）；仍可能出现幻读（在部分实现中，Postgres 的 REPEATABLE READ 实际等价于 可串行化快照隔离？现代 Postgres 将 REPEATABLE READ 实现为可序列化快照读 - 细节参见官方版本说明）。</li>
+</ul>
+</li>
+<li><p><strong>SERIALIZABLE</strong>  </p>
+<ul>
+<li>最严格的隔离级别，保证结果等价于某种串行执行（可能导致事务冲突并回滚）。</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p>注：PostgreSQL 的具体并发现象与隔离级别实现细节相对复杂，建议在生产场景选择合适隔离级别并通过测试验证。</p>
+</blockquote>
+<h2 id="设置隔离级别（示例）："><a href="#设置隔离级别（示例）：" class="headerlink" title="设置隔离级别（示例）："></a>设置隔离级别（示例）：<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">BEGIN</span> TRANSACTION ISOLATION LEVEL REPEATABLE READ;</span><br><span class="line"><span class="comment">-- 或</span></span><br><span class="line"><span class="keyword">SET</span> TRANSACTION ISOLATION LEVEL SERIALIZABLE;</span><br></pre></td></tr></table></figure></h2><h2 id="窗口函数"><a href="#窗口函数" class="headerlink" title="窗口函数"></a>窗口函数</h2><h3 id="基本语法"><a href="#基本语法" class="headerlink" title="基本语法"></a>基本语法</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator">&lt;</span>window_function<span class="operator">&gt;</span>(args) <span class="keyword">OVER</span> (</span><br><span class="line">    [<span class="keyword">PARTITION</span> <span class="keyword">BY</span> expr [, ...]]</span><br><span class="line">    [<span class="keyword">ORDER</span> <span class="keyword">BY</span> expr [<span class="keyword">ASC</span><span class="operator">|</span><span class="keyword">DESC</span>] [, ...]]</span><br><span class="line">    [frame_clause]</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>PARTITION BY</code>：定义分区，即窗口划分（类似 GROUP BY，但不折叠行）。  </li>
+<li><code>ORDER BY</code>：定义窗口内行的逻辑顺序（影响排名、累积等）。  </li>
+<li><code>frame_clause</code>：定义窗口的行范围（例如前 2 行到当前行），常用的类型：<code>ROWS</code>, <code>RANGE</code>, <code>GROUPS</code>。</li>
+</ul>
+<h3 id="常见窗口函数与用途"><a href="#常见窗口函数与用途" class="headerlink" title="常见窗口函数与用途"></a>常见窗口函数与用途</h3><ul>
+<li><strong>排名类</strong>：<code>ROW_NUMBER()</code>, <code>RANK()</code>, <code>DENSE_RANK()</code>。  </li>
+<li><strong>偏移类</strong>：<code>LAG(expr, offset, default)</code>, <code>LEAD(expr, offset, default)</code>。  </li>
+<li><strong>窗口聚合</strong>：<code>SUM()</code>, <code>AVG()</code>, <code>COUNT()</code> 等可作为窗口函数使用。  </li>
+<li><strong>FIRST_VALUE &#x2F; LAST_VALUE</strong>：获取窗口内首&#x2F;末值。</li>
+</ul>
+<h3 id="FRAME-子句详解（关键）"><a href="#FRAME-子句详解（关键）" class="headerlink" title="FRAME 子句详解（关键）"></a>FRAME 子句详解（关键）</h3><ul>
+<li>语法（示例）：<code>ROWS BETWEEN 2 PRECEDING AND CURRENT ROW</code> 或 <code>RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code>。  </li>
+<li><strong>ROWS</strong>：基于物理行数，例如“前 2 行到当前行”。  </li>
+<li><strong>RANGE</strong>：基于值范围（对 ORDER BY 列的值相等或范围判断），在含有相同 ORDER BY 值时区别明显。  </li>
+<li><strong>默认行为</strong>：如果指定了 <code>ORDER BY</code> 但未指定 <code>frame_clause</code>，PostgreSQL 默认的窗口帧通常是 <code>RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code></li>
+</ul>
+<hr>
+<h2 id="窗口函数-与-GROUP-BY-的对比"><a href="#窗口函数-与-GROUP-BY-的对比" class="headerlink" title="窗口函数 与 GROUP BY 的对比"></a>窗口函数 与 GROUP BY 的对比</h2><h3 id="核心差别"><a href="#核心差别" class="headerlink" title="核心差别"></a>核心差别</h3><ul>
+<li><strong>行为</strong>：<code>GROUP BY</code> 会把多行“压缩”成每个分组一行；<code>OVER</code> 会<strong>保留所有原始行</strong>，并为每行附加窗口计算结果。  </li>
+<li><strong>用途</strong>：<code>GROUP BY</code> 用于生成分组级统计（报告&#x2F;汇总）；<code>OVER</code> 用于在明细行上做分析（排名、累加、分区统计等）。</li>
+<li><strong>在 SELECT 中的限制</strong>：使用 <code>GROUP BY</code> 时，SELECT 中出现的非聚合列必须出现在 GROUP BY 子句中；而 <code>OVER</code> 可以在SELECT中与普通列并存。</li>
+</ul>
+<h3 id="执行顺序相关"><a href="#执行顺序相关" class="headerlink" title="执行顺序相关"></a>执行顺序相关</h3><ul>
+<li>查询执行顺序（与 GROUP BY, HAVING, OVER 相关）通常是：<br><code>FROM -&gt; WHERE -&gt; GROUP BY -&gt; HAVING -&gt; SELECT (包括窗口函数计算) -&gt; ORDER BY -&gt; LIMIT</code>。  </li>
+<li>换句话说，窗口函数（OVER）在分组&#x2F;聚合之后计算，因此可以访问分组聚合的结果，但不能出现在 WHERE 或 GROUP BY 或 HAVING 子句中。</li>
+</ul>
+<h3 id="示例数据（employees）"><a href="#示例数据（employees）" class="headerlink" title="示例数据（employees）"></a>示例数据（employees）</h3><table>
+<thead>
+<tr>
+<th>name</th>
+<th>department</th>
+<th>salary</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Alice</td>
+<td>HR</td>
+<td>5000</td>
+</tr>
+<tr>
+<td>Bob</td>
+<td>HR</td>
+<td>6000</td>
+</tr>
+<tr>
+<td>Carol</td>
+<td>IT</td>
+<td>7000</td>
+</tr>
+<tr>
+<td>David</td>
+<td>IT</td>
+<td>8000</td>
+</tr>
+<tr>
+<td>Eve</td>
+<td>Sales</td>
+<td>4000</td>
+</tr>
+<tr>
+<td>Frank</td>
+<td>Sales</td>
+<td>4500</td>
+</tr>
+</tbody></table>
+<h3 id="示例-A-—-使用-GROUP-BY（部门级平均工资）"><a href="#示例-A-—-使用-GROUP-BY（部门级平均工资）" class="headerlink" title="示例 A — 使用 GROUP BY（部门级平均工资）"></a>示例 A — 使用 GROUP BY（部门级平均工资）</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> department, <span class="built_in">AVG</span>(salary) <span class="keyword">AS</span> dept_avg, <span class="built_in">COUNT</span>(<span class="operator">*</span>) <span class="keyword">AS</span> cnt</span><br><span class="line"><span class="keyword">FROM</span> employees</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> department</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> department;</span><br></pre></td></tr></table></figure>
+<p><strong>结果：</strong></p>
+<table>
+<thead>
+<tr>
+<th>department</th>
+<th>dept_avg</th>
+<th>cnt</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>HR</td>
+<td>5500</td>
+<td>2</td>
+</tr>
+<tr>
+<td>IT</td>
+<td>7500</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Sales</td>
+<td>4250</td>
+<td>2</td>
+</tr>
+</tbody></table>
+<p><strong>说明</strong>：每个部门只有一行（分组级别）。</p>
+<h3 id="示例-B-—-使用窗口函数（在每一行展示部门平均工资）"><a href="#示例-B-—-使用窗口函数（在每一行展示部门平均工资）" class="headerlink" title="示例 B — 使用窗口函数（在每一行展示部门平均工资）"></a>示例 B — 使用窗口函数（在每一行展示部门平均工资）</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> name, department, salary,</span><br><span class="line">       <span class="built_in">AVG</span>(salary) <span class="keyword">OVER</span> (<span class="keyword">PARTITION</span> <span class="keyword">BY</span> department) <span class="keyword">AS</span> dept_avg,</span><br><span class="line">       <span class="built_in">COUNT</span>(<span class="operator">*</span>) <span class="keyword">OVER</span> (<span class="keyword">PARTITION</span> <span class="keyword">BY</span> department) <span class="keyword">AS</span> dept_count</span><br><span class="line"><span class="keyword">FROM</span> employees</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> department, salary;</span><br></pre></td></tr></table></figure>
+<p><strong>结果：</strong></p>
+<table>
+<thead>
+<tr>
+<th>name</th>
+<th>department</th>
+<th>salary</th>
+<th>dept_avg</th>
+<th>dept_count</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Alice</td>
+<td>HR</td>
+<td>5000</td>
+<td>5500</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Bob</td>
+<td>HR</td>
+<td>6000</td>
+<td>5500</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Carol</td>
+<td>IT</td>
+<td>7000</td>
+<td>7500</td>
+<td>2</td>
+</tr>
+<tr>
+<td>David</td>
+<td>IT</td>
+<td>8000</td>
+<td>7500</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Eve</td>
+<td>Sales</td>
+<td>4000</td>
+<td>4250</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Frank</td>
+<td>Sales</td>
+<td>4500</td>
+<td>4250</td>
+<td>2</td>
+</tr>
+</tbody></table>
+<p><strong>说明</strong>：明细行保留，同时每行多出分组统计列。</p>
+<h3 id="什么时候用哪一个？"><a href="#什么时候用哪一个？" class="headerlink" title="什么时候用哪一个？"></a>什么时候用哪一个？</h3><ul>
+<li>只需要分组汇总（行折叠） → 使用 <code>GROUP BY</code>（更语义清晰，通常更高效）。  </li>
+<li>需要按明细行显示并且同时显示分组统计 → 使用 <code>OVER</code>（保留明细并做分析）。</li>
+</ul>
+<h3 id="性能提示"><a href="#性能提示" class="headerlink" title="性能提示"></a>性能提示</h3><ul>
+<li><code>GROUP BY</code> 常用 Hash Aggregate 或 Sort+Aggregate，可利用合适索引或并行聚合提升性能。  </li>
+<li>窗口函数通常需要对 <code>PARTITION BY</code>&#x2F;<code>ORDER BY</code> 列进行排序；对于大表，排序开销与内存（work_mem）有关。  </li>
+<li>如果想在窗口内做累积（running sum），可以考虑先按 partition&#x2F;order 排序再使用 <code>ROWS</code> 窗口框架来提高可预测性。</li>
+</ul>
+<hr>
+<h2 id="继承"><a href="#继承" class="headerlink" title="继承"></a>继承</h2><p>在 PostgreSQL 中，继承（table inheritance） 是一个比较独特的特性，它允许一个表继承另一个表的列定义和约束，有点类似于面向对象编程中的“类继承”。</p>
+<h3 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h3><ul>
+<li><p>父表（parent table）：定义了基本的字段和约束。</p>
+</li>
+<li><p>子表（child table）：继承父表的列和约束，同时可以定义自己的新列和约束。</p>
+</li>
+</ul>
+<p>这样，子表天然拥有父表的所有列，并且你可以在查询父表时自动查询到子表的数据（除非显式限制）。</p>
+<h3 id="继承示例"><a href="#继承示例" class="headerlink" title="继承示例"></a>继承示例</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 父表</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> employees (</span><br><span class="line">    id SERIAL <span class="keyword">PRIMARY</span> KEY,</span><br><span class="line">    name TEXT <span class="keyword">NOT</span> <span class="keyword">NULL</span>,</span><br><span class="line">    salary <span class="type">NUMERIC</span>(<span class="number">10</span>,<span class="number">2</span>)</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 子表，继承父表</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> managers (</span><br><span class="line">    department TEXT</span><br><span class="line">) INHERITS (employees);</span><br></pre></td></tr></table></figure>
+<p>解释：</p>
+<ul>
+<li>managers 继承了 employees 的 id, name, salary 三个字段。</li>
+<li>managers 自己还定义了 department 列。</li>
+</ul>
+<h3 id="继承的查询特性"><a href="#继承的查询特性" class="headerlink" title="继承的查询特性"></a>继承的查询特性</h3><p>查询特性</p>
+<p>当你查询父表时，默认会包括其所有子表的数据：<br><code>SELECT * FROM employees;</code><br>结果会包含 employees 表和 managers 表的数据。</p>
+<p>如果只想查父表的数据，可以使用 ONLY：<br><code>SELECT * FROM ONLY employees;</code><br>这样只会返回父表自身的数据。</p>
+<h3 id="继承的局限性"><a href="#继承的局限性" class="headerlink" title="继承的局限性"></a>继承的局限性</h3><p>虽然继承听起来很强大，但在实际生产中 PostgreSQL 的继承特性有不少限制：</p>
+<ol>
+<li><p>约束不会自动传播</p>
+</li>
+<li><p>父表上的约束（比如 PRIMARY KEY、UNIQUE）不会自动应用到子表。<br>如果你希望唯一性跨父表和子表生效，需要手动建约束或触发器。</p>
+</li>
+<li><p>索引不继承</p>
+</li>
+<li><p>父表的索引不会应用到子表，需要单独创建。</p>
+</li>
+<li><p>外键不支持继承</p>
+</li>
+<li><p>不能直接把外键建在父表上并自动作用于子表。</p>
+</li>
+<li><p>SQL 标准兼容性差<br>SQL 标准中没有这种表继承机制，因此它是 PostgreSQL 的“特有扩展”。</p>
+</li>
+</ol>
+ 
       <!-- reward -->
       
     </div>
