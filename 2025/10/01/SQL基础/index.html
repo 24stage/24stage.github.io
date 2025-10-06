@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">535</span>
+            <span class="post-count">1.1k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">2 min</span>
+            <span class="post-count">4 min</span>
         </span>
     </span>
 </div>
@@ -195,6 +195,42 @@
 <p>注意：执行顺序和书写顺序不一致，理解这一点有助于正确使用 WHERE 与 HAVING。</p>
 </blockquote>
 <hr>
+<h2 id="IN-ANY-SOME-ALL操作符"><a href="#IN-ANY-SOME-ALL操作符" class="headerlink" title="IN,ANY&#x2F;SOME,ALL操作符"></a>IN,ANY&#x2F;SOME,ALL操作符</h2><p>在 SQL 中，<code>IN</code>、<code>ANY</code>（或 <code>SOME</code>）、<code>ALL</code> 都可以用于 <strong>比较一个值与多个值</strong>，<br>尤其常用于子查询中，用来实现更灵活的条件判断。</p>
+<p><strong>1. IN</strong><br>判断某个表达式的值是否 在指定的列表或子查询结果中。<br>示例：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> name, department</span><br><span class="line"><span class="keyword">FROM</span> employees</span><br><span class="line"><span class="keyword">WHERE</span> department <span class="keyword">IN</span> (<span class="string">&#x27;HR&#x27;</span>, <span class="string">&#x27;Sales&#x27;</span>, <span class="string">&#x27;Finance&#x27;</span>);</span><br></pre></td></tr></table></figure>
+<p>表示：选择部门是 HR、Sales 或 Finance 的员工。</p>
+<p>如果使用子查询：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> name</span><br><span class="line"><span class="keyword">FROM</span> employees</span><br><span class="line"><span class="keyword">WHERE</span> department_id <span class="keyword">IN</span> (</span><br><span class="line">    <span class="keyword">SELECT</span> id <span class="keyword">FROM</span> departments <span class="keyword">WHERE</span> location <span class="operator">=</span> <span class="string">&#x27;Tokyo&#x27;</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<p>表示：选择所有在东京部门工作的员工。</p>
+<p><strong>2. ANY（或 SOME）</strong></p>
+<p>判断一个表达式是否 与子查询返回的任意一个值 满足条件。</p>
+<blockquote>
+<p>ANY 和 SOME 在 SQL 中完全等价，只是语法别名。<br>通常更推荐使用 ANY。</p>
+</blockquote>
+<p>示例:<br>假设有两个表：<br><code>employees(name, salary, department_id)</code><br><code>departments(id, avg_salary)</code></p>
+<p>查询工资 高于任意一个部门平均工资 的员工：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> name, salary</span><br><span class="line"><span class="keyword">FROM</span> employees</span><br><span class="line"><span class="keyword">WHERE</span> salary <span class="operator">&gt;</span> <span class="keyword">ANY</span> (</span><br><span class="line">    <span class="keyword">SELECT</span> avg_salary <span class="keyword">FROM</span> departments</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<p>即：如果某员工的工资高于“至少一个部门”的平均工资，则满足条件。</p>
+<p><strong>3. ALL</strong><br>判断一个表达式是否 与子查询返回的所有值都满足条件。</p>
+<p>示例<br>查询工资高于所有部门平均工资的员工：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> name, salary</span><br><span class="line"><span class="keyword">FROM</span> employees</span><br><span class="line"><span class="keyword">WHERE</span> salary <span class="operator">&gt;</span> <span class="keyword">ALL</span> (</span><br><span class="line">    <span class="keyword">SELECT</span> avg_salary <span class="keyword">FROM</span> departments</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<p>表示：该员工的工资要比所有部门的平均工资都高。</p>
+<h2 id="行构造器比较"><a href="#行构造器比较" class="headerlink" title="行构造器比较"></a>行构造器比较</h2><p><strong>基本规则:</strong></p>
+<ol>
+<li><p>两个行构造器必须包含相同数量的字段。<br>否则 PostgreSQL 无法逐一对应比较。</p>
+</li>
+<li><p>比较时，系统会从左到右依次比较每一对字段。<br>当遇到第一对“可以区分结果”的字段时，就会停止比较。</p>
+</li>
+</ol>
+<h3 id="各类比较符的行为"><a href="#各类比较符的行为" class="headerlink" title="各类比较符的行为"></a>各类比较符的行为</h3><ol>
+<li>&#x3D; 与 &lt;&gt;（等于与不等）</li>
+</ol>
+<p>这两种情况的逻辑是：</p>
+<ul>
+<li>如果所有对应字段都 非空 且 相等，则整行相等。</li>
+<li>如果任意一对字段 非空 且 不相等，则整行不相等。</li>
+<li>如果所有字段都比较完毕但含有 <code>NULL</code>，则结果是 <code>UNKNOWN</code>（即 <code>NULL</code>）。<br>示例：<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> (<span class="number">1</span>, <span class="keyword">NULL</span>) <span class="operator">=</span> (<span class="number">1</span>, <span class="keyword">NULL</span>);   <span class="comment">-- 结果为 NULL</span></span><br><span class="line"><span class="keyword">SELECT</span> (<span class="number">1</span>, <span class="number">2</span>)    <span class="operator">=</span> (<span class="number">1</span>, <span class="number">2</span>);      <span class="comment">-- 结果为 true</span></span><br><span class="line"><span class="keyword">SELECT</span> (<span class="number">1</span>, <span class="number">2</span>)    <span class="operator">&lt;&gt;</span> (<span class="number">1</span>, <span class="number">3</span>);     <span class="comment">-- 结果为 true</span></span><br></pre></td></tr></table></figure></li>
+</ul>
  
       <!-- reward -->
       
