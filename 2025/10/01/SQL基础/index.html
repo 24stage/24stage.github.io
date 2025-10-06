@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">1.1k</span>
+            <span class="post-count">1.3k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">4 min</span>
+            <span class="post-count">5 min</span>
         </span>
     </span>
 </div>
@@ -222,15 +222,35 @@
 <li><p>比较时，系统会从左到右依次比较每一对字段。<br>当遇到第一对“可以区分结果”的字段时，就会停止比较。</p>
 </li>
 </ol>
-<h3 id="各类比较符的行为"><a href="#各类比较符的行为" class="headerlink" title="各类比较符的行为"></a>各类比较符的行为</h3><ol>
-<li>&#x3D; 与 &lt;&gt;（等于与不等）</li>
-</ol>
+<h3 id="各类比较符的行为"><a href="#各类比较符的行为" class="headerlink" title="各类比较符的行为"></a>各类比较符的行为</h3><p><strong>1. &#x3D; 与 &lt;&gt;（等于与不等）</strong></p>
 <p>这两种情况的逻辑是：</p>
 <ul>
 <li>如果所有对应字段都 非空 且 相等，则整行相等。</li>
 <li>如果任意一对字段 非空 且 不相等，则整行不相等。</li>
-<li>如果所有字段都比较完毕但含有 <code>NULL</code>，则结果是 <code>UNKNOWN</code>（即 <code>NULL</code>）。<br>示例：<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> (<span class="number">1</span>, <span class="keyword">NULL</span>) <span class="operator">=</span> (<span class="number">1</span>, <span class="keyword">NULL</span>);   <span class="comment">-- 结果为 NULL</span></span><br><span class="line"><span class="keyword">SELECT</span> (<span class="number">1</span>, <span class="number">2</span>)    <span class="operator">=</span> (<span class="number">1</span>, <span class="number">2</span>);      <span class="comment">-- 结果为 true</span></span><br><span class="line"><span class="keyword">SELECT</span> (<span class="number">1</span>, <span class="number">2</span>)    <span class="operator">&lt;&gt;</span> (<span class="number">1</span>, <span class="number">3</span>);     <span class="comment">-- 结果为 true</span></span><br></pre></td></tr></table></figure></li>
+<li>如果所有字段都比较完毕但含有 <code>NULL</code>，则结果是 <code>UNKNOWN</code>（即 <code>NULL</code>）。<br>示例：<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> (<span class="number">1</span>, <span class="keyword">NULL</span>) <span class="operator">=</span> (<span class="number">1</span>, <span class="keyword">NULL</span>);   <span class="comment">-- 结果为 NULL</span></span><br><span class="line"><span class="keyword">SELECT</span> (<span class="number">1</span>, <span class="number">2</span>)    <span class="operator">=</span> (<span class="number">1</span>, <span class="number">2</span>);      <span class="comment">-- 结果为 true</span></span><br><span class="line"><span class="keyword">SELECT</span> (<span class="number">1</span>, <span class="number">2</span>)    <span class="operator">&lt;&gt;</span> (<span class="number">1</span>, <span class="number">3</span>);     <span class="comment">-- 结果为 true</span></span><br></pre></td></tr></table></figure>
+<strong>2. &lt;, &lt;&#x3D;, &gt;, &gt;&#x3D;（大小比较）</strong></li>
 </ul>
+<p>行值的大小比较是<strong>按字典序</strong>进行的：</p>
+<ul>
+<li>从左到右比较；</li>
+<li>一旦发现不等，立即停止；</li>
+<li>如果某个字段为 NULL，则结果为 NULL。</li>
+</ul>
+<p>示例：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="type">ROW</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="keyword">NULL</span>) <span class="operator">&lt;</span> <span class="type">ROW</span>(<span class="number">1</span>,<span class="number">3</span>,<span class="number">0</span>);</span><br><span class="line"><span class="comment">-- 比较第1列：1 = 1</span></span><br><span class="line"><span class="comment">-- 比较第2列：2 &lt; 3 → 结果为 true，停止比较</span></span><br><span class="line"><span class="comment">-- 返回 true（不会去看第3列）</span></span><br></pre></td></tr></table></figure>
+<p><strong>3. IS DISTINCT FROM &#x2F; IS NOT DISTINCT FROM</strong></p>
+<p>这些是 <code>PostgreSQL</code> 特有的 “防空值比较”运算符。<br>它们与 &#x3D; &#x2F; &lt;&gt; 类似，但区别在于：</p>
+<ul>
+<li><p>不会返回 NULL；</p>
+</li>
+<li><p>NULL 与任何非 NULL 值被认为不相等；</p>
+</li>
+<li><p>两个 NULL 被认为相等。</p>
+</li>
+</ul>
+<p>示例：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> (<span class="number">1</span>, <span class="keyword">NULL</span>) <span class="keyword">IS</span> <span class="keyword">DISTINCT</span> <span class="keyword">FROM</span> (<span class="number">1</span>, <span class="keyword">NULL</span>);   <span class="comment">-- false</span></span><br><span class="line"><span class="keyword">SELECT</span> (<span class="number">1</span>, <span class="keyword">NULL</span>) <span class="keyword">IS</span> <span class="keyword">DISTINCT</span> <span class="keyword">FROM</span> (<span class="number">1</span>, <span class="number">2</span>);      <span class="comment">-- true</span></span><br><span class="line"><span class="keyword">SELECT</span> (<span class="number">1</span>, <span class="keyword">NULL</span>) <span class="keyword">IS</span> <span class="keyword">NOT</span> <span class="keyword">DISTINCT</span> <span class="keyword">FROM</span> (<span class="number">1</span>, <span class="keyword">NULL</span>); <span class="comment">-- true</span></span><br></pre></td></tr></table></figure>
+<p>这样可以避免因为 NULL 导致比较结果不确定的问题。</p>
  
       <!-- reward -->
       
