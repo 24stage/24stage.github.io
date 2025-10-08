@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">1.5k</span>
+            <span class="post-count">2.6k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">6 min</span>
+            <span class="post-count">10 min</span>
         </span>
     </span>
 </div>
@@ -254,6 +254,95 @@
 <p>示例：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> (<span class="number">1</span>, <span class="keyword">NULL</span>) <span class="keyword">IS</span> <span class="keyword">DISTINCT</span> <span class="keyword">FROM</span> (<span class="number">1</span>, <span class="keyword">NULL</span>);   <span class="comment">-- false</span></span><br><span class="line"><span class="keyword">SELECT</span> (<span class="number">1</span>, <span class="keyword">NULL</span>) <span class="keyword">IS</span> <span class="keyword">DISTINCT</span> <span class="keyword">FROM</span> (<span class="number">1</span>, <span class="number">2</span>);      <span class="comment">-- true</span></span><br><span class="line"><span class="keyword">SELECT</span> (<span class="number">1</span>, <span class="keyword">NULL</span>) <span class="keyword">IS</span> <span class="keyword">NOT</span> <span class="keyword">DISTINCT</span> <span class="keyword">FROM</span> (<span class="number">1</span>, <span class="keyword">NULL</span>); <span class="comment">-- true</span></span><br></pre></td></tr></table></figure>
 <p>这样可以避免因为 NULL 导致比较结果不确定的问题。</p>
+<h2 id="约束-constraint"><a href="#约束-constraint" class="headerlink" title="约束(constraint)"></a>约束(constraint)</h2><p>约束（Constraint） 用于限制表中数据的取值范围和关系，以保证数据的准确性、一致性和完整性。</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>说明</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>NOT NULL</strong></td>
+<td>指定字段不能为 NULL</td>
+<td><code>name TEXT NOT NULL</code></td>
+</tr>
+<tr>
+<td><strong>UNIQUE</strong></td>
+<td>字段或字段组合的值必须唯一</td>
+<td><code>email TEXT UNIQUE</code></td>
+</tr>
+<tr>
+<td><strong>PRIMARY KEY</strong></td>
+<td>主键，自动包含 <code>UNIQUE + NOT NULL</code></td>
+<td><code>id SERIAL PRIMARY KEY</code></td>
+</tr>
+<tr>
+<td><strong>FOREIGN KEY</strong></td>
+<td>外键，保证引用的行存在</td>
+<td><code>dept_id INT REFERENCES dept(id)</code></td>
+</tr>
+<tr>
+<td><strong>CHECK</strong></td>
+<td>检查表达式结果是否为真</td>
+<td><code>salary NUMERIC CHECK (salary &gt; 0)</code></td>
+</tr>
+<tr>
+<td><strong>EXCLUSION</strong></td>
+<td>排他约束，防止特定范围冲突</td>
+<td><code>EXCLUDE USING gist (room WITH =, during WITH &amp;&amp;)</code></td>
+</tr>
+<tr>
+<td><strong>DEFERRABLE</strong></td>
+<td>延迟约束检查到事务提交时</td>
+<td><code>DEFERRABLE INITIALLY DEFERRED</code></td>
+</tr>
+</tbody></table>
+<h3 id="CHECK-约束"><a href="#CHECK-约束" class="headerlink" title="CHECK 约束"></a>CHECK 约束</h3><p>一个检查约束也可以引用多个列。例如我们存储一个普通价格和一个打折后的价格，而我们希望保证打折后的价格低于普通价格：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> products (</span><br><span class="line">    product_no <span class="type">integer</span>,</span><br><span class="line">    name text,</span><br><span class="line">    price <span class="type">numeric</span> <span class="keyword">CHECK</span> (price <span class="operator">&gt;</span> <span class="number">0</span>),</span><br><span class="line">    discounted_price <span class="type">numeric</span> <span class="keyword">CHECK</span> (discounted_price <span class="operator">&gt;</span> <span class="number">0</span>),</span><br><span class="line">    <span class="keyword">CHECK</span> (price <span class="operator">&gt;</span> discounted_price)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<p>前两个约束看起来很相似。第三个则使用了一种新语法。它并没有依附在一个特定的列，而是<strong>作为一个独立的项出现在逗号分隔的列列表中</strong>。列定义和这种约束定义可以以混合的顺序出现在列表中。</p>
+<p>我们将前两个约束称为列约束，而第三个约束为<strong>表约束</strong>，因为它独立于任何一个列定义。列约束也可以写成表约束，但反过来不行，因为一个列约束只能引用它所依附的那一个列</p>
+<h3 id="UNIQUE-约束"><a href="#UNIQUE-约束" class="headerlink" title="UNIQUE 约束"></a>UNIQUE 约束</h3><p>通常情况下，如果表中有多行，其中包含约束中包含的所有列的值相等，则违反了唯一约束。 默认情况下，在此比较中，两个空值不被视为相等。这意味着即使存在唯一约束，也可以存储包含至少一个受约束列中的空值的重复行。 可以通过添加子句<code>NULLS NOT DISTINCT</code>来更改此行为，例如</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> products (</span><br><span class="line">    count <span class="type">int</span> <span class="keyword">UNIQUE</span>,</span><br><span class="line">    product_no <span class="type">integer</span> <span class="keyword">UNIQUE</span> NULLS <span class="keyword">NOT</span> <span class="keyword">DISTINCT</span>,</span><br><span class="line">    name text,</span><br><span class="line">    price <span class="type">numeric</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line">或者</span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> products (</span><br><span class="line">    product_no <span class="type">integer</span>,</span><br><span class="line">    name text,</span><br><span class="line">    price <span class="type">numeric</span>,</span><br><span class="line">    <span class="keyword">UNIQUE</span> NULLS <span class="keyword">NOT</span> <span class="keyword">DISTINCT</span> (product_no)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<h3 id="主键-PRIMARY-KEY"><a href="#主键-PRIMARY-KEY" class="headerlink" title="主键(PRIMARY KEY)"></a>主键(PRIMARY KEY)</h3><p>一个主键约束表示可以用作表中行的唯一标识符的一个列或者一组列。这要求那些值都是唯一的并且非空。因此<code>id PRIMARY KEY</code> 相当于 <code>id UNIQUE NOT NULL</code>。</p>
+<p>一个表最多只能有一个主键（可以有任意数量的唯一和非空约束，它们可以达到和主键几乎一样的功能，但只能有一个被标识为主键）。</p>
+<h3 id="外键-FOREIGN-KEY"><a href="#外键-FOREIGN-KEY" class="headerlink" title="外键(FOREIGN KEY)"></a>外键(FOREIGN KEY)</h3><ul>
+<li><strong>定义</strong>：外键是用于保持 <strong>引用完整性（Referential Integrity）</strong> 的约束。一个外键约束指定一列（或一组列）中的值必须匹配出现在另一个表中某些行的值。我们说这维持了两个关联表之间的引用完整性。</li>
+<li><strong>作用</strong>：建立子表与父表的联系，保证数据一致性。外键值必须匹配父表主键&#x2F;唯一键的值，或者为 NULL。防止“孤儿数据”。</li>
+</ul>
+<p><strong>在创建表时添加外键</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> orders (</span><br><span class="line">    order_id SERIAL <span class="keyword">PRIMARY</span> KEY,</span><br><span class="line">    customer_id <span class="type">INT</span> <span class="keyword">REFERENCES</span> customers(id),</span><br><span class="line">    order_date <span class="type">DATE</span>,</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line">也可以写成</span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> orders (</span><br><span class="line">    order_id SERIAL <span class="keyword">PRIMARY</span> KEY,</span><br><span class="line">    customer_id <span class="type">INT</span>,</span><br><span class="line">    order_date <span class="type">DATE</span>,</span><br><span class="line">    <span class="keyword">FOREIGN</span> KEY (customer_id) <span class="keyword">REFERENCES</span> customers(id)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<ul>
+<li>customer_id 是子表中的外键。</li>
+<li>它引用 customers 表的 id 字段。</li>
+<li>插入 orders 时，customer_id 必须在 customers.id 中存在。</li>
+</ul>
+<p>带约束动作的写法：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> orders (</span><br><span class="line">    order_id SERIAL <span class="keyword">PRIMARY</span> KEY,</span><br><span class="line">    customer_id <span class="type">INT</span>,</span><br><span class="line">    order_date <span class="type">DATE</span>,</span><br><span class="line">    <span class="keyword">CONSTRAINT</span> fk_customer</span><br><span class="line">        <span class="keyword">FOREIGN</span> KEY (customer_id) <span class="keyword">REFERENCES</span> customers(id)</span><br><span class="line">        <span class="keyword">ON</span> <span class="keyword">DELETE</span> CASCADE</span><br><span class="line">        <span class="keyword">ON</span> <span class="keyword">UPDATE</span> CASCADE</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+
+<p>常见动作：</p>
+<ul>
+<li>ON DELETE CASCADE：父表记录删除时，子表相关记录也被删除。</li>
+<li>ON UPDATE CASCADE：父表更新时，子表同步更新。</li>
+<li>也可设置 SET NULL 或 RESTRICT。</li>
+<li>ON DELETE RESTRICT: 阻止删除一个被引用的行</li>
+<li>SET NULL 和 SET DEFAULT: 将导致在被引用行被删除后，引用行中的引用列被置为空值或它们的默认值</li>
+</ul>
+<h4 id="已有表如何添加外键"><a href="#已有表如何添加外键" class="headerlink" title="已有表如何添加外键"></a>已有表如何添加外键</h4><p><strong>假设 weather 表中 city 字段唯一，可以加主键(PRIMARY KEY)：</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> weather</span><br><span class="line"><span class="keyword">ADD</span> <span class="keyword">CONSTRAINT</span> weather_pkey </span><br><span class="line"><span class="keyword">PRIMARY</span> KEY (city);</span><br></pre></td></tr></table></figure>
+<p><code>weather_pkey</code>是主键名</p>
+<p><strong>添加外键（FOREIGN KEY）</strong></p>
+<p>让 <code>weather.city</code> 引用 <code>cities.name</code>：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> weather</span><br><span class="line"><span class="keyword">ADD</span> <span class="keyword">CONSTRAINT</span> weather_city_fkey</span><br><span class="line"><span class="keyword">FOREIGN</span> KEY (city) <span class="keyword">REFERENCES</span> cities(name);</span><br></pre></td></tr></table></figure>
+<p><code>weather_city_fkey</code>是外键名<br>一个表可以有多个外键。</p>
+<p><strong>删除外键</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> orders</span><br><span class="line"><span class="keyword">DROP</span> <span class="keyword">CONSTRAINT</span> weather_city_fkey;</span><br></pre></td></tr></table></figure>
+
+<hr>
 <h2 id="域-Domain"><a href="#域-Domain" class="headerlink" title="域 (Domain)"></a>域 (Domain)</h2><p>在 SQL 中，域（Domain） 是一种 <strong>基于已有数据类型创建的新“类型”</strong>，<br>它可以带有默认值、检查约束（CHECK）或 NOT NULL 限制。</p>
 <blockquote>
 <p>📘 简单来说：<br>域 &#x3D; 数据类型 + 约束规则</p>

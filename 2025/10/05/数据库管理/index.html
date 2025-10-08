@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">1.6k</span>
+            <span class="post-count">2.7k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">5 min</span>
+            <span class="post-count">9 min</span>
         </span>
     </span>
 </div>
@@ -188,9 +188,108 @@
 <p>或者使用<code>SELECT</code> 来查询:</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> spcname, pg_tablespace_location(oid)</span><br><span class="line"><span class="keyword">FROM</span> pg_tablespace;</span><br></pre></td></tr></table></figure>
 
+<h1 id="模式"><a href="#模式" class="headerlink" title="模式"></a>模式</h1><p>在 <code>PostgreSQL</code> 中，模式<code>（Schema）</code> 是数据库中的一种命名空间（namespace），它用于组织数据库对象（例如表、视图、函数、类型、索引等）。类似于操作系统中的目录</p>
+<blockquote>
+<p>模式的作用是对数据库对象进行逻辑分组，防止命名冲突，并方便管理。</p>
+</blockquote>
+<p><strong>查看所有模式</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">\dn</span><br></pre></td></tr></table></figure>
 
+<h3 id="有关模式的相关操作"><a href="#有关模式的相关操作" class="headerlink" title="有关模式的相关操作"></a>有关模式的相关操作</h3><p><strong>要创建一个模式，可使用CREATE SCHEMA命令，并且给出选择的模式名称。例如：</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> SCHEMA myschema;</span><br></pre></td></tr></table></figure>
 
+<p><strong>在模式中创建表:</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> myschema.mytable (</span><br><span class="line"> ...</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
 
+<p><strong>要删除一个为空的模式（其中的所有对象已经被删除），可用：</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DROP</span> SCHEMA myschema;</span><br></pre></td></tr></table></figure>
+<p><strong>要删除一个模式以及其中包含的所有对象，可用：</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DROP</span> SCHEMA myschema CASCADE;</span><br></pre></td></tr></table></figure>
+
+<p><strong>创建一个由其他人所拥有的模式（因为这是将用户动作限制在良定义的名字空间中的方法之一）。其语法是：</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> SCHEMA schema_name <span class="keyword">AUTHORIZATION</span> user_name;</span><br></pre></td></tr></table></figure>
+
+<h3 id="搜索路径"><a href="#搜索路径" class="headerlink" title="搜索路径"></a>搜索路径</h3><p>限定名写起来很冗长(myschema.mytable)，因此，表名通常被使用非限定名来引用，它只由表名构成。系统将沿着一条搜索路径来决定该名称指的是哪个表。<br>搜索路径是一个进行查看的模式列表。 搜索路径中第一个匹配的表将被认为是所需要的。如果在搜索路径中没有任何匹配，即使在数据库的其他模式中存在匹配的表名也将会报告一个错误。</p>
+<p><strong>要显示当前搜索路径，使用下面的命令：</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> search_path;</span><br></pre></td></tr></table></figure>
+<p>在默认设置下这将返回：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">search_path</span><br><span class="line"></span><br><span class="line">&quot;$user&quot;, public</span><br></pre></td></tr></table></figure>
+<p>第一个元素说明一个和当前用户同名的模式会被搜索。如果不存在这个模式，该项将被忽略。第二个元素是<code>public模式</code>(默认的模式)，<code>public模式</code>没有什么特别之处，它只是默认存在而已，它也可以被删除。</p>
+<p>搜索路径中的第一个模式是创建新对象的默认存储位置。这就是默认情况下对象会被创建在公共模式中的原因。当对象在任何其他没有模式限定的环境中被引用（表修改、数据修改或查询命令）时，搜索路径将被遍历直到一个匹配对象被找到。因此，在默认配置中，任何非限定访问将只能指向<code>public模式</code>。</p>
+<p><strong>要把新模式放在搜索路径中，我们可以使用：</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SET</span> search_path <span class="keyword">TO</span> myschema,public;</span><br></pre></td></tr></table></figure>
+<p>（这里省略了$user，因为我们并不立即需要它）</p>
+<h2 id="模式和权限"><a href="#模式和权限" class="headerlink" title="模式和权限"></a>模式和权限</h2><p>模式本身也是一个数据库对象，因此可以通过 <code>GRANT</code> 和 <code>REVOKE </code>命令来控制访问。</p>
+<table>
+<thead>
+<tr>
+<th>权限类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CREATE</td>
+<td>允许在该模式下创建新对象（如表、视图、函数等）</td>
+</tr>
+<tr>
+<td>USAGE</td>
+<td>允许访问该模式中的对象（但不能修改或创建）</td>
+</tr>
+</tbody></table>
+<p><strong>授予用户权限</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">GRANT</span> USAGE <span class="keyword">ON</span> SCHEMA sales <span class="keyword">TO</span> analyst;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CREATE</span> <span class="keyword">ON</span> SCHEMA sales <span class="keyword">TO</span> developer;</span><br></pre></td></tr></table></figure>
+
+<p><strong>撤销权限</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">REVOKE</span> <span class="keyword">CREATE</span> <span class="keyword">ON</span> SCHEMA sales <span class="keyword">FROM</span> developer;</span><br><span class="line"><span class="keyword">REVOKE</span> USAGE <span class="keyword">ON</span> SCHEMA sales <span class="keyword">FROM</span> analyst;</span><br></pre></td></tr></table></figure>
+
+<h1 id="预写式日志-WAL"><a href="#预写式日志-WAL" class="headerlink" title="预写式日志(WAL)"></a>预写式日志(WAL)</h1><p>预写式日志（Write-Ahead Logging，简称 WAL），这是 <code>PostgreSQL</code> 保证数据可靠性与 事务 <code>ACID</code> 中“持久性（Durability）” 的核心机制之一。</p>
+<p><strong>核心原则：</strong><br><strong>在对数据文件进行任何修改之前，必须先把这些修改的记录写入日志（WAL 日志）中。</strong></p>
+<p>也就是说：先写日志，再写数据,日志中记录了“要修改什么”和“如何修改”的信息</p>
+<p>WAL 的简化执行过程：</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>操作</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>事务开始</td>
+<td>记录事务开始的标记</td>
+</tr>
+<tr>
+<td>2</td>
+<td>产生修改</td>
+<td>当修改表页、索引页等数据页时，会生成对应的 WAL 记录</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>先写 WAL 日志</strong></td>
+<td>所有修改先写入 <code>pg_wal/</code> 目录下的日志文件（顺序写入，速度快）</td>
+</tr>
+<tr>
+<td>4</td>
+<td>数据页写入缓冲区</td>
+<td>修改后的页在内存中缓存，不立即写入磁盘（延迟写）</td>
+</tr>
+<tr>
+<td>5</td>
+<td>事务提交时 <strong>强制刷新（fsync）</strong></td>
+<td>PostgreSQL 确保 WAL 写入磁盘后，才认为事务提交成功</td>
+</tr>
+<tr>
+<td>6</td>
+<td>后台进程异步将脏页写入磁盘</td>
+<td>真正的数据文件更新可以延后进行（异步写）</td>
+</tr>
+<tr>
+<td>7</td>
+<td>崩溃恢复</td>
+<td>若崩溃，则根据 WAL 日志“重放”提交事务，撤销未提交事务</td>
+</tr>
+</tbody></table>
  
       <!-- reward -->
       
@@ -208,6 +307,15 @@
 
    
   <nav class="article-nav">
+    
+      <a href="/2025/10/08/%E6%95%B0%E6%8D%AE%E5%BA%93%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            数据库工作机制
+          
+        </div>
+      </a>
     
     
       <a href="/2025/10/01/psql%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" class="article-nav-link">

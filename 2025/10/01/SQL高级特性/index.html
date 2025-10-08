@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">3k</span>
+            <span class="post-count">2.5k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">11 min</span>
+            <span class="post-count">9 min</span>
         </span>
     </span>
 </div>
@@ -119,43 +119,11 @@
 使用时：<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> high_salary;</span><br></pre></td></tr></table></figure></li>
 </ul>
 <hr>
-<h1 id="外键"><a href="#外键" class="headerlink" title="外键"></a>外键</h1><h3 id="外键（Foreign-Key）介绍"><a href="#外键（Foreign-Key）介绍" class="headerlink" title="外键（Foreign Key）介绍"></a>外键（Foreign Key）介绍</h3><ul>
-<li><strong>定义</strong>：外键是用于保持 <strong>引用完整性（Referential Integrity）</strong> 的约束。</li>
-<li><strong>作用</strong>：建立子表与父表的联系，保证数据一致性。外键值必须匹配父表主键&#x2F;唯一键的值，或者为 NULL。</li>
-<li><strong>好处</strong>：防止“孤儿数据”。</li>
-</ul>
-<h4 id="在创建表时添加外键"><a href="#在创建表时添加外键" class="headerlink" title="在创建表时添加外键"></a>在创建表时添加外键</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> orders (</span><br><span class="line">    order_id SERIAL <span class="keyword">PRIMARY</span> KEY,</span><br><span class="line">    customer_id <span class="type">INT</span>,</span><br><span class="line">    order_date <span class="type">DATE</span>,</span><br><span class="line">    <span class="keyword">FOREIGN</span> KEY (customer_id) <span class="keyword">REFERENCES</span> customers(id)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
-<ul>
-<li>customer_id 是子表中的外键。</li>
-<li>它引用 customers 表的 id 字段。</li>
-<li>插入 orders 时，customer_id 必须在 customers.id 中存在。</li>
-</ul>
-<p>带约束动作的写法：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> orders (</span><br><span class="line">    order_id SERIAL <span class="keyword">PRIMARY</span> KEY,</span><br><span class="line">    customer_id <span class="type">INT</span>,</span><br><span class="line">    order_date <span class="type">DATE</span>,</span><br><span class="line">    <span class="keyword">CONSTRAINT</span> fk_customer</span><br><span class="line">        <span class="keyword">FOREIGN</span> KEY (customer_id) <span class="keyword">REFERENCES</span> customers(id)</span><br><span class="line">        <span class="keyword">ON</span> <span class="keyword">DELETE</span> CASCADE</span><br><span class="line">        <span class="keyword">ON</span> <span class="keyword">UPDATE</span> CASCADE</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
-
-
-<p>常见动作：</p>
-<ul>
-<li>ON DELETE CASCADE：父表记录删除时，子表相关记录也被删除。</li>
-<li>ON UPDATE CASCADE：父表更新时，子表同步更新。</li>
-<li>也可设置 SET NULL 或 RESTRICT。</li>
-</ul>
-<h4 id="已有表如何添加外键"><a href="#已有表如何添加外键" class="headerlink" title="已有表如何添加外键"></a>已有表如何添加外键</h4><p><strong>假设 weather 表中 city 字段唯一，可以加主键(PRIMARY KEY)：</strong></p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> weather</span><br><span class="line"><span class="keyword">ADD</span> <span class="keyword">CONSTRAINT</span> weather_pkey </span><br><span class="line"><span class="keyword">PRIMARY</span> KEY (city);</span><br></pre></td></tr></table></figure>
-<p><code>weather_pkey</code>是主键名</p>
-<p><strong>添加外键（FOREIGN KEY）</strong></p>
-<p>让 <code>weather.city</code> 引用 <code>cities.name</code>：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> weather</span><br><span class="line"><span class="keyword">ADD</span> <span class="keyword">CONSTRAINT</span> weather_city_fkey</span><br><span class="line"><span class="keyword">FOREIGN</span> KEY (city) <span class="keyword">REFERENCES</span> cities(name);</span><br></pre></td></tr></table></figure>
-<p><code>weather_city_fkey</code>是外键名<br>一个表可以有多个外键。</p>
-<p><strong>删除外键</strong></p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> orders</span><br><span class="line"><span class="keyword">DROP</span> <span class="keyword">CONSTRAINT</span> weather_city_fkey;</span><br></pre></td></tr></table></figure>
-
-<hr>
 <h1 id="事务"><a href="#事务" class="headerlink" title="事务"></a>事务</h1><p>事务是所有数据库系统的基础概念。事务最重要的一点是它将多个步骤捆绑成了一个单一的、要么全完成要么全不完成的操作。步骤之间的中间状态对于其他并发事务是不可见的，并且如果有某些错误发生导致事务不能完成，则其中任何一个步骤都不会对数据库造成影响。</p>
 <h3 id="事务与-ACID"><a href="#事务与-ACID" class="headerlink" title="事务与 ACID"></a>事务与 ACID</h3><ul>
 <li><strong>原子性（Atomicity）</strong>：事务内的所有操作要么全部成功（COMMIT），要么全部撤销（ROLLBACK）。  </li>
 <li><strong>一致性（Consistency）</strong>：事务结束时，数据库从一个一致状态转到另一个一致状态（例如外键、约束未被破坏）。  </li>
-<li><strong>隔离性（Isolation）</strong>：并发事务之间互不干扰；一个事务在提交前的中间修改对其他事务不可见。  </li>
+<li><strong>隔离性（Isolation）</strong>：并发事务之间互不干扰；一个事务在提交前的中间修改对其他事务不可见，避免脏读、不可重复读、幻读等问题。</li>
 <li><strong>持久性（Durability）</strong>：一旦事务提交，修改被持久保存（WAL 日志保证）。</li>
 </ul>
 <h3 id="基本事务控制语句（PostgreSQL）"><a href="#基本事务控制语句（PostgreSQL）" class="headerlink" title="基本事务控制语句（PostgreSQL）"></a>基本事务控制语句（PostgreSQL）</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 显式事务块</span></span><br><span class="line"><span class="keyword">BEGIN</span>;           <span class="comment">-- 或 START TRANSACTION;</span></span><br><span class="line">  <span class="comment">-- 若干 DML/DDL/查询</span></span><br><span class="line"><span class="keyword">COMMIT</span>;          <span class="comment">-- 提交</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 如果要撤销</span></span><br><span class="line"><span class="keyword">ROLLBACK</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 保存点</span></span><br><span class="line"><span class="keyword">SAVEPOINT</span> sp1;</span><br><span class="line"><span class="keyword">ROLLBACK</span> <span class="keyword">TO</span> sp1;</span><br><span class="line"><span class="keyword">RELEASE</span> <span class="keyword">SAVEPOINT</span> sp1;</span><br></pre></td></tr></table></figure>
@@ -185,6 +153,114 @@
 <blockquote>
 <p>注：PostgreSQL 的具体并发现象与隔离级别实现细节相对复杂，建议在生产场景选择合适隔离级别并通过测试验证。</p>
 </blockquote>
+<h3 id="MVCC-多版本并发控制"><a href="#MVCC-多版本并发控制" class="headerlink" title="MVCC(多版本并发控制)"></a>MVCC(多版本并发控制)</h3><p>简单说，它让多个事务可以同时访问同一张表的数据，<br>而又互不干扰、互不锁表。</p>
+<p>传统的并发控制方式是加锁（Locking）：<br>当一个事务正在修改某行数据时，其他事务必须等待,并发性能差。</p>
+<p><strong>而 MVCC 不加锁读取数据：</strong></p>
+<ul>
+<li>读操作读取“历史快照（snapshot）”，不阻塞写；</li>
+<li>写操作创建“新版本（new version）”，不阻塞读。</li>
+</ul>
+<blockquote>
+<p>✅ 核心思想：通过为数据行维护多个版本（版本链），实现“读不阻塞写，写不阻塞读”。</p>
+</blockquote>
+<p><strong>核心机制：</strong><br>在 PostgreSQL 中，每一行数据（tuple）都包含以下两个隐藏字段：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>xmin</code></td>
+<td>插入该行的事务 ID</td>
+</tr>
+<tr>
+<td><code>xmax</code></td>
+<td>删除（或更新）该行的事务 ID</td>
+</tr>
+</tbody></table>
+<p>当一个事务读取数据时，它根据自己的“快照（snapshot）”决定：</p>
+<ul>
+<li>哪些版本是可见的；</li>
+<li>哪些版本是对自己不可见的（未提交或已删除）。</li>
+</ul>
+<p><strong>PostgreSQL 的 UPDATE 实际上是 “删除旧行 + 插入新行”；</strong><br><strong>示例：多版本快照</strong></p>
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th>操作</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1 开启事务，读取 A&#x3D;100</td>
+<td>可见版本：A(v1, xmin&#x3D;1, xmax&#x3D;null)</td>
+</tr>
+<tr>
+<td>T2 开启事务，更新 A&#x3D;200（新版本 v2, xmin&#x3D;2）</td>
+<td>A(v2) 对 T1 不可见（T1 的快照早于 T2）</td>
+</tr>
+<tr>
+<td>T1 再次读取 A</td>
+<td>仍然读到 A&#x3D;100（旧版本）</td>
+</tr>
+<tr>
+<td>T2 提交</td>
+<td>新事务开始后，才会读到 A&#x3D;200</td>
+</tr>
+</tbody></table>
+<p><strong>MVCC 的实现方式总结</strong></p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>动作</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>SELECT</strong></td>
+<td>读取可见版本</td>
+<td>不加锁，只看快照</td>
+</tr>
+<tr>
+<td><strong>UPDATE</strong></td>
+<td>创建一个新版本（新行）</td>
+<td>原版本打上 xmax，表示“过期”</td>
+</tr>
+<tr>
+<td><strong>DELETE</strong></td>
+<td>设置 xmax</td>
+<td>逻辑删除，不立即物理删除</td>
+</tr>
+<tr>
+<td><strong>VACUUM</strong></td>
+<td>清理旧版本</td>
+<td>回收空间，防止膨胀</td>
+</tr>
+</tbody></table>
+<p><strong>MVCC 与事务隔离级别的关系</strong></p>
+<table>
+<thead>
+<tr>
+<th>隔离级别</th>
+<th>MVCC 的表现</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>READ COMMITTED</strong></td>
+<td>每次查询都获得<strong>新的快照</strong>（看到已提交的新数据）</td>
+</tr>
+<tr>
+<td><strong>REPEATABLE READ</strong></td>
+<td>整个事务期间使用<strong>固定的快照</strong>（避免不可重复读）</td>
+</tr>
+<tr>
+<td><strong>SERIALIZABLE</strong></td>
+<td>在 MVCC 基础上加额外检测，确保结果等价于串行执行</td>
+</tr>
+</tbody></table>
 <hr>
 <h1 id="窗口函数"><a href="#窗口函数" class="headerlink" title="窗口函数"></a>窗口函数</h1><h3 id="基本语法"><a href="#基本语法" class="headerlink" title="基本语法"></a>基本语法</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator">&lt;</span>window_function<span class="operator">&gt;</span>(args) <span class="keyword">OVER</span> (</span><br><span class="line">    [<span class="keyword">PARTITION</span> <span class="keyword">BY</span> expr [, ...]]</span><br><span class="line">    [<span class="keyword">ORDER</span> <span class="keyword">BY</span> expr [<span class="keyword">ASC</span><span class="operator">|</span><span class="keyword">DESC</span>] [, ...]]</span><br><span class="line">    [frame_clause]</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
 <ul>
@@ -382,59 +458,7 @@
 <li><p>SQL 标准兼容性差<br>SQL 标准中没有这种表继承机制，因此它是 PostgreSQL 的“特有扩展”。</p>
 </li>
 </ol>
-<h1 id="模式"><a href="#模式" class="headerlink" title="模式"></a>模式</h1><p>在 <code>PostgreSQL</code> 中，模式<code>（Schema）</code> 是数据库中的一种命名空间（namespace），它用于组织数据库对象（例如表、视图、函数、类型、索引等）。类似于操作系统中的目录</p>
-<blockquote>
-<p>模式的作用是对数据库对象进行逻辑分组，防止命名冲突，并方便管理。</p>
-</blockquote>
-<p><strong>查看所有模式</strong></p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">\dn</span><br></pre></td></tr></table></figure>
-
-<h3 id="有关模式的相关操作"><a href="#有关模式的相关操作" class="headerlink" title="有关模式的相关操作"></a>有关模式的相关操作</h3><p><strong>要创建一个模式，可使用CREATE SCHEMA命令，并且给出选择的模式名称。例如：</strong></p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> SCHEMA myschema;</span><br></pre></td></tr></table></figure>
-
-<p><strong>在模式中创建表:</strong></p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> myschema.mytable (</span><br><span class="line"> ...</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
-
-<p><strong>要删除一个为空的模式（其中的所有对象已经被删除），可用：</strong></p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DROP</span> SCHEMA myschema;</span><br></pre></td></tr></table></figure>
-<p><strong>要删除一个模式以及其中包含的所有对象，可用：</strong></p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DROP</span> SCHEMA myschema CASCADE;</span><br></pre></td></tr></table></figure>
-
-<p><strong>创建一个由其他人所拥有的模式（因为这是将用户动作限制在良定义的名字空间中的方法之一）。其语法是：</strong></p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> SCHEMA schema_name <span class="keyword">AUTHORIZATION</span> user_name;</span><br></pre></td></tr></table></figure>
-
-<h3 id="搜索路径"><a href="#搜索路径" class="headerlink" title="搜索路径"></a>搜索路径</h3><p>限定名写起来很冗长(myschema.mytable)，因此，表名通常被使用非限定名来引用，它只由表名构成。系统将沿着一条搜索路径来决定该名称指的是哪个表。<br>搜索路径是一个进行查看的模式列表。 搜索路径中第一个匹配的表将被认为是所需要的。如果在搜索路径中没有任何匹配，即使在数据库的其他模式中存在匹配的表名也将会报告一个错误。</p>
-<p><strong>要显示当前搜索路径，使用下面的命令：</strong></p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> search_path;</span><br></pre></td></tr></table></figure>
-<p>在默认设置下这将返回：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">search_path</span><br><span class="line"></span><br><span class="line">&quot;$user&quot;, public</span><br></pre></td></tr></table></figure>
-<p>第一个元素说明一个和当前用户同名的模式会被搜索。如果不存在这个模式，该项将被忽略。第二个元素是<code>public模式</code>(默认的模式)，<code>public模式</code>没有什么特别之处，它只是默认存在而已，它也可以被删除。</p>
-<p>搜索路径中的第一个模式是创建新对象的默认存储位置。这就是默认情况下对象会被创建在公共模式中的原因。当对象在任何其他没有模式限定的环境中被引用（表修改、数据修改或查询命令）时，搜索路径将被遍历直到一个匹配对象被找到。因此，在默认配置中，任何非限定访问将只能指向<code>public模式</code>。</p>
-<p><strong>要把新模式放在搜索路径中，我们可以使用：</strong></p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SET</span> search_path <span class="keyword">TO</span> myschema,public;</span><br></pre></td></tr></table></figure>
-<p>（这里省略了$user，因为我们并不立即需要它）</p>
-<h2 id="模式和权限"><a href="#模式和权限" class="headerlink" title="模式和权限"></a>模式和权限</h2><p>模式本身也是一个数据库对象，因此可以通过 <code>GRANT</code> 和 <code>REVOKE </code>命令来控制访问。</p>
-<table>
-<thead>
-<tr>
-<th>权限类型</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>CREATE</td>
-<td>允许在该模式下创建新对象（如表、视图、函数等）</td>
-</tr>
-<tr>
-<td>USAGE</td>
-<td>允许访问该模式中的对象（但不能修改或创建）</td>
-</tr>
-</tbody></table>
-<p><strong>授予用户权限</strong></p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">GRANT</span> USAGE <span class="keyword">ON</span> SCHEMA sales <span class="keyword">TO</span> analyst;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CREATE</span> <span class="keyword">ON</span> SCHEMA sales <span class="keyword">TO</span> developer;</span><br></pre></td></tr></table></figure>
-
-<p><strong>撤销权限</strong></p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">REVOKE</span> <span class="keyword">CREATE</span> <span class="keyword">ON</span> SCHEMA sales <span class="keyword">FROM</span> developer;</span><br><span class="line"><span class="keyword">REVOKE</span> USAGE <span class="keyword">ON</span> SCHEMA sales <span class="keyword">FROM</span> analyst;</span><br></pre></td></tr></table></figure> 
+ 
       <!-- reward -->
       
     </div>
