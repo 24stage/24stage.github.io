@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">1.3k</span>
+            <span class="post-count">1.5k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">5 min</span>
+            <span class="post-count">6 min</span>
         </span>
     </span>
 </div>
@@ -108,7 +108,10 @@
        
   <h2 id="SQL-增删改查（CRUD）"><a href="#SQL-增删改查（CRUD）" class="headerlink" title="SQL 增删改查（CRUD）"></a>SQL 增删改查（CRUD）</h2><ul>
 <li><p><strong>创建表</strong>：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> students (</span><br><span class="line">    id SERIAL <span class="keyword">PRIMARY</span> KEY,</span><br><span class="line">    name <span class="type">VARCHAR</span>(<span class="number">100</span>),</span><br><span class="line">    age <span class="type">INT</span>,</span><br><span class="line">    city <span class="type">VARCHAR</span>(<span class="number">50</span>)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> students (</span><br><span class="line">    id SERIAL <span class="keyword">PRIMARY</span> KEY,</span><br><span class="line">    name <span class="type">VARCHAR</span>(<span class="number">100</span>),</span><br><span class="line">    age <span class="type">INT</span>,</span><br><span class="line">    city <span class="type">VARCHAR</span>(<span class="number">50</span>)</span><br><span class="line">);</span><br></pre></td></tr></table></figure></li>
+<li><p><strong>在已有表中添加列</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> 表名</span><br><span class="line"><span class="keyword">ADD</span> <span class="keyword">COLUMN</span> 列名 数据类型 [约束] [<span class="keyword">DEFAULT</span> 默认值];</span><br></pre></td></tr></table></figure>
+
 </li>
 <li><p><strong>插入数据</strong>：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> students (name, age, city)</span><br><span class="line"><span class="keyword">VALUES</span> (<span class="string">&#x27;Alice&#x27;</span>, <span class="number">20</span>, <span class="string">&#x27;Beijing&#x27;</span>);</span><br></pre></td></tr></table></figure>
@@ -251,6 +254,25 @@
 <p>示例：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> (<span class="number">1</span>, <span class="keyword">NULL</span>) <span class="keyword">IS</span> <span class="keyword">DISTINCT</span> <span class="keyword">FROM</span> (<span class="number">1</span>, <span class="keyword">NULL</span>);   <span class="comment">-- false</span></span><br><span class="line"><span class="keyword">SELECT</span> (<span class="number">1</span>, <span class="keyword">NULL</span>) <span class="keyword">IS</span> <span class="keyword">DISTINCT</span> <span class="keyword">FROM</span> (<span class="number">1</span>, <span class="number">2</span>);      <span class="comment">-- true</span></span><br><span class="line"><span class="keyword">SELECT</span> (<span class="number">1</span>, <span class="keyword">NULL</span>) <span class="keyword">IS</span> <span class="keyword">NOT</span> <span class="keyword">DISTINCT</span> <span class="keyword">FROM</span> (<span class="number">1</span>, <span class="keyword">NULL</span>); <span class="comment">-- true</span></span><br></pre></td></tr></table></figure>
 <p>这样可以避免因为 NULL 导致比较结果不确定的问题。</p>
+<h2 id="域-Domain"><a href="#域-Domain" class="headerlink" title="域 (Domain)"></a>域 (Domain)</h2><p>在 SQL 中，域（Domain） 是一种 <strong>基于已有数据类型创建的新“类型”</strong>，<br>它可以带有默认值、检查约束（CHECK）或 NOT NULL 限制。</p>
+<blockquote>
+<p>📘 简单来说：<br>域 &#x3D; 数据类型 + 约束规则</p>
+</blockquote>
+<p>它本质上是一个<strong>可复用的类型定义模板</strong>。<br>当你在多个表中有相同字段类型和规则时，定义域可以让结构更统一、更易维护。</p>
+<p>例子：<br>假设多个表中都有一个字段是“邮箱地址”：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">email <span class="type">VARCHAR</span>(<span class="number">100</span>) <span class="keyword">CHECK</span> (email <span class="keyword">LIKE</span> <span class="string">&#x27;%@%&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>如果几十张表都有类似定义，那改规则时就得全部改一遍，非常麻烦。<br>而如果定义一个域：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> DOMAIN email_domain <span class="keyword">AS</span> <span class="type">VARCHAR</span>(<span class="number">100</span>)</span><br><span class="line"><span class="keyword">CHECK</span> (<span class="keyword">VALUE</span> <span class="keyword">LIKE</span> <span class="string">&#x27;%@%&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>之后只需要：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> users (</span><br><span class="line">  id SERIAL <span class="keyword">PRIMARY</span> KEY,</span><br><span class="line">  email email_domain</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<p><strong>查看已有域:</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">\dD        <span class="comment">-- 查看所有域</span></span><br><span class="line">\dD domain_name  <span class="comment">-- 查看具体域定义</span></span><br></pre></td></tr></table></figure>
+
+
+<hr>
  
       <!-- reward -->
       
