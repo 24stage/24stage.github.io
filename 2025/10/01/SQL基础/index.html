@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">2.6k</span>
+            <span class="post-count">2.8k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">10 min</span>
+            <span class="post-count">11 min</span>
         </span>
     </span>
 </div>
@@ -106,13 +106,78 @@
   
     <div class="article-entry" itemprop="articleBody">
        
-  <h2 id="SQL-增删改查（CRUD）"><a href="#SQL-增删改查（CRUD）" class="headerlink" title="SQL 增删改查（CRUD）"></a>SQL 增删改查（CRUD）</h2><ul>
+  <h2 id="DDL——数据定义语言"><a href="#DDL——数据定义语言" class="headerlink" title="DDL——数据定义语言"></a>DDL——数据定义语言</h2><p>用于 <strong>定义和修改数据库结构</strong>，例如数据库、表、索引、视图、约束等。</p>
+<p>这些操作会直接<strong>影响数据库的结构</strong>，而不仅仅是表中的数据。<br>执行 DDL 语句后，系统会<strong>自动提交事务</strong>（即无法回滚）。</p>
+<p>常见DDL命令</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>CREATE</code></td>
+<td>创建数据库对象（如表、索引、视图、模式等）</td>
+</tr>
+<tr>
+<td><code>ALTER</code></td>
+<td>修改数据库对象（例如添加列、更改列类型）</td>
+</tr>
+<tr>
+<td><code>DROP</code></td>
+<td>删除数据库对象</td>
+</tr>
+<tr>
+<td><code>TRUNCATE</code></td>
+<td>清空表中所有数据（但保留表结构）</td>
+</tr>
+<tr>
+<td><code>COMMENT</code></td>
+<td>为数据库对象添加注释</td>
+</tr>
+</tbody></table>
+<p>示例：</p>
+<ul>
 <li><p><strong>创建表</strong>：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> students (</span><br><span class="line">    id SERIAL <span class="keyword">PRIMARY</span> KEY,</span><br><span class="line">    name <span class="type">VARCHAR</span>(<span class="number">100</span>),</span><br><span class="line">    age <span class="type">INT</span>,</span><br><span class="line">    city <span class="type">VARCHAR</span>(<span class="number">50</span>)</span><br><span class="line">);</span><br></pre></td></tr></table></figure></li>
 <li><p><strong>在已有表中添加列</strong></p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> 表名</span><br><span class="line"><span class="keyword">ADD</span> <span class="keyword">COLUMN</span> 列名 数据类型 [约束] [<span class="keyword">DEFAULT</span> 默认值];</span><br></pre></td></tr></table></figure>
-
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> 表名</span><br><span class="line"><span class="keyword">ADD</span> <span class="keyword">COLUMN</span> 列名 数据类型 [约束] [<span class="keyword">DEFAULT</span> 默认值];</span><br></pre></td></tr></table></figure></li>
+<li><p><strong>删除表</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DROP</span> <span class="keyword">TABLE</span> employees;</span><br></pre></td></tr></table></figure>
 </li>
+<li><p><strong>清空表数据</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">TRUNCATE</span> <span class="keyword">TABLE</span> employees;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<hr>
+<h2 id="DML——数据操作语言"><a href="#DML——数据操作语言" class="headerlink" title="DML——数据操作语言"></a>DML——数据操作语言</h2><p>用于 <strong>查询和操作数据本身</strong>（不是结构），<br>即增、删、改、查操作。</p>
+<p>DML 语句可以在事务中执行，因此<strong>可以回滚（ROLLBACK）或提交（COMMIT）</strong>。</p>
+<p>常见DML命令</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>SELECT</code></td>
+<td>查询数据</td>
+</tr>
+<tr>
+<td><code>INSERT</code></td>
+<td>插入新行</td>
+</tr>
+<tr>
+<td><code>UPDATE</code></td>
+<td>修改现有数据</td>
+</tr>
+<tr>
+<td><code>DELETE</code></td>
+<td>删除数据</td>
+</tr>
+</tbody></table>
+<ul>
 <li><p><strong>插入数据</strong>：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> students (name, age, city)</span><br><span class="line"><span class="keyword">VALUES</span> (<span class="string">&#x27;Alice&#x27;</span>, <span class="number">20</span>, <span class="string">&#x27;Beijing&#x27;</span>);</span><br></pre></td></tr></table></figure>
 </li>
@@ -125,8 +190,8 @@
 <li><p><strong>删除数据</strong>：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DELETE</span> <span class="keyword">FROM</span> students</span><br><span class="line"><span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">1</span>;</span><br></pre></td></tr></table></figure></li>
 </ul>
-<hr>
-<h2 id="内连接、左外连接、右外连接、全外连接、自连接"><a href="#内连接、左外连接、右外连接、全外连接、自连接" class="headerlink" title="内连接、左外连接、右外连接、全外连接、自连接"></a>内连接、左外连接、右外连接、全外连接、自连接</h2><ul>
+<h2 id="连接-JOIN"><a href="#连接-JOIN" class="headerlink" title="连接 (JOIN)"></a>连接 (JOIN)</h2><p>连接包括几个类型：</p>
+<ul>
 <li><p><strong>内连接（INNER JOIN）</strong>：<br>仅返回两个表中匹配的行。</p>
 </li>
 <li><p><strong>左外连接（LEFT OUTER JOIN）</strong>：<br>返回左表所有行，右表无匹配时补 NULL。</p>
