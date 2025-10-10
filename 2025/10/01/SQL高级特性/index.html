@@ -153,7 +153,7 @@
 <blockquote>
 <p>注：PostgreSQL 的具体并发现象与隔离级别实现细节相对复杂，建议在生产场景选择合适隔离级别并通过测试验证。</p>
 </blockquote>
-<h3 id="MVCC-多版本并发控制"><a href="#MVCC-多版本并发控制" class="headerlink" title="MVCC(多版本并发控制)"></a>MVCC(多版本并发控制)</h3><p>简单说，它让多个事务可以同时访问同一张表的数据，<br>而又互不干扰、互不锁表。</p>
+<h2 id="MVCC-多版本并发控制"><a href="#MVCC-多版本并发控制" class="headerlink" title="MVCC(多版本并发控制)"></a>MVCC(多版本并发控制)</h2><p>简单说，它让多个事务可以同时访问同一张表的数据，<br>而又互不干扰、互不锁表。</p>
 <p>传统的并发控制方式是加锁（Locking）：<br>当一个事务正在修改某行数据时，其他事务必须等待,并发性能差。</p>
 <p><strong>而 MVCC 不加锁读取数据：</strong></p>
 <ul>
