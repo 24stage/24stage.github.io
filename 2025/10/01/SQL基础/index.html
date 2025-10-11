@@ -250,6 +250,41 @@
 <p><strong>示例</strong>：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> a.id, a.name, b.dept_name</span><br><span class="line"><span class="keyword">FROM</span> employees a</span><br><span class="line"><span class="keyword">INNER</span> <span class="keyword">JOIN</span> departments b</span><br><span class="line"><span class="keyword">ON</span> a.dept_id <span class="operator">=</span> b.id;</span><br></pre></td></tr></table></figure>
 
+<p><strong>集合与连接(JOIN)的对比：</strong></p>
+<table>
+<thead>
+<tr>
+<th>特点</th>
+<th>集合运算</th>
+<th>JOIN</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>操作对象</td>
+<td>整个结果集</td>
+<td>行与行之间</td>
+</tr>
+<tr>
+<td>匹配方式</td>
+<td>按整行匹配</td>
+<td>按列条件匹配</td>
+</tr>
+<tr>
+<td>结果结构</td>
+<td>相同列结构</td>
+<td>列可不同</td>
+</tr>
+<tr>
+<td>性能</td>
+<td>通常较慢（需去重或构造临时集）</td>
+<td>更灵活高效</td>
+</tr>
+<tr>
+<td>常用场景</td>
+<td>合并同结构表结果</td>
+<td>关联不同结构表</td>
+</tr>
+</tbody></table>
 <hr>
 <h2 id="聚集函数与-WHERE-HAVING-FILTER"><a href="#聚集函数与-WHERE-HAVING-FILTER" class="headerlink" title="聚集函数与 WHERE &#x2F; HAVING &#x2F; FILTER"></a>聚集函数与 WHERE &#x2F; HAVING &#x2F; FILTER</h2><ul>
 <li><p><strong>WHERE 子句</strong>：  </p>
@@ -288,41 +323,6 @@
 </ul>
 </li>
 </ul>
-<p><strong>集合与连接(JOIN)的对比：</strong></p>
-<table>
-<thead>
-<tr>
-<th>特点</th>
-<th>集合运算</th>
-<th>JOIN</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>操作对象</td>
-<td>整个结果集</td>
-<td>行与行之间</td>
-</tr>
-<tr>
-<td>匹配方式</td>
-<td>按整行匹配</td>
-<td>按列条件匹配</td>
-</tr>
-<tr>
-<td>结果结构</td>
-<td>相同列结构</td>
-<td>列可不同</td>
-</tr>
-<tr>
-<td>性能</td>
-<td>通常较慢（需去重或构造临时集）</td>
-<td>更灵活高效</td>
-</tr>
-<tr>
-<td>常用场景</td>
-<td>合并同结构表结果</td>
-<td>关联不同结构表</td>
-</tr>
-</tbody></table>
 <hr>
 <h2 id="SQL-查询的执行顺序"><a href="#SQL-查询的执行顺序" class="headerlink" title="SQL 查询的执行顺序"></a>SQL 查询的执行顺序</h2><p>SQL 编写顺序：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> ... <span class="keyword">FROM</span> ... <span class="keyword">WHERE</span> ... <span class="keyword">GROUP</span> <span class="keyword">BY</span> ... <span class="keyword">HAVING</span> ... <span class="keyword">ORDER</span> <span class="keyword">BY</span> ... LIMIT ...</span><br></pre></td></tr></table></figure>
