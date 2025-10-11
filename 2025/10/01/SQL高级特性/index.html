@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">2.5k</span>
+            <span class="post-count">2.8k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">9 min</span>
+            <span class="post-count">10 min</span>
         </span>
     </span>
 </div>
@@ -141,7 +141,7 @@
 </li>
 <li><p><strong>REPEATABLE READ</strong>  </p>
 <ul>
-<li>事务范围内的相同查询返回一致结果（解决不可重复读）；仍可能出现幻读（在部分实现中，Postgres 的 REPEATABLE READ 实际等价于 可串行化快照隔离？现代 Postgres 将 REPEATABLE READ 实现为可序列化快照读 - 细节参见官方版本说明）。</li>
+<li>事务范围内的相同查询返回一致结果（解决不可重复读）；仍可能出现幻读</li>
 </ul>
 </li>
 <li><p><strong>SERIALIZABLE</strong>  </p>
@@ -153,7 +153,7 @@
 <blockquote>
 <p>注：PostgreSQL 的具体并发现象与隔离级别实现细节相对复杂，建议在生产场景选择合适隔离级别并通过测试验证。</p>
 </blockquote>
-<h2 id="MVCC-多版本并发控制"><a href="#MVCC-多版本并发控制" class="headerlink" title="MVCC(多版本并发控制)"></a>MVCC(多版本并发控制)</h2><p>简单说，它让多个事务可以同时访问同一张表的数据，<br>而又互不干扰、互不锁表。</p>
+<h1 id="MVCC-多版本并发控制"><a href="#MVCC-多版本并发控制" class="headerlink" title="MVCC(多版本并发控制)"></a>MVCC(多版本并发控制)</h1><p>简单说，它让多个事务可以同时访问同一张表的数据，<br>而又互不干扰、互不锁表。</p>
 <p>传统的并发控制方式是加锁（Locking）：<br>当一个事务正在修改某行数据时，其他事务必须等待,并发性能差。</p>
 <p><strong>而 MVCC 不加锁读取数据：</strong></p>
 <ul>
@@ -161,9 +161,9 @@
 <li>写操作创建“新版本（new version）”，不阻塞读。</li>
 </ul>
 <blockquote>
-<p>✅ 核心思想：通过为数据行维护多个版本（版本链），实现“读不阻塞写，写不阻塞读”。</p>
+<p>✅ 核心思想：数据库中的每一行数据都有多个版本（versions），不同事务可以看到不同版本的数据。</p>
 </blockquote>
-<p><strong>核心机制：</strong><br>在 PostgreSQL 中，每一行数据（tuple）都包含以下两个隐藏字段：</p>
+<h3 id="核心机制："><a href="#核心机制：" class="headerlink" title="核心机制："></a>核心机制：</h3><p>在 PostgreSQL 中，每一行数据（tuple）都包含以下两个隐藏字段：</p>
 <table>
 <thead>
 <tr>
@@ -180,37 +180,13 @@
 <td>删除（或更新）该行的事务 ID</td>
 </tr>
 </tbody></table>
-<p>当一个事务读取数据时，它根据自己的“快照（snapshot）”决定：</p>
+<p>当一个事务读取数据时，它根据自己的“<strong>快照（snapshot）</strong>”决定：</p>
 <ul>
 <li>哪些版本是可见的；</li>
 <li>哪些版本是对自己不可见的（未提交或已删除）。</li>
 </ul>
-<p><strong>PostgreSQL 的 UPDATE 实际上是 “删除旧行 + 插入新行”；</strong><br><strong>示例：多版本快照</strong></p>
-<table>
-<thead>
-<tr>
-<th>时间</th>
-<th>操作</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>T1 开启事务，读取 A&#x3D;100</td>
-<td>可见版本：A(v1, xmin&#x3D;1, xmax&#x3D;null)</td>
-</tr>
-<tr>
-<td>T2 开启事务，更新 A&#x3D;200（新版本 v2, xmin&#x3D;2）</td>
-<td>A(v2) 对 T1 不可见（T1 的快照早于 T2）</td>
-</tr>
-<tr>
-<td>T1 再次读取 A</td>
-<td>仍然读到 A&#x3D;100（旧版本）</td>
-</tr>
-<tr>
-<td>T2 提交</td>
-<td>新事务开始后，才会读到 A&#x3D;200</td>
-</tr>
-</tbody></table>
-<p><strong>MVCC 的实现方式总结</strong></p>
+<p><strong>PostgreSQL 的 UPDATE 实际上是 “删除旧行 + 插入新行”；</strong></p>
+<p>MVCC 的实现方式总结:</p>
 <table>
 <thead>
 <tr>
@@ -240,8 +216,77 @@
 <td>回收空间，防止膨胀</td>
 </tr>
 </tbody></table>
-<p><strong>MVCC 与事务隔离级别的关系</strong></p>
+<h3 id="示例：多版本快照"><a href="#示例：多版本快照" class="headerlink" title="示例：多版本快照"></a>示例：多版本快照</h3><ol>
+<li><p>事务 T1 执行：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> users <span class="keyword">VALUES</span> (<span class="number">1</span>, <span class="string">&#x27;Alice&#x27;</span>);</span><br></pre></td></tr></table></figure>
+<p>系统会：<br>为这行记录生成一个新的版本,设置 <code>xmin = T1</code>, <code>xmax = null（未被删除）</code>；</p>
+</li>
+<li><p>事务T2 执行：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> users</span><br><span class="line"><span class="keyword">SET</span> name<span class="operator">=</span><span class="string">&#x27;newAlice&#x27;</span></span><br><span class="line"><span class="keyword">WHERE</span> id<span class="operator">=</span><span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+<p>系统会：更新不是原地修改，而是复制出一行新版本（新 tuple）；<br>旧版本的 xmax 被设为当前事务 ID；<br>新版本的 xmin 被设为当前事务 ID。</p>
+</li>
+</ol>
 <table>
+<thead>
+<tr>
+<th>版本</th>
+<th>内容</th>
+<th>xmin</th>
+<th>xmax</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1</td>
+<td>Alice</td>
+<td>10 (T1)</td>
+<td>20(T2)</td>
+</tr>
+<tr>
+<td>v2</td>
+<td>newAlice</td>
+<td>20(T2)</td>
+<td>null</td>
+</tr>
+</tbody></table>
+<ol start="3">
+<li>DELETE<br>删除操作只是在记录上标记 <code>xmax = 当前事务ID</code>，不立即移除数据。<br>只有当没有事务再需要旧版本时，<strong>VACUUM</strong> 才会真正清理物理空间。</li>
+</ol>
+<h3 id="可见性判断"><a href="#可见性判断" class="headerlink" title="可见性判断"></a>可见性判断</h3><p><strong>一个事务在查询时，系统会根据当前事务的快照（snapshot）来判断哪些版本可见。<br>快照记录：当前事务 ID，当前已提交事务 ID 集合，当前未提交事务 ID 集合。</strong></p>
+<blockquote>
+<p>可见性判断是“快照”对“版本”的比较。<br>✅ “快照认为这个版本已经存在（被提交），并且还没被删除” → 可见<br>❌ “快照认为这个版本还没生成，或已经被删除” → 不可见</p>
+</blockquote>
+<p>所以“是否可见”是针对当前事务(的快照)视角而言的。</p>
+<p>判断规则：</p>
+<table>
+<thead>
+<tr>
+<th>情况</th>
+<th>是否可见</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>tuple 的 <code>xmin</code> 未提交</td>
+<td>❌ 不可见</td>
+<td>事务还没提交当然不可见</td>
+</tr>
+<tr>
+<td>tuple 的 <code>xmin</code> 已提交，且 <code>xmax</code> 为空</td>
+<td>✅ 可见</td>
+<td>xmax为null说明版本是最新的</td>
+</tr>
+<tr>
+<td>tuple 的 <code>xmin</code> 已提交，但 <code>xmax</code> 已提交（并早于当前事务）</td>
+<td>❌ 不可见</td>
+<td>xmax已经提交说明该版本已经过时了</td>
+</tr>
+<tr>
+<td>tuple 的 <code>xmax</code> 是未提交事务</td>
+<td>✅（快照隔离下仍可见）</td>
+<td>xmax还未提交相当于xmax保持初始值即null</td>
+</tr>
+</tbody></table>
+<h3 id="MVCC-与事务隔离级别的关系"><a href="#MVCC-与事务隔离级别的关系" class="headerlink" title="MVCC 与事务隔离级别的关系"></a>MVCC 与事务隔离级别的关系</h3><table>
 <thead>
 <tr>
 <th>隔离级别</th>
@@ -468,7 +513,7 @@
     
     <footer class="article-footer">
        
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DBA/" rel="tag">DBA</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Postgre/" rel="tag">Postgre</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DBA/" rel="tag">DBA</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MVCC/" rel="tag">MVCC</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Postgre/" rel="tag">Postgre</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li></ul>
 
     </footer>
   </div>
