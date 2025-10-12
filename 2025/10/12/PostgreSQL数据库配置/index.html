@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">849</span>
+            <span class="post-count">1.2k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">3 min</span>
+            <span class="post-count">4 min</span>
         </span>
     </span>
 </div>
@@ -157,7 +157,7 @@
 <td>记录后台进程事件（如 checkpoint、autovacuum）</td>
 </tr>
 </tbody></table>
-<p><strong>常用日志相关参数：</strong></p>
+<p><strong>常用日志相关参数(控制日志系统能记录什么)：</strong></p>
 <table>
 <thead>
 <tr>
@@ -269,6 +269,54 @@
 <td>低层系统行为</td>
 <td>调试或开发</td>
 <td><code>client_min_messages</code>, <code>debug_print_parse</code> 等</td>
+</tr>
+</tbody></table>
+<h1 id="预写式日志-WAL"><a href="#预写式日志-WAL" class="headerlink" title="预写式日志(WAL)"></a>预写式日志(WAL)</h1><p>预写式日志（Write-Ahead Logging，简称 WAL），这是 <code>PostgreSQL</code> 保证数据可靠性与 事务 <code>ACID</code> 中“持久性（Durability）” 的核心机制之一。</p>
+<p><strong>核心原则：</strong><br><strong>在对数据文件进行任何修改之前，必须先把这些修改的记录写入日志（WAL 日志）中。</strong></p>
+<p>也就是说：先写日志，再写数据,日志中记录了“要修改什么”和“如何修改”的信息</p>
+<p>WAL 的简化执行过程：</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>操作</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>事务开始</td>
+<td>记录事务开始的标记</td>
+</tr>
+<tr>
+<td>2</td>
+<td>产生修改</td>
+<td>当修改表页、索引页等数据页时，会生成对应的 WAL 记录</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>先写 WAL 日志</strong></td>
+<td>所有修改先写入 <code>pg_wal/</code> 目录下的日志文件（顺序写入，速度快）</td>
+</tr>
+<tr>
+<td>4</td>
+<td>数据页写入缓冲区</td>
+<td>修改后的页在内存中缓存，不立即写入磁盘（延迟写）</td>
+</tr>
+<tr>
+<td>5</td>
+<td>事务提交时 <strong>强制刷新（fsync）</strong></td>
+<td>PostgreSQL 确保 WAL 写入磁盘后，才认为事务提交成功</td>
+</tr>
+<tr>
+<td>6</td>
+<td>后台进程异步将脏页写入磁盘</td>
+<td>真正的数据文件更新可以延后进行（异步写）</td>
+</tr>
+<tr>
+<td>7</td>
+<td>崩溃恢复</td>
+<td>若崩溃，则根据 WAL 日志“重放”提交事务，撤销未提交事务</td>
 </tr>
 </tbody></table>
  
