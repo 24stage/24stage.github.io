@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">2.4k</span>
+            <span class="post-count">3k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">8 min</span>
+            <span class="post-count">10 min</span>
         </span>
     </span>
 </div>
@@ -243,12 +243,53 @@
 <p><strong>撤销权限</strong></p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">REVOKE</span> <span class="keyword">CREATE</span> <span class="keyword">ON</span> SCHEMA sales <span class="keyword">FROM</span> developer;</span><br><span class="line"><span class="keyword">REVOKE</span> USAGE <span class="keyword">ON</span> SCHEMA sales <span class="keyword">FROM</span> analyst;</span><br></pre></td></tr></table></figure>
 
-
-
-
-
-
-
+<h1 id="清理-VACCUM"><a href="#清理-VACCUM" class="headerlink" title="清理(VACCUM)"></a>清理(VACCUM)</h1><p>清理是 PostgreSQL 维护任务中不可或缺的组成部分。通过回收存储、优化性能并保持数据库精简，清理有助于维护 PostgreSQL 系统的健康。</p>
+<p>PostgreSQL 采用<strong>MVCC（多版本并发控制）</strong> 机制：<br>每次执行 <code>UPDATE</code> 或 <code>DELETE</code> 时，旧行不会立即删除，而是被标记为过期（dead tuple），并在表文件中保留。表中会存在许多“<strong>死行版本</strong>（dead tuples）”，<br>这些死行会：占用磁盘空间；影响全表扫描性能；干扰索引可见性。因此 PostgreSQL 需要“清理。</p>
+<h3 id="PostgreSQL-的清理主要依赖三种机制："><a href="#PostgreSQL-的清理主要依赖三种机制：" class="headerlink" title="PostgreSQL 的清理主要依赖三种机制："></a>PostgreSQL 的清理主要依赖三种机制：</h3><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>执行方式</th>
+<th>主要目的</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>手动 VACUUM</strong></td>
+<td>DBA 执行</td>
+<td>清除死元组、更新统计信息</td>
+</tr>
+<tr>
+<td><strong>自动清理 Autovacuum</strong></td>
+<td>后台守护进程自动执行</td>
+<td>定期清理、冻结事务</td>
+</tr>
+<tr>
+<td><strong>冻结 Vacuum Freeze</strong></td>
+<td>自动或手动</td>
+<td>防止事务 ID 回绕溢出（XID wraparound）</td>
+</tr>
+</tbody></table>
+<h3 id="VACUUM-的执行过程"><a href="#VACUUM-的执行过程" class="headerlink" title="VACUUM 的执行过程"></a>VACUUM 的执行过程</h3><p>执行：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">VACUUM [VERBOSE] table_name;</span><br></pre></td></tr></table></figure>
+<p>PostgreSQL 会：</p>
+<ol>
+<li><p><strong>扫描表</strong><br>遍历所有页，识别死元组（根据 xmin&#x2F;xmax 事务ID可见性判断）。</p>
+</li>
+<li><p><strong>回收空间</strong><br>将死元组标记为空闲（可供新行重用）；<br>但不会立即缩小文件大小（除非用 VACUUM FULL）。</p>
+</li>
+<li><p><strong>更新可见性映射 (Visibility Map)</strong><br>标记哪些页面全可见，以优化未来的 VACUUM。</p>
+</li>
+<li><p><strong>更新统计信息</strong><br>用于 ANALYZE、优化器决策。</p>
+</li>
+</ol>
+<blockquote>
+<p>注意：<code>VACUUM FULL</code>（彻底清理）会锁表,耗时长,通常只在表严重膨胀时使用。</p>
+</blockquote>
+<h3 id="Autovacuum（自动清理）"><a href="#Autovacuum（自动清理）" class="headerlink" title="Autovacuum（自动清理）"></a>Autovacuum（自动清理）</h3><p>默认启用（<code>autovacuum=on</code>）。<br>后台有一个 <code>autovacuum launcher</code> 进程，周期性检查哪些表需要清理。每个表由一个独立的 <code>worker</code> 执行，根据统计信息判断是否触发。</p>
+<p><strong>触发条件：</strong><br><code>dead_tuples &gt; vacuum_threshold + vacuum_scale_factor * reltuples</code></p>
+<h3 id="冻结（Freeze）与事务ID回绕"><a href="#冻结（Freeze）与事务ID回绕" class="headerlink" title="冻结（Freeze）与事务ID回绕"></a>冻结（Freeze）与事务ID回绕</h3><p>PostgreSQL 使用 <strong>32位事务ID（XID）</strong>，会循环。<br>如果不“冻结”，旧事务可能看起来“还没提交”，从而导致数据不可见。</p>
+<p>清理过程中的 <strong>冻结（freezing）</strong>：将旧版本的<code> xmin</code> 改为一个特殊常量 <code>FrozenXID</code>，表示此行“永远可见”，无需再比较事务ID。</p>
+<p>当数据库接近溢出风险时，<code>PostgreSQL</code> 会强制执行“防回绕清理（anti-wraparound vacuum）”。</p>
  
       <!-- reward -->
       

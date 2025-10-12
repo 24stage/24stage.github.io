@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">1.2k</span>
+            <span class="post-count">1.7k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">4 min</span>
+            <span class="post-count">6 min</span>
         </span>
     </span>
 </div>
@@ -271,7 +271,7 @@
 <td><code>client_min_messages</code>, <code>debug_print_parse</code> 等</td>
 </tr>
 </tbody></table>
-<h1 id="预写式日志-WAL"><a href="#预写式日志-WAL" class="headerlink" title="预写式日志(WAL)"></a>预写式日志(WAL)</h1><p>预写式日志（Write-Ahead Logging，简称 WAL），这是 <code>PostgreSQL</code> 保证数据可靠性与 事务 <code>ACID</code> 中“持久性（Durability）” 的核心机制之一。</p>
+<h1 id="预写式日志-WAL"><a href="#预写式日志-WAL" class="headerlink" title="预写式日志(WAL)"></a>预写式日志(WAL)</h1><p>预写式日志（Write-Ahead Logging，简称 WAL），这是 <code>PostgreSQL</code> 保证数据可靠性与 事务 <code>ACID</code> 中“持久性（Durability）” 的核心机制之一。是 PostgreSQL “崩溃不丢数据” 的根本原因。</p>
 <p><strong>核心原则：</strong><br><strong>在对数据文件进行任何修改之前，必须先把这些修改的记录写入日志（WAL 日志）中。</strong></p>
 <p>也就是说：先写日志，再写数据,日志中记录了“要修改什么”和“如何修改”的信息</p>
 <p>WAL 的简化执行过程：</p>
@@ -295,7 +295,7 @@
 </tr>
 <tr>
 <td>3</td>
-<td><strong>先写 WAL 日志</strong></td>
+<td><strong>将 WAL 记录写入 WAL 缓冲区</strong></td>
 <td>所有修改先写入 <code>pg_wal/</code> 目录下的日志文件（顺序写入，速度快）</td>
 </tr>
 <tr>
@@ -305,7 +305,7 @@
 </tr>
 <tr>
 <td>5</td>
-<td>事务提交时 <strong>强制刷新（fsync）</strong></td>
+<td>事务提交时 <strong>WAL 强制刷新到磁盘（fsync）</strong></td>
 <td>PostgreSQL 确保 WAL 写入磁盘后，才认为事务提交成功</td>
 </tr>
 <tr>
@@ -319,6 +319,54 @@
 <td>若崩溃，则根据 WAL 日志“重放”提交事务，撤销未提交事务</td>
 </tr>
 </tbody></table>
+<h1 id="资源消耗-Resource-Usage"><a href="#资源消耗-Resource-Usage" class="headerlink" title="资源消耗(Resource Usage)"></a>资源消耗(Resource Usage)</h1><p><strong>资源消耗（Resource Usage）</strong> 参数位于 <code>postgresql.conf</code> 文件中，<br>用于控制 <code>PostgreSQL</code> 在运行时如何使用 内存、CPU、磁盘 I&#x2F;O 以及后台任务资源。</p>
+<p>这些参数直接影响：</p>
+<ul>
+<li><p>查询执行速度（尤其是复杂的排序、哈希、连接操作）；</p>
+</li>
+<li><p>系统负载与并发性能；</p>
+</li>
+<li><p>写入延迟与缓存命中率；</p>
+</li>
+<li><p>以及数据库整体的吞吐量。</p>
+</li>
+</ul>
+<h3 id="核心参数介绍："><a href="#核心参数介绍：" class="headerlink" title="核心参数介绍："></a>核心参数介绍：</h3><h4 id="内存相关参数"><a href="#内存相关参数" class="headerlink" title="内存相关参数"></a>内存相关参数</h4><ol>
+<li><p><strong>shared_buffers</strong></p>
+<p> 作用是控制数据库用于缓存数据页的共享内存大小。</p>
+<p> <code>PostgreSQL</code> 会优先从这个缓冲区读取数据，而不是直接访问磁盘。</p>
+<p> 推荐值通常为<strong>物理内存的 25%</strong> 左右，太小会导致频繁磁盘 I&#x2F;O，太大会与操作系统缓存冲突。<br> <code>shared_buffers = 512MB</code></p>
+</li>
+<li><p><strong>work_mem</strong></p>
+<p> 控制 <strong>每个排序（sort）或哈希（hash）操作</strong> 可使用的内存。<br> 用于 <code>ORDER BY</code>、<code>DISTINCT</code>、<code>JOIN</code>、聚合等操作。</p>
+<blockquote>
+<p>每个并行操作、每个连接、每个排序都独立占用一份 <code>work_mem</code>。<br> 例如 50 个连接、每个查询有两个排序操作 → 可能消耗 50×2×4MB &#x3D; 400MB。</p>
+</blockquote>
+<p> <code>work_mem = 4MB</code></p>
+</li>
+<li><p><strong>maintenance_work_mem</strong></p>
+<p> 用于维护任务，如 <code>VACUUM</code>, <code>CREATE INDEX</code>, <code>ALTER TABLE ADD FOREIGN KEY</code>。</p>
+<p> 通常设置为 <code>work_mem</code> 的 10–20 倍，<br> 在执行索引重建或批量导入时非常关键。<br> <code>maintenance_work_mem = 256MB</code></p>
+</li>
+</ol>
+<h4 id="CPU-并行相关参数"><a href="#CPU-并行相关参数" class="headerlink" title="CPU 并行相关参数"></a>CPU 并行相关参数</h4><ol>
+<li><p><strong>max_worker_processes</strong></p>
+<p> 控制可启动的后台工作进程总数。<br> <code>max_worker_processes = 8</code></p>
+</li>
+<li><p><strong>max_parallel_workers_per_gather</strong></p>
+<p> 控制单个并行查询可使用的最大<code> worker</code> 数。<br> 适合在多核 CPU 上开启并行执行，提高大查询性能。<br> <code>max_parallel_workers_per_gather = 4</code></p>
+</li>
+</ol>
+<h4 id="I-O-与磁盘写入"><a href="#I-O-与磁盘写入" class="headerlink" title="I&#x2F;O 与磁盘写入"></a>I&#x2F;O 与磁盘写入</h4><ol>
+<li><p><strong>wal_buffers</strong><br> 用于存储尚未写入<strong>WAL 预写日志</strong>文件的缓冲区。<br> 如果设置为 -1，<code>PostgreSQL </code>会自动按 <code>shared_buffers</code> 大小动态分配。<br> <code>wal_buffers = 16MB</code></p>
+</li>
+<li><p><strong>effective_io_concurrency</strong></p>
+<p> 控制并发 I&#x2F;O 操作数量，适用于 SSD&#x2F;RAID 等高并发存储。<br> HDD 一般设置 1–4，SSD 可设为 100–300。<br> <code>effective_io_concurrency = 200</code></p>
+</li>
+<li><p><strong>temp_file_limit</strong></p>
+<p> 限制临时文件大小，防止查询使用过多磁盘。<br> <code>temp_file_limit = 10GB</code></p>
+</li>
+</ol>
  
       <!-- reward -->
       
