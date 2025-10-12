@@ -137,7 +137,8 @@
 <p>这条命令会完整克隆 olddb 的：所有表结构；所有数据；索引；函数；视图；权限。<br>在 PostgreSQL 中可以通过以下命令查看所有会话连接：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> pid, datname, usename, client_addr, state</span><br><span class="line"><span class="keyword">FROM</span> pg_stat_activity;</span><br></pre></td></tr></table></figure>
 
-<h1 id="数据库配置"><a href="#数据库配置" class="headerlink" title="数据库配置"></a>数据库配置</h1><p>~</p>
+
+
 <h1 id="删除数据库"><a href="#删除数据库" class="headerlink" title="删除数据库"></a>删除数据库</h1><p>数据库用<code>DROP DATABASE</code>命令删除：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DROP</span> DATABASE name;</span><br></pre></td></tr></table></figure>
 <p>只有数据库的拥有者或者超级用户才可以删除数据库。删除数据库会移除其中包括的所有对象。数据库的删除不能被撤销。</p>
