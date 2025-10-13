@@ -106,7 +106,7 @@
   
     <div class="article-entry" itemprop="articleBody">
        
-  <h1 id="PostgreSQL-查询处理机制"><a href="#PostgreSQL-查询处理机制" class="headerlink" title="PostgreSQL 查询处理机制"></a>PostgreSQL 查询处理机制</h1><h2 id="查询处理的概念"><a href="#查询处理的概念" class="headerlink" title="查询处理的概念"></a>查询处理的概念</h2><p><strong>查询处理</strong> 是指数据库系统从接收到一条 SQL 语句开始，到最终返回结果的整个执行过程。<br>它决定了：</p>
+  <h1 id="查询处理机制-Query-Planner"><a href="#查询处理机制-Query-Planner" class="headerlink" title="查询处理机制(Query Planner)"></a>查询处理机制(Query Planner)</h1><h2 id="查询处理的概念"><a href="#查询处理的概念" class="headerlink" title="查询处理的概念"></a>查询处理的概念</h2><p><strong>查询处理</strong> 是指数据库系统从接收到一条 SQL 语句开始，到最终返回结果的整个执行过程。<br>它决定了：</p>
 <ul>
 <li><p>数据如何被检索；</p>
 </li>
@@ -140,7 +140,7 @@
 <p>如果语法或标识符错误，此阶段会抛出错误。</p>
 <h3 id="重写（Rewriting）"><a href="#重写（Rewriting）" class="headerlink" title="重写（Rewriting）"></a>重写（Rewriting）</h3><p>根据系统规则（主要来自视图、规则系统）重写语法树。<br><strong>任务：</strong></p>
 <ul>
-<li><p>将视图展开成实际查询；</p>
+<li><p>将<strong>视图展开</strong>成实际查询；</p>
 </li>
 <li><p>应用规则（RULE）系统；</p>
 </li>

@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">1.7k</span>
+            <span class="post-count">2.1k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">6 min</span>
+            <span class="post-count">7 min</span>
         </span>
     </span>
 </div>
@@ -272,9 +272,9 @@
 </tr>
 </tbody></table>
 <h1 id="预写式日志-WAL"><a href="#预写式日志-WAL" class="headerlink" title="预写式日志(WAL)"></a>预写式日志(WAL)</h1><p>预写式日志（Write-Ahead Logging，简称 WAL），这是 <code>PostgreSQL</code> 保证数据可靠性与 事务 <code>ACID</code> 中“持久性（Durability）” 的核心机制之一。是 PostgreSQL “崩溃不丢数据” 的根本原因。</p>
-<p><strong>核心原则：</strong><br><strong>在对数据文件进行任何修改之前，必须先把这些修改的记录写入日志（WAL 日志）中。</strong></p>
+<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p><strong>在对数据文件进行任何修改之前，必须先把这些修改的记录写入日志（WAL 日志）中。</strong></p>
 <p>也就是说：先写日志，再写数据,日志中记录了“要修改什么”和“如何修改”的信息</p>
-<p>WAL 的简化执行过程：</p>
+<p><strong>WAL 的简化执行过程：</strong></p>
 <table>
 <thead>
 <tr>
@@ -319,6 +319,30 @@
 <td>若崩溃，则根据 WAL 日志“重放”提交事务，撤销未提交事务</td>
 </tr>
 </tbody></table>
+<h2 id="检查点和后台写入器"><a href="#检查点和后台写入器" class="headerlink" title="检查点和后台写入器"></a>检查点和后台写入器</h2><p><code>PostgreSQL</code>在修改数据页前，必须先把对应的 <code>WAL</code> 日志写入磁盘。<br>但有一个问题——如果每次修改都立刻写入磁盘，会极大降低性能。于是 PostgreSQL 引入了两个关键机制：</p>
+<table>
+<thead>
+<tr>
+<th>机制</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Background Writer（后台写入器）</strong></td>
+<td>定期把脏页（被修改但未写回磁盘的数据页）写回磁盘，减少后续检查点的工作量。</td>
+</tr>
+<tr>
+<td><strong>Checkpoint（检查点）</strong></td>
+<td>定期把所有脏页写入磁盘，并记录一个“安全点”，保证从此之后 WAL 日志可以安全地截断。</td>
+</tr>
+</tbody></table>
+<h3 id="Checkpoint（检查点）"><a href="#Checkpoint（检查点）" class="headerlink" title="Checkpoint（检查点）"></a>Checkpoint（检查点）</h3><p><strong>检查点</strong>是数据库系统的** 一致性快照**。<br>在检查点时，PostgreSQL 会：<br>将所有脏页写入磁盘,然后写入一条特殊的 <code>WAL</code> 记录（checkpoint record）,更新控制文件（<code>pg_control</code>），最后记录最新的 <code>checkpoint</code> 位置。</p>
+<blockquote>
+<p>换句话说，检查点是数据库恢复时的“起点”。<br>崩溃恢复时只需要从最后一个 checkpoint 开始重放 WAL，而不是从系统启动时开始。</p>
+</blockquote>
+<p><strong>检查点的触发方式:</strong> 定时触发、日志量超出触发、手动触发、关闭数据库时触发</p>
+<h3 id="后台写入器"><a href="#后台写入器" class="headerlink" title="后台写入器"></a>后台写入器</h3><p>后台写入器（Background Writer）是一个后台进程，负责<strong>平滑地将脏页写入磁盘</strong>。<br>在不影响前端查询的情况下，提前刷新部分脏页，避免 <code>checkpoint</code> 时一次性大量写盘导致的 <code>I/O</code> 峰值。</p>
+<p><strong>工作机制：</strong><br>后台写入器周期性地扫描共享缓冲区（shared_buffers），选择部分脏页写入磁盘，写入的页数量受配置参数控制。</p>
 <h1 id="资源消耗-Resource-Usage"><a href="#资源消耗-Resource-Usage" class="headerlink" title="资源消耗(Resource Usage)"></a>资源消耗(Resource Usage)</h1><p><strong>资源消耗（Resource Usage）</strong> 参数位于 <code>postgresql.conf</code> 文件中，<br>用于控制 <code>PostgreSQL</code> 在运行时如何使用 内存、CPU、磁盘 I&#x2F;O 以及后台任务资源。</p>
 <p>这些参数直接影响：</p>
 <ul>
@@ -384,6 +408,15 @@
 
    
   <nav class="article-nav">
+    
+      <a href="/2025/10/13/%E6%95%B0%E6%8D%AE%E5%BA%93Security/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            数据库Security
+          
+        </div>
+      </a>
     
     
       <a href="/2025/10/11/Mysql%E4%B8%ADMVCC%E6%9C%BA%E5%88%B6/" class="article-nav-link">

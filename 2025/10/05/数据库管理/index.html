@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">3k</span>
+            <span class="post-count">3.3k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">10 min</span>
+            <span class="post-count">12 min</span>
         </span>
     </span>
 </div>
@@ -220,7 +220,7 @@
 <p><strong>要把新模式放在搜索路径中，我们可以使用：</strong></p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SET</span> search_path <span class="keyword">TO</span> myschema,public;</span><br></pre></td></tr></table></figure>
 <p>（这里省略了$user，因为我们并不立即需要它）</p>
-<h2 id="模式和权限"><a href="#模式和权限" class="headerlink" title="模式和权限"></a>模式和权限</h2><p>模式本身也是一个数据库对象，因此可以通过 <code>GRANT</code> 和 <code>REVOKE </code>命令来控制访问。</p>
+<h2 id="模式和权限"><a href="#模式和权限" class="headerlink" title="模式和权限"></a>模式和权限</h2><p>模式本身也是一个<strong>数据库对象</strong>，因此可以通过 <code>GRANT</code> 和 <code>REVOKE </code>命令来控制访问。</p>
 <table>
 <thead>
 <tr>
@@ -243,7 +243,7 @@
 <p><strong>撤销权限</strong></p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">REVOKE</span> <span class="keyword">CREATE</span> <span class="keyword">ON</span> SCHEMA sales <span class="keyword">FROM</span> developer;</span><br><span class="line"><span class="keyword">REVOKE</span> USAGE <span class="keyword">ON</span> SCHEMA sales <span class="keyword">FROM</span> analyst;</span><br></pre></td></tr></table></figure>
 
-<h1 id="清理-VACCUM"><a href="#清理-VACCUM" class="headerlink" title="清理(VACCUM)"></a>清理(VACCUM)</h1><p>清理是 PostgreSQL 维护任务中不可或缺的组成部分。通过回收存储、优化性能并保持数据库精简，清理有助于维护 PostgreSQL 系统的健康。</p>
+<h1 id="清理-VACUUM"><a href="#清理-VACUUM" class="headerlink" title="清理(VACUUM)"></a>清理(VACUUM)</h1><p>清理是 PostgreSQL 维护任务中不可或缺的组成部分。通过回收存储、优化性能并保持数据库精简，清理有助于维护 PostgreSQL 系统的健康。</p>
 <p>PostgreSQL 采用<strong>MVCC（多版本并发控制）</strong> 机制：<br>每次执行 <code>UPDATE</code> 或 <code>DELETE</code> 时，旧行不会立即删除，而是被标记为过期（dead tuple），并在表文件中保留。表中会存在许多“<strong>死行版本</strong>（dead tuples）”，<br>这些死行会：占用磁盘空间；影响全表扫描性能；干扰索引可见性。因此 PostgreSQL 需要“清理。</p>
 <h3 id="PostgreSQL-的清理主要依赖三种机制："><a href="#PostgreSQL-的清理主要依赖三种机制：" class="headerlink" title="PostgreSQL 的清理主要依赖三种机制："></a>PostgreSQL 的清理主要依赖三种机制：</h3><table>
 <thead>
@@ -290,6 +290,39 @@
 <h3 id="冻结（Freeze）与事务ID回绕"><a href="#冻结（Freeze）与事务ID回绕" class="headerlink" title="冻结（Freeze）与事务ID回绕"></a>冻结（Freeze）与事务ID回绕</h3><p>PostgreSQL 使用 <strong>32位事务ID（XID）</strong>，会循环。<br>如果不“冻结”，旧事务可能看起来“还没提交”，从而导致数据不可见。</p>
 <p>清理过程中的 <strong>冻结（freezing）</strong>：将旧版本的<code> xmin</code> 改为一个特殊常量 <code>FrozenXID</code>，表示此行“永远可见”，无需再比较事务ID。</p>
 <p>当数据库接近溢出风险时，<code>PostgreSQL</code> 会强制执行“防回绕清理（anti-wraparound vacuum）”。</p>
+<h1 id="复制-Replication"><a href="#复制-Replication" class="headerlink" title="复制(Replication)"></a>复制(Replication)</h1><p><strong>复制（Replication）</strong> 是指：<br>把一个数据库实例（称为 主节点 或 Primary）中的数据变化，实时或准实时地复制到另一个实例（称为 从节点 或 Standby）。<br>简单说，就是让多个数据库节点<strong>保持数据一致或接近一致</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>目的</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>高可用（High Availability）</strong></td>
+<td>主库宕机时，从库可接管服务，保证业务不中断。</td>
+</tr>
+<tr>
+<td><strong>灾备（Disaster Recovery）</strong></td>
+<td>在异地保留一份副本，主库损坏或数据丢失时可恢复。</td>
+</tr>
+<tr>
+<td><strong>读扩展（Read Scaling）</strong></td>
+<td>从库可以承担只读查询，分担主库压力。</td>
+</tr>
+<tr>
+<td><strong>备份验证（Backup Testing）</strong></td>
+<td>可以在从库上做备份、分析、报表等任务，不影响主库。</td>
+</tr>
+</tbody></table>
+<h2 id="常见的复制类型"><a href="#常见的复制类型" class="headerlink" title="常见的复制类型"></a>常见的复制类型</h2><ol>
+<li><strong>流复制（Streaming Replication）</strong><br>目前最常用、最主流的方式，通过传输 WAL（Write-Ahead Log）日志流实现：从库不断接收主库的 WAL 日志，并应用到本地，从库是只读的。</li>
+</ol>
+<p><strong>工作流程：</strong> 主库产生 <code>WAL</code>，<code>wal sender</code> 进程将 <code>WAL</code> 发送给从库。从库的 <code>wal receiver</code> 进程接收后写入 <code>pg_wal</code>，<code>startup process</code> 负责重放（replay）日志。</p>
+<ol start="2">
+<li><strong>逻辑复制（Logical Replication）</strong><br>可以只复制特定的表、特定的数据，支持异构系统（<strong>可跨不同版本</strong>的 PostgreSQL 甚至其他数据库）；</li>
+</ol>
+<p><strong>工作流程：</strong> 主库生成逻辑变化（logical decoding），通过发布（publication）机制发送。从库进行订阅并执行等价SQL操作。</p>
  
       <!-- reward -->
       
