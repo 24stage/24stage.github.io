@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">1.2k</span>
+            <span class="post-count">1.4k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">4 min</span>
+            <span class="post-count">5 min</span>
         </span>
     </span>
 </div>
@@ -122,7 +122,8 @@
 <p>示例：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 回收 bob 的 UPDATE 权限</span></span><br><span class="line"><span class="keyword">REVOKE</span> <span class="keyword">UPDATE</span> <span class="keyword">ON</span> employees <span class="keyword">FROM</span> bob;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 回收 alice 的 SELECT 权限，并级联收回她授予他人的权限</span></span><br><span class="line"><span class="keyword">REVOKE</span> <span class="keyword">SELECT</span> <span class="keyword">ON</span> employees <span class="keyword">FROM</span> alice CASCADE;</span><br></pre></td></tr></table></figure>
 
-<h2 id="创建角色-ROLE-来管理权限"><a href="#创建角色-ROLE-来管理权限" class="headerlink" title="创建角色(ROLE)来管理权限"></a>创建角色(ROLE)来管理权限</h2><p>在<code>PostgreSQl</code>中，可以通过创建角色(Role)来统一管理 <strong><code>Linux</code>用户</strong> 的权限。<br>可以减少操作量，不用一个个去授予权限。<br>失礼了：</p>
+<h2 id="创建角色-ROLE-来管理权限"><a href="#创建角色-ROLE-来管理权限" class="headerlink" title="创建角色(ROLE)来管理权限"></a>创建角色(ROLE)来管理权限</h2><p>在 PostgreSQL 中，角色是<strong>管理数据库访问权限的实体</strong>，结合了用户和组的功能。角色可以拥有数据库对象并拥有权限，例如创建数据库或表的能力。角色可以配置登录功能（登录角色），也可以纯粹用于权限管理（组角色）。</p>
+<p>在<code>PostgreSQl</code>中，可以通过创建角色(Role)来统一管理 <strong><code>Linux</code>用户</strong> 的权限。<br>可以减少操作量，不用一个个去授予权限。<br>失礼了：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 创建角色</span></span><br><span class="line"><span class="keyword">CREATE</span> ROLE readonly;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 给角色授予查询权限</span></span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">SELECT</span> <span class="keyword">ON</span> <span class="keyword">ALL</span> TABLES <span class="keyword">IN</span> SCHEMA public <span class="keyword">TO</span> readonly;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 将用户加入该角色</span></span><br><span class="line"><span class="keyword">GRANT</span> readonly <span class="keyword">TO</span> alice, bob;</span><br></pre></td></tr></table></figure>
 
 <h2 id="默认权限与所有权"><a href="#默认权限与所有权" class="headerlink" title="默认权限与所有权"></a>默认权限与所有权</h2><p>对象所有者（Owner） 默认拥有该对象的<strong>所有权限</strong>，只有<strong>对象所有者或超级用</strong>户才能授予权限。</p>
@@ -217,6 +218,10 @@
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> usename, client_addr, client_port, backend_type</span><br><span class="line"><span class="keyword">FROM</span> pg_stat_activity</span><br><span class="line"><span class="keyword">WHERE</span> pid <span class="operator">=</span> pg_backend_pid();</span><br></pre></td></tr></table></figure>
 
 <h2 id="SSL（Secure-Sockets-Layer）"><a href="#SSL（Secure-Sockets-Layer）" class="headerlink" title="SSL（Secure Sockets Layer）"></a>SSL（Secure Sockets Layer）</h2><p>在 PostgreSQL 中，SSL（Secure Sockets Layer） 是一种用于加密数据库客户端与服务器之间通信的安全机制，服务器（甚至客户端）都可以使用证书验证对方身份，它确保了数据在网络传输过程中不会被窃听、篡改或伪造。</p>
+<p><strong>SSL工作过程：</strong><br>客户端向服务器请求建立连接，服务器返回自己的 <strong>公钥证书（server.crt）</strong>，客户端验证服务器证书是否可信，若验证通过，双方协商会话密钥，随后通信使用该密钥加密。</p>
+<p>SSL 设置位于 postgresql.conf 文件中</p>
+<h1 id="行级安全性（Row-Level-Security）"><a href="#行级安全性（Row-Level-Security）" class="headerlink" title="行级安全性（Row-Level Security）"></a>行级安全性（Row-Level Security）</h1><p>行级安全性（RLS） 是 PostgreSQL 提供的一种精细化访问控制机制，用于<strong>限制不同用户能访问表中哪些“行”</strong>。这相当于为表加上了“行过滤规则”，是对传统的表级、列级权限控制的进一步细化。</p>
+<p>RLS能够实现同一个表中的不同行对不同用户显示不同的内容。</p>
  
       <!-- reward -->
       
