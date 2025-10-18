@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">4.1k</span>
+            <span class="post-count">4.3k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">15 min</span>
+            <span class="post-count">16 min</span>
         </span>
     </span>
 </div>
@@ -525,8 +525,8 @@
 <li>选择性高（接近 1.0） → 命中很多行 → 索引没啥用；</li>
 <li>选择性低（接近 0.0） → 命中很少行 → 索引非常有效。</li>
 </ul>
-<p>当然了，优化器不可能真的去“执行一遍”看看结果多少行。<br>它根据 系统统计信息（pg_stats） 估算的，这些统计是在你执行：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ANALYZE tablename;</span><br><span class="line">或</span><br><span class="line">VACUUM ANALYZE;</span><br></pre></td></tr></table></figure>
+<p>当然了，优化器不可能真的去“执行一遍”看看结果多少行。<br>它根据 系统统计信息（pg_statistic） 估算的，这些统计是在你执行：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ANALYZE tablename;  <span class="comment">--ANALYZE 会扫描表中的部分数据行，</span></span><br><span class="line"><span class="comment">--生成统计信息并存入系统表 pg_statistic</span></span><br><span class="line">或</span><br><span class="line">VACUUM ANALYZE;</span><br></pre></td></tr></table></figure>
 <p>时生成的。</p>
 <p><code>PostgreSQL</code> 最终并不是只看 <code>selectivity</code>，而是综合计算“成本”。<br>每个执行计划都会有：</p>
 <ul>
@@ -539,7 +539,17 @@
 <p>此时 <code>&#39;123&#39;</code> 是字符串常量，优化器不会隐式转换成 <code>int</code> 去匹配索引，因此索引失效。<br><strong>3. 在列上使用函数或表达式</strong><br>当你在 WHERE 子句中对列使用函数时，索引无法直接利用。<br>但是可以创建函数索引。<br><strong>4. 使用模糊查询<code>LIKE</code>时前缀以<code>%</code>开头</strong><br><code>B-tree </code>索引支持<code> LIKE &#39;abc%&#39;</code>，但不支持 <code>LIKE &#39;%abc&#39;</code>。<br><strong>5. 运算符或表达式不匹配索引类型</strong><br>例如，<code>B-tree</code> 索引支持 <code>&lt;, &lt;=, =, &gt;=, &gt;</code>，<br>但不支持 <code>!=</code> 或 <code>NOT IN</code>。<br><strong>6. 统计信息不准确&#x2F;过旧（ANALYZE 未更新）</strong><br>优化器依赖 <code>pg_statistic</code> 表的统计信息估算行数,如果表数据更新频繁但没执行 ANALYZE，优化器可能错误地认为索引代价高。<br><strong>7. 多列复合索引未按前缀顺序使用</strong><br>假设创建了：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> INDEX idx_user_city_age <span class="keyword">ON</span> users (city, age);</span><br></pre></td></tr></table></figure>
 <p>只有满足<strong>最左前缀规则</strong>的查询能用到索引：<br><strong>8. 数据量太小或表太小</strong><br>当表只有几百行时，优化器计算发现：<br>“全表扫描只需一次磁盘读取”，而索引扫描需要“额外<strong>随机IO</strong> + 回表查元组”，所以索引也不会被使用。</p>
-<h2 id="索引调优技巧"><a href="#索引调优技巧" class="headerlink" title="索引调优技巧"></a>索引调优技巧</h2> 
+<h2 id="索引调优技巧"><a href="#索引调优技巧" class="headerlink" title="索引调优技巧"></a>索引调优技巧</h2><p><strong>1. 分析查询计划 (EXPLAIN &#x2F; EXPLAIN ANALYZE)</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">EXPLAIN ANALYZE <span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> users <span class="keyword">WHERE</span> name <span class="operator">=</span> <span class="string">&#x27;Tom&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p>查看执行计划，如果是 Seq Scan → 没用索引，如果是 Index Scan &#x2F; Index Only Scan → 已使用索引<br><strong>2. 维护统计信息</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">VACUUM ANALYZE;</span><br></pre></td></tr></table></figure>
+<p><strong>3. 使用函数索引或表达式索引</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> INDEX idx_expr_salary <span class="keyword">ON</span> employees ((salary <span class="operator">*</span> <span class="number">12</span>));</span><br><span class="line"><span class="comment">-- 即可支持：</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> employees <span class="keyword">WHERE</span> salary <span class="operator">*</span> <span class="number">12</span> <span class="operator">&gt;</span> <span class="number">120000</span>;</span><br></pre></td></tr></table></figure>
+<p><strong>4. 使用部分索引</strong><br>如果查询经常限定某一条件：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> orders <span class="keyword">WHERE</span> status <span class="operator">=</span> <span class="string">&#x27;pending&#x27;</span>;</span><br><span class="line"></span><br><span class="line">可以这样建索引：</span><br><span class="line"><span class="keyword">CREATE</span> INDEX idx_pending_orders <span class="keyword">ON</span> orders (status) <span class="keyword">WHERE</span> status <span class="operator">=</span> <span class="string">&#x27;pending&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这样能极大减少索引大小与扫描成本。<br><strong>5. 避免数据类型不一致</strong></p>
+ 
       <!-- reward -->
       
     </div>
