@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">3.1k</span>
+            <span class="post-count">4.1k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">11 min</span>
+            <span class="post-count">15 min</span>
         </span>
     </span>
 </div>
@@ -507,8 +507,39 @@
 <p>一旦一个索引被创建，就不再需要进一步的干预：系统会在表更新时自动更新索引，而且会在它觉得使用索引比顺序扫描表效率更高时使用索引。但我们可能需要定期地运行<code>ANALYZE</code>命令来更新统计信息以便查询规划器能做出正确的决定。</p>
 <h2 id="创建和删除"><a href="#创建和删除" class="headerlink" title="创建和删除"></a>创建和删除</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 创建一个单列索引</span></span><br><span class="line"><span class="keyword">CREATE</span> INDEX test1_id_index <span class="keyword">ON</span> test1 (id);</span><br><span class="line"><span class="comment">-- 创建一个组合索引</span></span><br><span class="line"><span class="keyword">CREATE</span> INDEX test1_id_name_index <span class="keyword">ON</span> test1 (id,name);</span><br><span class="line"><span class="comment">-- 创建唯一索引(不允许任何重复的值插入到表中)</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">UNIQUE</span> INDEX test1_unique_id_index <span class="keyword">ON</span> test1 (id);</span><br><span class="line"><span class="comment">--创建一个局部索引(在表的子集上构建的索引)</span></span><br><span class="line"><span class="keyword">CREATE</span> INDEX test1_id_index </span><br><span class="line"><span class="keyword">ON</span> test1 (id)</span><br><span class="line"><span class="keyword">WHERE</span> <span class="keyword">condition</span>;</span><br><span class="line"><span class="comment">-- 删除该索引</span></span><br><span class="line"><span class="keyword">DROP</span> INDEX test1_id_index</span><br></pre></td></tr></table></figure>
 
-<h2 id="索引的类型"><a href="#索引的类型" class="headerlink" title="索引的类型"></a>索引的类型</h2><p><code>PostgreSQL</code>支持的索引类型包括：B-tree（默认）、HASH、GiST、GIN、BRIN等。</p>
- 
+<h2 id="索引的类型"><a href="#索引的类型" class="headerlink" title="索引的类型"></a>索引的类型</h2><p><code>PostgreSQL</code>支持的索引类型包括：B+树（默认）、HASH、GiST、GIN、BRIN等。</p>
+<h3 id="B-树"><a href="#B-树" class="headerlink" title="B+树"></a>B+树</h3><p>底层是一种多路平衡树（balanced tree），数据按键（key）有序排列，所有叶子节点深度一致（平衡性保证查找效率），并且每个节点存储一组有序键值与指针。</p>
+<p>在 <code>PostgreSQL</code> 中，索引也是一种表结构，存储在 <strong>索引页（index page）</strong> 里。<br>每个索引页包含：</p>
+<ul>
+<li><strong>Page header</strong>：页头元信息（页号、空闲空间指针等）</li>
+<li><strong>Item pointers</strong>：指向表中 元组 的指针（ctid）</li>
+<li><strong>Key 数据</strong>：索引列的值（例如 name, id）</li>
+<li><strong>链表指针</strong>：指向相邻叶子页（用于范围扫描）</li>
+</ul>
+<p>优点是：查找、插入、删除平均 O(log N)，支持范围与排序，适用于几乎所有普通查询<br>但也有一些缺点：插入过多会导致页分裂（page split），大量更新&#x2F;删除导致索引膨胀（bloat），不适合极端高写入负载场景（如日志）</p>
+<p><strong>查找的流程：</strong><br>从根页（root page）开始，比较 <code>key</code> 值，确定要下探的分支页，然后递归直到叶子页，再在叶子页找到匹配 <code>key</code>，如果比较结果为 <code>=</code> 时，B+树索引会选择<strong>右子节点</strong>继续查找,最后返回该 <code>key</code> 指向的数据行（tuple）。</p>
+<h3 id="Hash"><a href="#Hash" class="headerlink" title="Hash"></a>Hash</h3><p><code>HASH</code>索引存储一个由索引列计算出的32位的hash code值。因此，<code>Hash</code>索引只能处理简单等值<code>=</code>比较。每当索引列涉及到等值操作符的比较时，查询规划器将会使用<code>Hash</code>索引。</p>
+<h2 id="索引选择性（selectivity）和成本模型"><a href="#索引选择性（selectivity）和成本模型" class="headerlink" title="索引选择性（selectivity）和成本模型"></a>索引选择性（selectivity）和成本模型</h2><p>PostgreSQL 在执行 SQL 时，如何决定是否使用索引？<br>——答案关键在于<strong>索引选择性</strong>（selectivity）与<strong>成本估算</strong>（cost estimation）。</p>
+<p><strong>索引选择性</strong>是指某个查询条件筛选出的行数占总行数的比例。</p>
+<ul>
+<li>选择性高（接近 1.0） → 命中很多行 → 索引没啥用；</li>
+<li>选择性低（接近 0.0） → 命中很少行 → 索引非常有效。</li>
+</ul>
+<p>当然了，优化器不可能真的去“执行一遍”看看结果多少行。<br>它根据 系统统计信息（pg_stats） 估算的，这些统计是在你执行：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ANALYZE tablename;</span><br><span class="line">或</span><br><span class="line">VACUUM ANALYZE;</span><br></pre></td></tr></table></figure>
+<p>时生成的。</p>
+<p><code>PostgreSQL</code> 最终并不是只看 <code>selectivity</code>，而是综合计算“成本”。<br>每个执行计划都会有：</p>
+<ul>
+<li>startup_cost：启动开销（准备、扫描第一行）</li>
+<li>total_cost：读完全部行的总成本（包括 I&#x2F;O、CPU 等）</li>
+</ul>
+<p>优化器根据统计信息与代价参数估算这些值。</p>
+<h2 id="索引失效的常见原因"><a href="#索引失效的常见原因" class="headerlink" title="索引失效的常见原因"></a>索引失效的常见原因</h2><p><strong>1. 索引选择性低</strong><br>如果结果集占表的 20% 以上，优化器通常会放弃索引，改用顺序扫描（Seq Scan）。<br><strong>2. 数据类型不匹配</strong><br>PostgreSQL 的索引对数据类型非常严格。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> INDEX idx_userid <span class="keyword">ON</span> users(userid <span class="type">INT</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 错误写法（字符串转整数）</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> users <span class="keyword">WHERE</span> userid <span class="operator">=</span> <span class="string">&#x27;123&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p>此时 <code>&#39;123&#39;</code> 是字符串常量，优化器不会隐式转换成 <code>int</code> 去匹配索引，因此索引失效。<br><strong>3. 在列上使用函数或表达式</strong><br>当你在 WHERE 子句中对列使用函数时，索引无法直接利用。<br>但是可以创建函数索引。<br><strong>4. 使用模糊查询<code>LIKE</code>时前缀以<code>%</code>开头</strong><br><code>B-tree </code>索引支持<code> LIKE &#39;abc%&#39;</code>，但不支持 <code>LIKE &#39;%abc&#39;</code>。<br><strong>5. 运算符或表达式不匹配索引类型</strong><br>例如，<code>B-tree</code> 索引支持 <code>&lt;, &lt;=, =, &gt;=, &gt;</code>，<br>但不支持 <code>!=</code> 或 <code>NOT IN</code>。<br><strong>6. 统计信息不准确&#x2F;过旧（ANALYZE 未更新）</strong><br>优化器依赖 <code>pg_statistic</code> 表的统计信息估算行数,如果表数据更新频繁但没执行 ANALYZE，优化器可能错误地认为索引代价高。<br><strong>7. 多列复合索引未按前缀顺序使用</strong><br>假设创建了：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> INDEX idx_user_city_age <span class="keyword">ON</span> users (city, age);</span><br></pre></td></tr></table></figure>
+<p>只有满足<strong>最左前缀规则</strong>的查询能用到索引：<br><strong>8. 数据量太小或表太小</strong><br>当表只有几百行时，优化器计算发现：<br>“全表扫描只需一次磁盘读取”，而索引扫描需要“额外<strong>随机IO</strong> + 回表查元组”，所以索引也不会被使用。</p>
+<h2 id="索引调优技巧"><a href="#索引调优技巧" class="headerlink" title="索引调优技巧"></a>索引调优技巧</h2> 
       <!-- reward -->
       
     </div>
