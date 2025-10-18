@@ -128,6 +128,7 @@
 <li><strong><code>sighup</code> 表示只需 重载 就能生效。</strong></li>
 <li><strong><code>postmaster</code> 则表示这个参数需要 重启数据库服务 才能生效。</strong></li>
 </ul>
+<hr>
 <h1 id="错误报告与日志系统（Error-Reporting-Logging）"><a href="#错误报告与日志系统（Error-Reporting-Logging）" class="headerlink" title="错误报告与日志系统（Error Reporting &amp; Logging）"></a>错误报告与日志系统（Error Reporting &amp; Logging）</h1><p><strong>日志系统作用：</strong></p>
 <table>
 <thead>
@@ -223,54 +224,55 @@
 </tr>
 </thead>
 <tbody><tr>
-<td>🟥 错误日志（Error Logs）</td>
+<td>错误日志（Error Logs）</td>
 <td>错误、警告、提示</td>
 <td>SQL语法错误、约束冲突、权限问题</td>
 <td><code>log_min_messages</code>, <code>log_min_error_statement</code></td>
 </tr>
 <tr>
-<td>🟧 连接与认证日志（Connection Logs）</td>
+<td>连接与认证日志（Connection Logs）</td>
 <td>客户端连接与断开、认证失败</td>
 <td>登录、退出、密码错误</td>
 <td><code>log_connections</code>, <code>log_disconnections</code>, <code>log_hostname</code></td>
 </tr>
 <tr>
-<td>🟨 查询日志（Statement Logs）</td>
+<td>查询日志（Statement Logs）</td>
 <td>记录执行的 SQL 语句</td>
 <td>调试、审计、跟踪执行</td>
 <td><code>log_statement</code>, <code>log_duration</code>, <code>log_min_duration_statement</code></td>
 </tr>
 <tr>
-<td>🟩 慢查询日志（Slow Query Logs）</td>
+<td>慢查询日志（Slow Query Logs）</td>
 <td>执行时间超过阈值的 SQL</td>
 <td>性能瓶颈分析</td>
 <td><code>log_min_duration_statement</code></td>
 </tr>
 <tr>
-<td>🟦 检查点与自动维护日志（Checkpoint&#x2F;Vacuum Logs）</td>
+<td>检查点与自动维护日志（Checkpoint&#x2F;Vacuum Logs）</td>
 <td>系统后台任务</td>
 <td>checkpoint、autovacuum、bgwriter</td>
 <td><code>log_checkpoints</code>, <code>log_autovacuum_min_duration</code></td>
 </tr>
 <tr>
-<td>🟪 后台进程日志（Background Worker Logs）</td>
+<td>后台进程日志（Background Worker Logs）</td>
 <td>系统进程活动</td>
 <td>walwriter、archiver、stats collector 等</td>
 <td>自动输出</td>
 </tr>
 <tr>
-<td>⚫ WAL 与归档日志（WAL&#x2F;Archive Logs）</td>
+<td>WAL 与归档日志（WAL&#x2F;Archive Logs）</td>
 <td>WAL文件生成与归档</td>
 <td>crash recovery, replication</td>
 <td><code>archive_mode</code>, <code>archive_command</code></td>
 </tr>
 <tr>
-<td>⚙️ 调试日志（Debug Logs）</td>
+<td>调试日志（Debug Logs）</td>
 <td>低层系统行为</td>
 <td>调试或开发</td>
 <td><code>client_min_messages</code>, <code>debug_print_parse</code></td>
 </tr>
 </tbody></table>
+<hr>
 <h1 id="预写式日志-WAL"><a href="#预写式日志-WAL" class="headerlink" title="预写式日志(WAL)"></a>预写式日志(WAL)</h1><p>预写式日志（Write-Ahead Logging，简称 WAL），这是 <code>PostgreSQL</code> 保证数据可靠性与 事务 <code>ACID</code> 中“持久性（Durability）” 的核心机制之一。是 PostgreSQL “崩溃不丢数据” 的根本原因。</p>
 <h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p><strong>在对数据文件进行任何修改之前，必须先把这些修改的记录写入日志（WAL 日志）中。</strong></p>
 <p>也就是说：先写日志，再写数据,日志中记录了“要修改什么”和“如何修改”的信息</p>
@@ -343,6 +345,7 @@
 <p><strong>检查点的触发方式:</strong> 定时触发、日志量超出触发、手动触发、关闭数据库时触发</p>
 <h3 id="后台写入器"><a href="#后台写入器" class="headerlink" title="后台写入器"></a>后台写入器</h3><p>后台写入器（Background Writer）是一个后台进程，负责<strong>平滑地将脏页写入磁盘</strong>。<br>在不影响前端查询的情况下，提前刷新部分脏页，避免 <code>checkpoint</code> 时一次性大量写盘导致的 <code>I/O</code> 峰值。</p>
 <p><strong>工作机制：</strong><br>后台写入器周期性地扫描共享缓冲区（shared_buffers），选择部分脏页写入磁盘，写入的页数量受配置参数控制。</p>
+<hr>
 <h1 id="资源消耗-Resource-Usage"><a href="#资源消耗-Resource-Usage" class="headerlink" title="资源消耗(Resource Usage)"></a>资源消耗(Resource Usage)</h1><p><strong>资源消耗（Resource Usage）</strong> 参数位于 <code>postgresql.conf</code> 文件中，<br>用于控制 <code>PostgreSQL</code> 在运行时如何使用 内存、CPU、磁盘 I&#x2F;O 以及后台任务资源。</p>
 <p>这些参数直接影响：</p>
 <ul>
