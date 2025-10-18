@@ -137,8 +137,7 @@
 <p>这条命令会完整克隆 olddb 的：所有表结构；所有数据；索引；函数；视图；权限。<br>在 PostgreSQL 中可以通过以下命令查看所有会话连接：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> pid, datname, usename, client_addr, state</span><br><span class="line"><span class="keyword">FROM</span> pg_stat_activity;</span><br></pre></td></tr></table></figure>
 
-
-
+<hr>
 <h1 id="删除数据库"><a href="#删除数据库" class="headerlink" title="删除数据库"></a>删除数据库</h1><p>数据库用<code>DROP DATABASE</code>命令删除：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DROP</span> DATABASE name;</span><br></pre></td></tr></table></figure>
 <p>只有数据库的拥有者或者超级用户才可以删除数据库。删除数据库会移除其中包括的所有对象。数据库的删除不能被撤销。</p>
@@ -146,6 +145,7 @@
 <p>为了方便，有一个在 <code>shell </code>程序可以删除数据库，<code>dropdb</code>：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dropdb dbname</span><br></pre></td></tr></table></figure>
 <p>（和createdb不同，删除当前用户名的数据库不是默认动作）。</p>
+<hr>
 <h1 id="表空间"><a href="#表空间" class="headerlink" title="表空间"></a>表空间</h1><p>在 PostgreSQL 中，表空间（tablespace）是数据库对象在文件系统中的存储位置。<br>换句话说，它定义了 数据库文件（表、索引等）在磁盘上保存的路径。</p>
 <blockquote>
 <p>PostgreSQL 默认会把所有数据放在一个目录下（例如 &#x2F;usr&#x2F;local&#x2F;pgsql&#x2F;data&#x2F;base&#x2F;），<br>但通过表空间，你可以让不同的表或索引放到不同的磁盘上。</p>
@@ -189,6 +189,7 @@
 <p>或者使用<code>SELECT</code> 来查询:</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> spcname, pg_tablespace_location(oid)</span><br><span class="line"><span class="keyword">FROM</span> pg_tablespace;</span><br></pre></td></tr></table></figure>
 
+<hr>
 <h1 id="模式"><a href="#模式" class="headerlink" title="模式"></a>模式</h1><p>在 <code>PostgreSQL</code> 中，模式<code>（Schema）</code> 是数据库中的一种命名空间（namespace），它用于组织数据库对象（例如表、视图、函数、类型、索引等）。类似于操作系统中的目录</p>
 <blockquote>
 <p>模式的作用是对数据库对象进行逻辑分组，防止命名冲突，并方便管理。</p>
@@ -243,6 +244,7 @@
 <p><strong>撤销权限</strong></p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">REVOKE</span> <span class="keyword">CREATE</span> <span class="keyword">ON</span> SCHEMA sales <span class="keyword">FROM</span> developer;</span><br><span class="line"><span class="keyword">REVOKE</span> USAGE <span class="keyword">ON</span> SCHEMA sales <span class="keyword">FROM</span> analyst;</span><br></pre></td></tr></table></figure>
 
+<hr>
 <h1 id="清理-VACUUM"><a href="#清理-VACUUM" class="headerlink" title="清理(VACUUM)"></a>清理(VACUUM)</h1><p>清理是 PostgreSQL 维护任务中不可或缺的组成部分。通过回收存储、优化性能并保持数据库精简，清理有助于维护 PostgreSQL 系统的健康。</p>
 <p>PostgreSQL 采用<strong>MVCC（多版本并发控制）</strong> 机制：<br>每次执行 <code>UPDATE</code> 或 <code>DELETE</code> 时，旧行不会立即删除，而是被标记为过期（dead tuple），并在表文件中保留。表中会存在许多“<strong>死行版本</strong>（dead tuples）”，<br>这些死行会：占用磁盘空间；影响全表扫描性能；干扰索引可见性。因此 PostgreSQL 需要“清理。<br><code>VACUUM</code>可以标记无效元组为可重用空间（但不立即收缩文件），更新可见性信息（visibility map）：哪些页没有死元组，可供只读查询直接跳过，以及清理索引对应的无效项。</p>
 <h3 id="PostgreSQL-的清理主要依赖三种机制："><a href="#PostgreSQL-的清理主要依赖三种机制：" class="headerlink" title="PostgreSQL 的清理主要依赖三种机制："></a>PostgreSQL 的清理主要依赖三种机制：</h3><table>
@@ -293,6 +295,7 @@
 <h3 id="常用组合命令：VACUUM-ANALYZE"><a href="#常用组合命令：VACUUM-ANALYZE" class="headerlink" title="常用组合命令：VACUUM ANALYZE"></a>常用组合命令：VACUUM ANALYZE</h3><p>等价于顺序执行两步：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">VACUUM;</span><br><span class="line">ANALYZE;</span><br></pre></td></tr></table></figure>
 <p>但它更常用，因为先清理再统计，防止统计包含过时数据,是大型数据导入后或更新大量行后的标准维护命令。</p>
+<hr>
 <h1 id="复制-Replication"><a href="#复制-Replication" class="headerlink" title="复制(Replication)"></a>复制(Replication)</h1><p><strong>复制（Replication）</strong> 是指：<br>把一个数据库实例（称为 主节点 或 Primary）中的数据变化，实时或准实时地复制到另一个实例（称为 从节点 或 Standby）。<br>简单说，就是让多个数据库节点<strong>保持数据一致或接近一致</strong>。</p>
 <table>
 <thead>

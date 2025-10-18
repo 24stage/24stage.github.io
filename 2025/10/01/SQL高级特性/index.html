@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">4.3k</span>
+            <span class="post-count">4.5k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">16 min</span>
+            <span class="post-count">17 min</span>
         </span>
     </span>
 </div>
@@ -153,6 +153,7 @@
 <blockquote>
 <p>注：PostgreSQL 的具体并发现象与隔离级别实现细节相对复杂，建议在生产场景选择合适隔离级别并通过测试验证。</p>
 </blockquote>
+<hr>
 <h1 id="MVCC-多版本并发控制"><a href="#MVCC-多版本并发控制" class="headerlink" title="MVCC(多版本并发控制)"></a>MVCC(多版本并发控制)</h1><p>简单说，它让多个事务可以同时访问同一张表的数据，<br>而又互不干扰、互不锁表。</p>
 <p>传统的并发控制方式是加锁（Locking）：<br>当一个事务正在修改某行数据时，其他事务必须等待,并发性能差。</p>
 <p><strong>而 MVCC 不加锁读取数据：</strong></p>
@@ -163,7 +164,7 @@
 <blockquote>
 <p>✅ 核心思想：数据库中的每一行数据都有多个版本（versions），不同事务可以看到不同版本的数据。</p>
 </blockquote>
-<h3 id="核心机制："><a href="#核心机制：" class="headerlink" title="核心机制："></a>核心机制：</h3><p>在 PostgreSQL 中，每一行数据（tuple）都包含以下两个隐藏字段：</p>
+<h2 id="核心机制："><a href="#核心机制：" class="headerlink" title="核心机制："></a>核心机制：</h2><p>在 PostgreSQL 中，每一行数据（tuple）都包含以下两个隐藏字段：</p>
 <table>
 <thead>
 <tr>
@@ -216,7 +217,7 @@
 <td>回收空间，防止膨胀</td>
 </tr>
 </tbody></table>
-<h3 id="示例：多版本快照"><a href="#示例：多版本快照" class="headerlink" title="示例：多版本快照"></a>示例：多版本快照</h3><ol>
+<h2 id="示例：多版本快照"><a href="#示例：多版本快照" class="headerlink" title="示例：多版本快照"></a>示例：多版本快照</h2><ol>
 <li><p>事务 T1 执行：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> users <span class="keyword">VALUES</span> (<span class="number">1</span>, <span class="string">&#x27;Alice&#x27;</span>);</span><br></pre></td></tr></table></figure>
 <p>系统会：<br>为这行记录生成一个新的版本,设置 <code>xmin = T1</code>, <code>xmax = null（未被删除）</code>；</p>
@@ -251,7 +252,7 @@
 <ol start="3">
 <li>DELETE<br>删除操作只是在记录上标记 <code>xmax = 当前事务ID</code>，不立即移除数据。<br>只有当没有事务再需要旧版本时，<strong>VACUUM</strong> 才会真正清理物理空间。</li>
 </ol>
-<h3 id="可见性判断"><a href="#可见性判断" class="headerlink" title="可见性判断"></a>可见性判断</h3><p><strong>一个事务在查询时，系统会根据当前事务的快照（snapshot）来判断哪些版本可见。<br>快照记录：当前事务 ID，当前已提交事务 ID 集合，当前未提交事务 ID 集合。</strong></p>
+<h2 id="可见性判断"><a href="#可见性判断" class="headerlink" title="可见性判断"></a>可见性判断</h2><p><strong>一个事务在查询时，系统会根据当前事务的快照（snapshot）来判断哪些版本可见。<br>快照记录：当前事务 ID，当前已提交事务 ID 集合，当前未提交事务 ID 集合。</strong></p>
 <blockquote>
 <p>可见性判断是“快照”对“版本”的比较。<br>✅ “快照认为这个版本已经存在（被提交），并且还没被删除” → 可见<br>❌ “快照认为这个版本还没生成，或已经被删除” → 不可见</p>
 </blockquote>
@@ -286,7 +287,7 @@
 <td>xmax还未提交相当于xmax保持初始值即null</td>
 </tr>
 </tbody></table>
-<h3 id="MVCC-与事务隔离级别的关系"><a href="#MVCC-与事务隔离级别的关系" class="headerlink" title="MVCC 与事务隔离级别的关系"></a>MVCC 与事务隔离级别的关系</h3><table>
+<h2 id="MVCC-与事务隔离级别的关系"><a href="#MVCC-与事务隔离级别的关系" class="headerlink" title="MVCC 与事务隔离级别的关系"></a>MVCC 与事务隔离级别的关系</h2><table>
 <thead>
 <tr>
 <th>隔离级别</th>
@@ -306,6 +307,11 @@
 <td>在 MVCC 基础上加额外检测，确保结果等价于串行执行</td>
 </tr>
 </tbody></table>
+<h2 id="死元组（dead-tuple）"><a href="#死元组（dead-tuple）" class="headerlink" title="死元组（dead tuple）"></a>死元组（dead tuple）</h2><p>每当你<strong>修改或删除</strong>一行数据时，旧版本不会被立即覆盖或删除，而是被保留，并打上“过期”标记。这就产生了死元组，此外还有一中情况：即<strong>事务回滚</strong>操作也会产生死元组(新版本已经插入，但事务回滚后它对所有事务都不可见。即使更新失败也会产生)</p>
+<p>这些不可见版本也是 dead tuple。</p>
+<blockquote>
+<p><code>PostgreSQL</code> 采用 非阻塞式 <code>MVCC</code>，允许读写并发。当一行数据(元组)被更新或删除时，如果立即将该元组删除，其他仍在运行的事务可能仍需访问旧版本。因此，旧版本要等到没有任何活跃事务需要它后，才能被回收。</p>
+</blockquote>
 <hr>
 <h1 id="窗口函数"><a href="#窗口函数" class="headerlink" title="窗口函数"></a>窗口函数</h1><h3 id="基本语法"><a href="#基本语法" class="headerlink" title="基本语法"></a>基本语法</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator">&lt;</span>window_function<span class="operator">&gt;</span>(args) <span class="keyword">OVER</span> (</span><br><span class="line">    [<span class="keyword">PARTITION</span> <span class="keyword">BY</span> expr [, ...]]</span><br><span class="line">    [<span class="keyword">ORDER</span> <span class="keyword">BY</span> expr [<span class="keyword">ASC</span><span class="operator">|</span><span class="keyword">DESC</span>] [, ...]]</span><br><span class="line">    [frame_clause]</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
 <ul>
@@ -503,6 +509,7 @@
 <li><p>SQL 标准兼容性差<br>SQL 标准中没有这种表继承机制，因此它是 PostgreSQL 的“特有扩展”。</p>
 </li>
 </ol>
+<hr>
 <h1 id="索引-INDEX"><a href="#索引-INDEX" class="headerlink" title="索引(INDEX)"></a>索引(INDEX)</h1><p>索引（Index）是数据库中一种<strong>用于加快数据检索速度</strong>的数据结构。<br>有索引，数据库可<strong>直接跳转到匹配的页</strong>（page），而不用全表扫描挨个对比。极大提升查询效率。当然索引也有代价，建立和维护索引需要额外空间和写入开销。</p>
 <p>一旦一个索引被创建，就不再需要进一步的干预：系统会在表更新时自动更新索引，而且会在它觉得使用索引比顺序扫描表效率更高时使用索引。但我们可能需要定期地运行<code>ANALYZE</code>命令来更新统计信息以便查询规划器能做出正确的决定。</p>
 <h2 id="创建和删除"><a href="#创建和删除" class="headerlink" title="创建和删除"></a>创建和删除</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 创建一个单列索引</span></span><br><span class="line"><span class="keyword">CREATE</span> INDEX test1_id_index <span class="keyword">ON</span> test1 (id);</span><br><span class="line"><span class="comment">-- 创建一个组合索引</span></span><br><span class="line"><span class="keyword">CREATE</span> INDEX test1_id_name_index <span class="keyword">ON</span> test1 (id,name);</span><br><span class="line"><span class="comment">-- 创建唯一索引(不允许任何重复的值插入到表中)</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">UNIQUE</span> INDEX test1_unique_id_index <span class="keyword">ON</span> test1 (id);</span><br><span class="line"><span class="comment">--创建一个局部索引(在表的子集上构建的索引)</span></span><br><span class="line"><span class="keyword">CREATE</span> INDEX test1_id_index </span><br><span class="line"><span class="keyword">ON</span> test1 (id)</span><br><span class="line"><span class="keyword">WHERE</span> <span class="keyword">condition</span>;</span><br><span class="line"><span class="comment">-- 删除该索引</span></span><br><span class="line"><span class="keyword">DROP</span> INDEX test1_id_index</span><br></pre></td></tr></table></figure>
