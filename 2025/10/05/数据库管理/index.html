@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">3.4k</span>
+            <span class="post-count">3.6k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">12 min</span>
+            <span class="post-count">13 min</span>
         </span>
     </span>
 </div>
@@ -329,7 +329,34 @@
 <li><strong>逻辑复制（Logical Replication）</strong><br>可以只复制特定的表、特定的数据，支持异构系统（<strong>可跨不同版本</strong>的 PostgreSQL 甚至其他数据库）；</li>
 </ol>
 <p><strong>工作流程：</strong> 主库生成逻辑变化（logical decoding），通过发布（publication）机制发送。从库进行订阅并执行等价SQL操作。</p>
- 
+<hr>
+<h1 id="备份恢复-Backup-Recovery-和高可用-HA"><a href="#备份恢复-Backup-Recovery-和高可用-HA" class="headerlink" title="备份恢复(Backup &amp; Recovery)和高可用(HA)"></a>备份恢复(Backup &amp; Recovery)和高可用(HA)</h1><p>PostgreSQL 的高可用与备份机制要解决三类问题：</p>
+<table>
+<thead>
+<tr>
+<th>目标</th>
+<th>说明</th>
+<th>对应机制</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>可靠性 (Durability)</strong></td>
+<td>数据不会因崩溃或断电丢失</td>
+<td>WAL日志、崩溃恢复</td>
+</tr>
+<tr>
+<td><strong>灾难恢复 (Disaster Recovery)</strong></td>
+<td>可以恢复到某个时间点</td>
+<td>归档 + Base backup + PITR</td>
+</tr>
+<tr>
+<td><strong>高可用性 (High Availability)</strong></td>
+<td>主库宕机时服务不中断</td>
+<td>流复制 + 自动故障切换</td>
+</tr>
+</tbody></table>
+<h2 id="WAL预写日志"><a href="#WAL预写日志" class="headerlink" title="WAL预写日志"></a>WAL预写日志</h2><p><code>WAL（Write-Ahead Logging）</code>预写日志 是 <code>PostgreSQL</code> 所有恢复与复制机制的基础。<br>基本原则：所有数据变更，必须先写入 WAL，再写入数据页。<br><code>WAL</code> 日志是顺序写，性能非常高；<br>即使数据库崩溃，只要 <code>WAL</code> 在，就能重放恢复一致状态。<br>具体<code>wal</code>介绍见：  <a href="./PostgreSQL%E6%95%B0%E6%8D%AE%E5%BA%93%E9%85%8D%E7%BD%AE.md#%E9%A2%84%E5%86%99%E5%BC%8F%E6%97%A5%E5%BF%97wal">PostgreSQL数据库配置</a></p>
+<h2 id="备份类型"><a href="#备份类型" class="headerlink" title="备份类型"></a>备份类型</h2> 
       <!-- reward -->
       
     </div>

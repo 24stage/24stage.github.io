@@ -556,6 +556,7 @@
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> orders <span class="keyword">WHERE</span> status <span class="operator">=</span> <span class="string">&#x27;pending&#x27;</span>;</span><br><span class="line"></span><br><span class="line">可以这样建索引：</span><br><span class="line"><span class="keyword">CREATE</span> INDEX idx_pending_orders <span class="keyword">ON</span> orders (status) <span class="keyword">WHERE</span> status <span class="operator">=</span> <span class="string">&#x27;pending&#x27;</span>;</span><br></pre></td></tr></table></figure>
 
 <p>这样能极大减少索引大小与扫描成本。<br><strong>5. 避免数据类型不一致</strong></p>
+<hr>
  
       <!-- reward -->
       
