@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">3.6k</span>
+            <span class="post-count">4.7k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">13 min</span>
+            <span class="post-count">17 min</span>
         </span>
     </span>
 </div>
@@ -355,8 +355,92 @@
 <td>流复制 + 自动故障切换</td>
 </tr>
 </tbody></table>
-<h2 id="WAL预写日志"><a href="#WAL预写日志" class="headerlink" title="WAL预写日志"></a>WAL预写日志</h2><p><code>WAL（Write-Ahead Logging）</code>预写日志 是 <code>PostgreSQL</code> 所有恢复与复制机制的基础。<br>基本原则：所有数据变更，必须先写入 WAL，再写入数据页。<br><code>WAL</code> 日志是顺序写，性能非常高；<br>即使数据库崩溃，只要 <code>WAL</code> 在，就能重放恢复一致状态。<br>具体<code>wal</code>介绍见：  <a href="./PostgreSQL%E6%95%B0%E6%8D%AE%E5%BA%93%E9%85%8D%E7%BD%AE.md#%E9%A2%84%E5%86%99%E5%BC%8F%E6%97%A5%E5%BF%97wal">PostgreSQL数据库配置</a></p>
-<h2 id="备份类型"><a href="#备份类型" class="headerlink" title="备份类型"></a>备份类型</h2> 
+<h2 id="WAL预写日志"><a href="#WAL预写日志" class="headerlink" title="WAL预写日志"></a>WAL预写日志</h2><p><code>WAL（Write-Ahead Logging）</code>预写日志 是 <code>PostgreSQL</code> 所有恢复与复制机制的基础。<br>基本原则：所有数据变更，必须先写入 WAL，再写入数据页。<br><code>WAL</code> 日志是顺序写，性能非常高；<br>即使数据库崩溃，只要 <code>WAL</code> 在，就能重放恢复一致状态。<br>具体<code>wal</code>介绍见：  <a href="./PostgreSQL%E6%95%B0%E6%8D%AE%E5%BA%93%E9%85%8D%E7%BD%AE.md#%E9%A2%84%E5%86%99%E5%BC%8F%E6%97%A5%E5%BF%97wal">PostgreSQL数据库配置#预写式日志wal</a></p>
+<h2 id="备份类型"><a href="#备份类型" class="headerlink" title="备份类型"></a>备份类型</h2><h3 id="逻辑备份"><a href="#逻辑备份" class="headerlink" title="逻辑备份"></a>逻辑备份</h3><p><code>pg_dump</code> 是 <code>PostgreSQL</code> 提供的逻辑备份工具，用于导出数据库中的结构（<code>DDL</code>）和数据（<code>DML</code>），可以方便地在相同或不同 <code>PostgreSQL</code> 实例间迁移数据、做版本升级迁移、或者进行部分（单库、单表）备份。</p>
+<blockquote>
+<p>pg_dump 不会直接复制数据库文件（那是物理备份的范畴，如 pg_basebackup），而是生成 SQL 或自定义格式文件。<br>使用 SQL 层导出数据。</p>
+</blockquote>
+<p>基本写法：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pg_dump [选项] 数据库名 <span class="operator">&gt;</span> dumpfile.sql</span><br></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">pg_dump <span class="operator">-</span>U postgres mydb <span class="operator">&gt;</span> mydb.sql</span><br><span class="line">pg_dumpall <span class="operator">&gt;</span> all_databases.sql</span><br></pre></td></tr></table></figure>
+<p>可跨版本恢复、易读，但是速度慢，不适合超大数据库。适合的场景是迁移、版本升级。</p>
+<p>此外还有一个命令：<code>pg_dumpall </code>是 <code>PostgreSQL</code> 里用于<strong>导出整个集群（cluster）所有数据库与全局对象</strong>的逻辑备份命令。</p>
+<p><code>pg_restore </code>是配合 <code>pg_dump</code> 使用的，它属于逻辑层备份 &#x2F; 恢复工具。</p>
+<h3 id="物理备份"><a href="#物理备份" class="headerlink" title="物理备份"></a>物理备份</h3><p><code>pg_basebackup</code>直接复制数据库的数据文件、控制文件、WAL 日志等底层文件，生成一个完整的 <strong>数据库集群物理镜像</strong> <code>base backup</code>,通常与 <code>WAL</code> 归档结合使用。<br>流程：<code>pg_basebackup</code> 连接主数据库，请求 <code>PostgreSQL</code> 通过内部复制协议发送所有数据文件内容，同时拷贝 WAL（事务日志），保证备份一致性， 生成一个完整的可启动数据库副本。</p>
+<blockquote>
+<p>这意味着用 <code>pg_basebackup</code> 备份出来的目录，可以直接作为 <code>PostgreSQL</code> 实例启动。</p>
+</blockquote>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pg_basebackup <span class="operator">-</span>D <span class="operator">/</span>backup<span class="operator">/</span>base <span class="operator">-</span>Ft <span class="operator">-</span>z <span class="operator">-</span>P <span class="operator">-</span>X stream</span><br></pre></td></tr></table></figure>
+
+<h3 id="二者对比"><a href="#二者对比" class="headerlink" title="二者对比"></a>二者对比</h3><table>
+<thead>
+<tr>
+<th>项目</th>
+<th><strong>pg_dump &#x2F; pg_dumpall</strong></th>
+<th><strong>pg_basebackup</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>备份类型</strong></td>
+<td>逻辑备份（SQL层）</td>
+<td>物理备份（文件层）</td>
+</tr>
+<tr>
+<td><strong>备份内容</strong></td>
+<td>数据库对象（表、索引、视图、数据等）</td>
+<td>数据目录（数据文件、WAL、配置等）</td>
+</tr>
+<tr>
+<td><strong>恢复方式</strong></td>
+<td>重新执行 SQL 脚本或 <code>pg_restore</code></td>
+<td>拷贝数据目录 + 启动数据库</td>
+</tr>
+<tr>
+<td><strong>可移植性</strong></td>
+<td>高（可跨版本）</td>
+<td>低（仅限相同版本）</td>
+</tr>
+<tr>
+<td><strong>体积</strong></td>
+<td>小（仅结构+数据）</td>
+<td>大（整个实例）</td>
+</tr>
+<tr>
+<td><strong>耗时</strong></td>
+<td>慢（逻辑导入导出）</td>
+<td>快（文件级复制）</td>
+</tr>
+<tr>
+<td><strong>典型用途</strong></td>
+<td>单库迁移 &#x2F; 数据导出 &#x2F; 部分备份</td>
+<td>实例全备 &#x2F; 物理高可用 &#x2F; 流复制主备搭建</td>
+</tr>
+<tr>
+<td><strong>是否支持PITR（时间点恢复）</strong></td>
+<td>否</td>
+<td>是（配合WAL归档）</td>
+</tr>
+</tbody></table>
+<h2 id="归档-ARCHIVE-与时间点恢复（PITR）"><a href="#归档-ARCHIVE-与时间点恢复（PITR）" class="headerlink" title="归档(ARCHIVE)与时间点恢复（PITR）"></a>归档(ARCHIVE)与时间点恢复（PITR）</h2><p>时间点恢复 Point-In-Time Recovery，该机制<strong>基于物理备份 + WAL 日志重放</strong>可以恢复到某一时间点的状态，实现了灾难恢复。例如误删了一张表，希望回到删表前的时间，就可以用<code>PITR</code><br>时间线：<br><strong>原理流程图：</strong></p>
+<figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">────────●────────●────────●────────●────────▶</span><br><span class="line">        <span class="selector-tag">A</span>        <span class="selector-tag">B</span>        <span class="selector-tag">C</span>        <span class="selector-tag">D</span></span><br><span class="line">      <span class="selector-tag">Base</span>      <span class="selector-tag">WAL</span>      <span class="selector-tag">WAL</span>      <span class="selector-tag">Crash</span></span><br><span class="line">     <span class="selector-tag">Backup</span>     <span class="selector-id">#1</span>       <span class="selector-id">#2</span></span><br></pre></td></tr></table></figure>
+<p>恢复时：从 A 点的基础备份（Base Backup）开始，顺序回放归档的 WAL 日志，当时间到达指定的恢复点（例如“C点”）就停止回放。</p>
+<p><strong>当需要时间点恢复时，可参考如下步骤：</strong><br><strong>1. 首先要提前开启wal归档</strong><br>在 <code>postgresql.conf</code> 开启 <code>WAL</code> 归档，这样 <code>PostgreSQL</code> 每生成一个 <code>WAL</code> 文件，就会自动复制到 <code>/archive</code> 目录。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">wal_level <span class="operator">=</span> replica</span><br><span class="line">archive_mode <span class="operator">=</span> <span class="keyword">on</span></span><br><span class="line">archive_command <span class="operator">=</span> <span class="string">&#x27;cp %p /archive/%f&#x27;</span></span><br></pre></td></tr></table></figure>
+<p><strong>2. 定期做基础备份</strong><br>得到一个完整的数据快照（不含 WAL）。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pg_basebackup <span class="operator">-</span>D <span class="operator">/</span>backup<span class="operator">/</span>base <span class="operator">-</span>Ft <span class="operator">-</span>z <span class="operator">-</span>P <span class="operator">-</span>X <span class="keyword">none</span></span><br></pre></td></tr></table></figure>
+<p><strong>3. 出现灾难后恢复步骤</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 停掉数据库</span></span><br><span class="line">pg_ctl stop -D </span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 删除旧数据，换成备份</span></span><br><span class="line"><span class="built_in">rm</span> -rf /var/lib/postgresql/data/*</span><br><span class="line">tar -xzf /backup/base/base.tar.gz -C /var/lib/postgresql/data</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 编辑 recovery 配置</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;restore_command = &#x27;cp /archive/%f %p&#x27;&quot;</span> &gt;&gt; postgresql.conf</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;recovery_target_time = &#x27;2025-10-14 15:59:59&#x27;&quot;</span> &gt;&gt; postgresql.conf</span><br></pre></td></tr></table></figure>
+
+<p>然后重启数据库：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pg_ctl start -D /var/lib/postgresql/data</span><br></pre></td></tr></table></figure>
+
+<p>系统就会从 <code>Base Backup</code> 起步，顺序重放 <code>/archive</code> 中的 <code>WAL</code>，一旦回放到 指定的恢复点停止。</p>
+<h2 id="高可用（HA）"><a href="#高可用（HA）" class="headerlink" title="高可用（HA）"></a>高可用（HA）</h2><p>即保证让数据库在主节点宕机时，业务不中断。<br><code>PostgreSQL</code> 官方自带的 <code>HA</code> 机制是 <strong>流复制</strong>。</p>
+<p>原理：主库写 WAL → 从库实时接收并重放 WAL → 保持同步。</p>
+<figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">          <span class="selector-tag">WAL</span>流</span><br><span class="line"><span class="selector-tag">Primary</span>  ─────────▶  <span class="selector-tag">Standby</span></span><br></pre></td></tr></table></figure>
+<p>详细流程就是主库产生日志（WAL sender），从库通过网络实时接收（WAL receiver），从库写入自身 WAL 并“回放”，数据页更新后，保持与主库一致</p>
+<hr>
+ 
       <!-- reward -->
       
     </div>
