@@ -296,7 +296,7 @@
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">VACUUM;</span><br><span class="line">ANALYZE;</span><br></pre></td></tr></table></figure>
 <p>但它更常用，因为先清理再统计，防止统计包含过时数据,是大型数据导入后或更新大量行后的标准维护命令。</p>
 <hr>
-<h1 id="复制-Replication"><a href="#复制-Replication" class="headerlink" title="复制(Replication)"></a>复制(Replication)</h1><p><strong>复制（Replication）</strong> 是指：<br>把一个数据库实例（称为 主节点 或 Primary）中的数据变化，实时或准实时地复制到另一个实例（称为 从节点 或 Standby）。<br>简单说，就是让多个数据库节点<strong>保持数据一致或接近一致</strong>。</p>
+<h1 id="主从同步-复制"><a href="#主从同步-复制" class="headerlink" title="主从同步(复制)"></a>主从同步(复制)</h1><p><strong>主从同步&#x2F;复制（Replication）</strong> 是指：<br>把一个数据库实例（称为 主节点 或 Primary）中的数据变化，实时或准实时地复制到另一个实例（称为 从节点 或 Standby）。<br>简单说，就是让多个数据库节点<strong>保持数据一致或接近一致</strong>。</p>
 <table>
 <thead>
 <tr>
@@ -321,14 +321,41 @@
 <td>可以在从库上做备份、分析、报表等任务，不影响主库。</td>
 </tr>
 </tbody></table>
-<h2 id="常见的复制类型"><a href="#常见的复制类型" class="headerlink" title="常见的复制类型"></a>常见的复制类型</h2><ol>
-<li><strong>流复制（Streaming Replication）</strong><br>目前最常用、最主流的方式，通过传输 WAL（Write-Ahead Log）日志流实现：从库不断接收主库的 WAL 日志，并应用到本地，从库是只读的。</li>
-</ol>
-<p><strong>工作流程：</strong> 主库产生 <code>WAL</code>，<code>wal sender</code> 进程将 <code>WAL</code> 发送给从库。从库的 <code>wal receiver</code> 进程接收后写入 <code>pg_wal</code>，<code>startup process</code> 负责重放（replay）日志。</p>
-<ol start="2">
-<li><strong>逻辑复制（Logical Replication）</strong><br>可以只复制特定的表、特定的数据，支持异构系统（<strong>可跨不同版本</strong>的 PostgreSQL 甚至其他数据库）；</li>
-</ol>
-<p><strong>工作流程：</strong> 主库生成逻辑变化（logical decoding），通过发布（publication）机制发送。从库进行订阅并执行等价SQL操作。</p>
+<p><strong>复制的分类：</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">PostgreSQL 复制</span><br><span class="line">├── 物理复制（Physical Replication）</span><br><span class="line">│   └── 流复制（Streaming Replication）</span><br><span class="line">│       ├── 异步复制（Asynchronous）</span><br><span class="line">│       ├── 同步复制（Synchronous）</span><br><span class="line">│       └── 半同步复制 <span class="operator">/</span> 仲裁复制（Quorum<span class="operator">-</span>based）</span><br><span class="line">└── 逻辑复制（Logical Replication）</span><br></pre></td></tr></table></figure>
+<p><strong>流复制</strong>是 物理复制 的一种实现：主库生成 <code>WAL</code> 日志，从库实时接收（streaming）这些 <code>WAL</code>，从库将 <code>WAL</code> “重放（replay）”到自己的数据文件，从而保持和主库完全一致的物理数据。</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>同步方式</th>
+<th>数据一致性</th>
+<th>延迟</th>
+<th>是否会阻塞主库提交</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>异步复制（Asynchronous）</strong></td>
+<td>主库写 WAL 后立即提交</td>
+<td>主从可能有延迟</td>
+<td>低</td>
+<td>否</td>
+</tr>
+<tr>
+<td><strong>同步复制（Synchronous）</strong></td>
+<td>主库等待从库确认接收 WAL 后才提交</td>
+<td>主从强一致</td>
+<td>极低</td>
+<td>是</td>
+</tr>
+<tr>
+<td><strong>半同步复制（Quorum-based）</strong></td>
+<td>主库等待部分从库确认</td>
+<td>高一致性 + 可用性平衡</td>
+<td>可调</td>
+<td>部分阻塞</td>
+</tr>
+</tbody></table>
 <hr>
 <h1 id="备份恢复-Backup-Recovery-和高可用-HA"><a href="#备份恢复-Backup-Recovery-和高可用-HA" class="headerlink" title="备份恢复(Backup &amp; Recovery)和高可用(HA)"></a>备份恢复(Backup &amp; Recovery)和高可用(HA)</h1><p>PostgreSQL 的高可用与备份机制要解决三类问题：</p>
 <table>
@@ -435,10 +462,11 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pg_ctl start -D /var/lib/postgresql/data</span><br></pre></td></tr></table></figure>
 
 <p>系统就会从 <code>Base Backup</code> 起步，顺序重放 <code>/archive</code> 中的 <code>WAL</code>，一旦回放到 指定的恢复点停止。</p>
-<h2 id="高可用（HA）"><a href="#高可用（HA）" class="headerlink" title="高可用（HA）"></a>高可用（HA）</h2><p>即保证让数据库在主节点宕机时，业务不中断。<br><code>PostgreSQL</code> 官方自带的 <code>HA</code> 机制是 <strong>流复制</strong>。</p>
+<h2 id="高可用（HA）"><a href="#高可用（HA）" class="headerlink" title="高可用（HA）"></a>高可用（HA）</h2><p>即保证让数据库在主节点宕机时，业务不中断。<br><code>PostgreSQL</code> 官方自带的 <code>HA</code> 机制是 **主从同步(流复制)**。</p>
 <p>原理：主库写 WAL → 从库实时接收并重放 WAL → 保持同步。</p>
 <figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">          <span class="selector-tag">WAL</span>流</span><br><span class="line"><span class="selector-tag">Primary</span>  ─────────▶  <span class="selector-tag">Standby</span></span><br></pre></td></tr></table></figure>
-<p>详细流程就是主库产生日志（WAL sender），从库通过网络实时接收（WAL receiver），从库写入自身 WAL 并“回放”，数据页更新后，保持与主库一致</p>
+<p>详细流程就是主库产生日志（WAL sender），从库通过网络实时接收（WAL receiver），从库写入自身 WAL 并“回放”，数据页更新后，保持与主库一致。</p>
+<p>可以参考 <a href="#%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5%E5%A4%8D%E5%88%B6">主从同步&#x2F;流复制</a></p>
 <hr>
  
       <!-- reward -->

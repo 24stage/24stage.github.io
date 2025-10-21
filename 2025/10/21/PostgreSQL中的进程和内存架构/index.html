@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-hans">
+  
+
+    <head>
+      <meta charset="utf-8" />
+        
+      <meta name="description" content="24stage Blog" />
+      
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>PostgreSQL中的进程和内存架构 |  24stage</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/smile.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-PostgreSQL中的进程和内存架构"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  PostgreSQL中的进程和内存架构
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2025/10/21/PostgreSQL%E4%B8%AD%E7%9A%84%E8%BF%9B%E7%A8%8B%E5%92%8C%E5%86%85%E5%AD%98%E6%9E%B6%E6%9E%84/" class="article-date">
+  <time datetime="2025-10-21T02:22:38.000Z" itemprop="datePublished">2025-10-21</time>
+</a>   
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> Word count:</span>
+            <span class="post-count">846</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> Reading time≈</span>
+            <span class="post-count">3 min</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="PostgreSQL中的进程和内存架构"><a href="#PostgreSQL中的进程和内存架构" class="headerlink" title="PostgreSQL中的进程和内存架构"></a>PostgreSQL中的进程和内存架构</h1><h2 id="PostgreSQL-的进程架构"><a href="#PostgreSQL-的进程架构" class="headerlink" title="PostgreSQL 的进程架构"></a>PostgreSQL 的进程架构</h2><p>PostgreSQL 是 <strong>多进程架构（multi-process architecture）</strong>，每个连接都有自己独立的 进程，由主进程 <code>postmaster</code>（也叫 postgres）派生。<br>进程按照功能不同分类：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>说明</th>
+<th>示例进程</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>主进程（Postmaster Process）</strong></td>
+<td>数据库的“守护进程”，负责启动、停止、管理其他所有进程，监听客户端连接（默认端口 5432）。执行<code>pg_ctl -D dbname -l logfile start  </code>命令时启动。</td>
+<td><code>postgres</code>（启动时）</td>
+</tr>
+<tr>
+<td><strong>后台进程（Background Processes）</strong></td>
+<td>数据库后台维护任务，例如 WAL 写入、检查点、vacuum 等。</td>
+<td><code>checkpointer</code>, <code>writer</code>, <code>walwriter</code>, <code>autovacuum launcher</code>, <code>archiver</code></td>
+</tr>
+<tr>
+<td><strong>后端进程（Backend Processes）</strong></td>
+<td>为每个客户端连接单独派生，执行 SQL 语句。</td>
+<td><code>postgres: user dbname [idle]</code></td>
+</tr>
+<tr>
+<td><strong>辅助进程（Auxiliary Processes）</strong></td>
+<td>特殊的系统进程，支持复制、统计、恢复等。</td>
+<td><code>wal receiver</code>, <code>logical replication launcher</code>, <code>stats collector</code></td>
+</tr>
+<tr>
+<td><strong>复制进程（Replication Processes）</strong></td>
+<td>支持主从（物理&#x2F;逻辑）复制的数据流处理。</td>
+<td><code>walsender</code>, <code>walreceiver</code>, <code>apply worker</code></td>
+</tr>
+</tbody></table>
+<h2 id="PostgreSQL-的内存架构"><a href="#PostgreSQL-的内存架构" class="headerlink" title="PostgreSQL 的内存架构"></a>PostgreSQL 的内存架构</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">┌────────────────────────────────────────────────────────────┐</span><br><span class="line">│                       操作系统（OS）                        │</span><br><span class="line">│  ┌───────────────────────┐   ┌────────────────────────────┐ │</span><br><span class="line">│  │  OS Page Cache <span class="operator">/</span> VFS   │  │ Kernel page <span class="keyword">table</span> <span class="operator">/</span> NUMA   │ │</span><br><span class="line">│  └───────────────────────┘   └────────────────────────────┘ │</span><br><span class="line">│                    ↑                        ↑               │</span><br><span class="line">│                    │                        │               │</span><br><span class="line">│  ┌────────────────────────────────────────────────────────┐  │</span><br><span class="line">│  │                      Postgres Shared Memory            │  │</span><br><span class="line">│  │  ┌────────────┐ ┌────────────┐ ┌────────────┐          │  │</span><br><span class="line">│  │  │ shared_buf │ │ wal_buf    │ │ lock <span class="keyword">table</span> │   ...    │  │</span><br><span class="line">│  │  └────────────┘ └────────────┘ └────────────┘          │  │</span><br><span class="line">│  └────────────────────────────────────────────────────────┘  │</span><br><span class="line">│                    ↑            ↑             ↑              │</span><br><span class="line">│                    │            │             │              │</span><br><span class="line">│  ┌────────────────────────────────────────────────────────┐  │</span><br><span class="line">│  │                   Backend <span class="operator">/</span> BG Processes               │  │</span><br><span class="line">│  │  <span class="keyword">per</span><span class="operator">-</span>backend memory: work_mem, temp_buffers, contexts  │  │</span><br><span class="line">│  │  relcache, syscache, executor state, <span class="keyword">local</span> buffers     │  │</span><br><span class="line">│  └────────────────────────────────────────────────────────┘  │</span><br><span class="line">└────────────────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+<h3 id="共享内存（Shared-Memory）"><a href="#共享内存（Shared-Memory）" class="headerlink" title="共享内存（Shared Memory）"></a>共享内存（Shared Memory）</h3><p>共享内存由 <code>PostgreSQL</code> 在启动时申请，供所有进程访问。主要由 <code>shared_buffers</code> 控制其大小（可用 <code>SHOW shared_buffers;</code> 查看），用于缓存经常访问的数据页，以及预写日志（WAL）缓冲区（wal_buffers），用于在事务日志数据写入磁盘之前对其进行存储。<br><strong>shared_buffers:</strong><br>功能：缓存表&#x2F;索引的 <code>page</code>（默认 8KB 页）；几乎所有数据页的共享缓存都在这里优先查找。<br>结构：由 <code>buffer descriptors</code>（描述符）和实际 <code>page</code> 数据组成；每个 <code>buffer descriptor</code> 保存锁、标志、blkno、refcount 等。<br>特点：这是进程间共享的第一级缓存；避免频繁走 OS 页缓存。但 <code>OS page cache</code> 仍存在并协作。</p>
+<h3 id="进程私有内存（Per-Process-Memory）"><a href="#进程私有内存（Per-Process-Memory）" class="headerlink" title="进程私有内存（Per-Process Memory）"></a>进程私有内存（Per-Process Memory）</h3><p>每个 backend（或 worker）有自己的一组私有内存，用于执行、临时数据、缓存等。<br><strong>work_mem：</strong><br>用途：排序、哈希表、合并操作等的临时内存。特点：这是 <code>per-operation</code>、<code>per-backend</code> 的配额。一个查询里可能同时触发多个使用 <code>work_mem</code> 的操作（例如多个并行排序&#x2F;哈希），所以最大同时使用量 &#x3D; <code>work_mem</code> * 并发操作数 * 并发连接数。不要把 <code>work_mem</code> 设得太大而导致内存超配；可基于并发估算。</p>
+<p><strong>临时文件：</strong><br>当排序或哈希操作超过 <code>work_mem </code>时，会把中间数据溢出到磁盘上的临时文件（位于 base&#x2F;pgsql_tmp），会导致磁盘 I&#x2F;O。</p>
+<h3 id="与操作系统页缓存（OS-Page-Cache）的关系与交互"><a href="#与操作系统页缓存（OS-Page-Cache）的关系与交互" class="headerlink" title="与操作系统页缓存（OS Page Cache）的关系与交互"></a>与操作系统页缓存（OS Page Cache）的关系与交互</h3><p><code>PostgreSQL</code> 的 <code>shared_buffers</code> 是自定义用户空间缓存；但当数据页被从磁盘读入 <code>shared_buffers</code> 时，底层读操作仍会经过 <code>OS page cache</code>（除非使用 direct I&#x2F;O 或 kernel settings）。所以<strong>磁盘数据可能会同时</strong>被 OS cache 与 shared_buffers 缓存，造成内存冗余。<br>大多数生产系统依赖 <code>OS</code> 缓存 + 适度的 <code>shared_buffers</code>（例如 8GB-32GB 以下机器），也可在特定场景下禁用 OS cache 或使用 huge pages &#x2F; direct I&#x2F;O。</p>
+<h2 id="常用内存相关查询命令"><a href="#常用内存相关查询命令" class="headerlink" title="常用内存相关查询命令"></a>常用内存相关查询命令</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">## 查询关键参数</span><br><span class="line"><span class="keyword">SHOW</span> shared_buffers;</span><br><span class="line"><span class="keyword">SHOW</span> work_mem;</span><br><span class="line"><span class="keyword">SHOW</span> maintenance_work_mem;</span><br><span class="line"><span class="keyword">SHOW</span> wal_buffers;</span><br><span class="line"><span class="keyword">SHOW</span> max_connections;</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看进程。</span></span><br><span class="line">ps aux | grep postgres </span><br><span class="line"><span class="comment"># 查看内存映射与占用（Linux）。</span></span><br><span class="line">pmap -x &lt;pid&gt; / <span class="built_in">cat</span> /proc/&lt;pid&gt;/smaps </span><br><span class="line"><span class="comment"># 观察 swap 与内存压力。</span></span><br><span class="line">vmstat / free -m </span><br></pre></td></tr></table></figure>
+
+
+ 
+      <!-- reward -->
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <footer class="article-footer">
+       
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DBA/" rel="tag">DBA</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Postgre/" rel="tag">Postgre</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+    
+      <a href="/2025/10/14/Shell%E5%AD%A6%E4%B9%A0/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Shell和自动化</div>
+      </a>
+    
+  </nav>
+
+  
+   
+  
+   
+    <script src="https://cdn.staticfile.org/twikoo/1.4.18/twikoo.all.min.js"></script>
+    <div id="twikoo" class="twikoo"></div>
+    <script>
+        twikoo.init({
+            envId: ""
+        })
+    </script>
+ 
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2023-2025
+        <i class="ri-heart-fill heart_icon"></i> Hexo
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/smile-circle-side.svg" alt="24stage"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2023/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.jpg">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    
+
+  </div>
+</body>
+
+</html>
