@@ -277,7 +277,7 @@
 <ol>
 <li><p><strong>扫描表</strong><br>遍历所有页，识别死元组（根据 xmin&#x2F;xmax 事务ID可见性判断）。</p>
 </li>
-<li><p><strong>回收空间</strong><br>将死元组标记为空闲（可供新行重用）；<br>但不会立即缩小文件大小（除非用 VACUUM FULL）。</p>
+<li><p><strong>回收空间</strong><br><strong>将死元组标记为空闲</strong>（可供新行重用）；<br>但不会立即缩小文件大小（除非用 VACUUM FULL）。</p>
 </li>
 <li><p><strong>更新可见性映射 (Visibility Map)</strong><br>标记哪些页面全可见，以优化未来的 VACUUM。</p>
 </li>
@@ -289,8 +289,7 @@
 </blockquote>
 <h3 id="Autovacuum（自动清理）"><a href="#Autovacuum（自动清理）" class="headerlink" title="Autovacuum（自动清理）"></a>Autovacuum（自动清理）</h3><p>默认启用（<code>autovacuum=on</code>）。<br>后台有一个 <code>autovacuum launcher</code> 进程，周期性检查哪些表需要清理。每个表由一个独立的 <code>worker</code> 执行，根据统计信息判断是否触发。</p>
 <p><strong>触发条件：</strong><br><code>dead_tuples &gt; vacuum_threshold + vacuum_scale_factor * reltuples</code></p>
-<h3 id="冻结（Freeze）与事务ID回绕"><a href="#冻结（Freeze）与事务ID回绕" class="headerlink" title="冻结（Freeze）与事务ID回绕"></a>冻结（Freeze）与事务ID回绕</h3><p>PostgreSQL 使用 <strong>32位事务ID（XID）</strong>，会循环。<br>如果不“冻结”，旧事务可能看起来“还没提交”，从而导致数据不可见。</p>
-<p>清理过程中的 <strong>冻结（freezing）</strong>：将旧版本的<code> xmin</code> 改为一个特殊常量 <code>FrozenXID</code>，表示此行“永远可见”，无需再比较事务ID。</p>
+<h3 id="冻结（Freeze）与事务ID回绕"><a href="#冻结（Freeze）与事务ID回绕" class="headerlink" title="冻结（Freeze）与事务ID回绕"></a>冻结（Freeze）与事务ID回绕</h3><p>PostgreSQL 使用 <strong>32位事务ID（XID）</strong>，会循环。<br>如果不“冻结”，旧事务可能看起来“还没提交”，从而导致数据不可见。<br>清理过程中的 <strong>冻结（freezing）</strong>：将旧版本的<code> xmin</code> 改为一个特殊常量 <code>FrozenXID</code>，表示此行“永远可见”，无需再比较事务ID。</p>
 <p>当数据库接近溢出风险时，<code>PostgreSQL</code> 会强制执行“防回绕清理（anti-wraparound vacuum）”。</p>
 <h3 id="常用组合命令：VACUUM-ANALYZE"><a href="#常用组合命令：VACUUM-ANALYZE" class="headerlink" title="常用组合命令：VACUUM ANALYZE"></a>常用组合命令：VACUUM ANALYZE</h3><p>等价于顺序执行两步：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">VACUUM;</span><br><span class="line">ANALYZE;</span><br></pre></td></tr></table></figure>

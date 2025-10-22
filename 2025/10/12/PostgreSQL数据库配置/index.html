@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">2.1k</span>
+            <span class="post-count">3.1k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">7 min</span>
+            <span class="post-count">11 min</span>
         </span>
     </span>
 </div>
@@ -394,6 +394,58 @@
 <p> 限制临时文件大小，防止查询使用过多磁盘。<br> <code>temp_file_limit = 10GB</code></p>
 </li>
 </ol>
+<hr>
+<h1 id="数据库物理存储和文件布局"><a href="#数据库物理存储和文件布局" class="headerlink" title="数据库物理存储和文件布局"></a>数据库物理存储和文件布局</h1><p><code>PGDATA</code>的一个常见位置是<code>/var/lib/pgsql/data</code>。由不同数据库实例所管理的多个集簇可以在同一台机器上共存。</p>
+<h2 id="数据库与表的物理文件结构"><a href="#数据库与表的物理文件结构" class="headerlink" title="数据库与表的物理文件结构"></a>数据库与表的物理文件结构</h2><p>**1. 每个数据库一个目录 **<br>对于集簇里的每个数据库，在<code>PGDATA/base</code>里都有一个子目录对应， 子目录的名字为该数据库在<code> pg_database</code>里的<code> OID</code>。这个子目录是该数据库文件的缺省位置；值得一提的是，该数据库的系统目录存储在此。</p>
+<p><strong>📁目录结构总览</strong></p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">data/</span><br><span class="line">├── <span class="keyword">base</span>/                 <span class="meta"># 每个数据库的数据文件（真正存放表数据的地方）</span></span><br><span class="line">│   ├── <span class="number">1</span>/                <span class="meta"># template1 数据库</span></span><br><span class="line">│   ├── <span class="number">16384</span>/            <span class="meta"># 其他数据库（OID 形式命名）</span></span><br><span class="line">│   └── ...</span><br><span class="line">├── <span class="keyword">global</span>/               <span class="meta"># 全局系统表（如pg_database、pg_authid）</span></span><br><span class="line">├── pg_wal/               <span class="meta"># WAL（Write-Ahead Log）日志</span></span><br><span class="line">├── pg_xact/              <span class="meta"># 事务提交状态文件</span></span><br><span class="line">├── pg_multixact/         <span class="meta"># 多事务共享锁信息</span></span><br><span class="line">├── pg_stat/              <span class="meta"># 统计信息文件</span></span><br><span class="line">├── pg_tblspc/            <span class="meta"># 表空间（存放符号链接）</span></span><br><span class="line">├── pg_subtrans/          <span class="meta"># 子事务状态</span></span><br><span class="line">├── pg_logical/           <span class="meta"># 逻辑复制相关</span></span><br><span class="line">├── pg_dynshmem/          <span class="meta"># 动态共享内存</span></span><br><span class="line">├── pg_notify/            <span class="meta"># NOTIFY/LISTEN 消息队列</span></span><br><span class="line">├── postgresql.conf       <span class="meta"># 主配置文件</span></span><br><span class="line">├── pg_hba.conf           <span class="meta"># 认证与访问控制配置</span></span><br><span class="line">├── pg_ident.conf         <span class="meta"># 用户映射配置</span></span><br><span class="line">└── postmaster.pid        <span class="meta"># 运行进程信息</span></span><br></pre></td></tr></table></figure>
+<p>索引和表类似也有自己独立的物理文件。<br><strong>2. 每张表对应一个或多个物理文件</strong><br>进入某个数据库目录后，例如 base&#x2F;16384&#x2F;，你会看到很多类似这样的文件：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">base/16384/</span><br><span class="line">├── 2619        <span class="comment"># pg_class 系统表</span></span><br><span class="line">├── 1259        <span class="comment"># 你的某个用户表</span></span><br><span class="line">├── 1259.1      <span class="comment"># 同一表的第二个段文件（超出1GB后拆分）</span></span><br><span class="line">└── ...</span><br></pre></td></tr></table></figure>
+<p>这些文件名（数字）是 <code>pg_class.relfilenode</code>，即该表在文件系统中的“物理节点号”。</p>
+<h2 id="表的文件组成"><a href="#表的文件组成" class="headerlink" title="表的文件组成"></a>表的文件组成</h2><p>每个普通表通常包含以下几类文件：</p>
+<table>
+<thead>
+<tr>
+<th align="left">文件</th>
+<th align="left">含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>relfilenode</code></td>
+<td align="left">表的主数据文件（堆文件）</td>
+</tr>
+<tr>
+<td align="left"><code>relfilenode_fsm</code></td>
+<td align="left">Free Space Map（空闲空间映射）</td>
+</tr>
+<tr>
+<td align="left"><code>relfilenode_vm</code></td>
+<td align="left">Visibility Map（可见性映射）</td>
+</tr>
+<tr>
+<td align="left"><code>relfilenode_init</code></td>
+<td align="left">未初始化副本（用于 UNLOGGED 表）</td>
+</tr>
+</tbody></table>
+<h2 id="页结构"><a href="#页结构" class="headerlink" title="页结构"></a>页结构</h2><p>PostgreSQL 的表数据以 <strong>Page（页）</strong> 为单位存储，<br>每个页大小默认 <code>8KB</code>，可以通过 <code>BLCKSZ</code> 编译参数调整。<br>一个表文件就是一系列连续的数据页：</p>
+<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="addition">+---------+---------+---------+---------+ ...</span></span><br><span class="line">| Page 0  | Page 1  | Page 2  | Page 3  | ...</span><br><span class="line"><span class="addition">+---------+---------+---------+---------+</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><strong>页内结构：</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator">+</span><span class="comment">----------------------+</span></span><br><span class="line"><span class="operator">|</span> Page Header          <span class="operator">|</span> ← 存储页级元数据（LSN、校验、空闲空间指针等）</span><br><span class="line"><span class="operator">+</span><span class="comment">----------------------+</span></span><br><span class="line"><span class="operator">|</span> Tuple Data (Heap)    <span class="operator">|</span> ← 存放真正的行记录（tuple）</span><br><span class="line"><span class="operator">+</span><span class="comment">----------------------+</span></span><br><span class="line"><span class="operator">|</span> <span class="keyword">Free</span> Space           <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">----------------------+</span></span><br><span class="line"><span class="operator">|</span> Line Pointer <span class="keyword">Array</span>   <span class="operator">|</span> ← 反向索引记录，每个记录对应一个元组</span><br><span class="line"><span class="operator">+</span><span class="comment">----------------------+</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="WAL日志与数据文件的关系"><a href="#WAL日志与数据文件的关系" class="headerlink" title="WAL日志与数据文件的关系"></a>WAL日志与数据文件的关系</h2><p><code>PostgreSQL</code> 的数据写入遵循 WAL（Write Ahead Logging） 原则：所有对数据文件的修改，必须先写入 <code>WAL</code> 日志（pg_wal 目录）。<br>流程：事务修改内存缓冲区（shared buffer），然后将修改写入 <code>pg_wal/</code>，最后<code>checkpoint</code> 时将数据真正写回表文件（base&#x2F; 下）。</p>
+<h2 id="表空间"><a href="#表空间" class="headerlink" title="表空间"></a>表空间</h2><p>表空间允许你把不同表或索引存储在不同磁盘上：</p>
+<ul>
+<li><p>默认表空间：pg_default → 对应 base&#x2F;</p>
+</li>
+<li><p>全局表空间：pg_global → 存放系统表</p>
+</li>
+<li><p>自定义表空间：pg_tblspc&#x2F; 目录下以符号链接形式存在<br>详见<a href="./%E6%95%B0%E6%8D%AE%E5%BA%93%E7%AE%A1%E7%90%86.md#%E8%A1%A8%E7%A9%BA%E9%97%B4">数据库管理#表空间</a></p>
+</li>
+</ul>
+<hr>
+<h1 id="系统目录（System-Catalog）"><a href="#系统目录（System-Catalog）" class="headerlink" title="系统目录（System Catalog）"></a>系统目录（System Catalog）</h1><p>系统目录（System Catalog） 就是数据库的“元数据库（Metadata Database）”。它存储了 <strong>数据库中所有对象的定义信息</strong>，包括：数据库、表、索引、视图、函数、类型、角色、权限等 。</p>
+<p><code>postgreSQL</code> 系统目录是一组表和视图，用于存储数据库对象的元数据，为数据库管理和查询提供关键信息。关键的系统目录表包括<code>pg_database</code>（数据库信息）、<code>pg_tables</code>（表的详细信息）、<code>pg_indexes</code>（索引信息）、<code>pg_class</code>（表、索引和序列的常规信息）、<code>pg_attribute</code>（每个表的列详细信息）以及<code>pg_roles</code>（用户和角色信息）。这些目录使数据库引擎和用户能够有效地管理模式、安全性和查询优化，从而确保高效的数据库操作和维护。</p>
  
       <!-- reward -->
       

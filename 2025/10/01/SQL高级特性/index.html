@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">4.5k</span>
+            <span class="post-count">5.2k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">17 min</span>
+            <span class="post-count">19 min</span>
         </span>
     </span>
 </div>
@@ -119,7 +119,7 @@
 使用时：<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> high_salary;</span><br></pre></td></tr></table></figure></li>
 </ul>
 <hr>
-<h1 id="事务"><a href="#事务" class="headerlink" title="事务"></a>事务</h1><p>事务是所有数据库系统的基础概念。事务最重要的一点是它将多个步骤捆绑成了一个单一的、要么全完成要么全不完成的操作。步骤之间的中间状态对于其他并发事务是不可见的，并且如果有某些错误发生导致事务不能完成，则其中任何一个步骤都不会对数据库造成影响。</p>
+<h1 id="事务（Transaction）"><a href="#事务（Transaction）" class="headerlink" title="事务（Transaction）"></a>事务（Transaction）</h1><p>事务是所有数据库系统的基础概念。事务最重要的一点是它将多个步骤捆绑成了一个单一的、要么全完成要么全不完成的操作。步骤之间的中间状态对于其他并发事务是不可见的，并且如果有某些错误发生导致事务不能完成，则其中任何一个步骤都不会对数据库造成影响。</p>
 <h3 id="事务与-ACID"><a href="#事务与-ACID" class="headerlink" title="事务与 ACID"></a>事务与 ACID</h3><ul>
 <li><strong>原子性（Atomicity）</strong>：事务内的所有操作要么全部成功（COMMIT），要么全部撤销（ROLLBACK）。  </li>
 <li><strong>一致性（Consistency）</strong>：事务结束时，数据库从一个一致状态转到另一个一致状态（例如外键、约束未被破坏）。  </li>
@@ -153,6 +153,168 @@
 <blockquote>
 <p>注：PostgreSQL 的具体并发现象与隔离级别实现细节相对复杂，建议在生产场景选择合适隔离级别并通过测试验证。</p>
 </blockquote>
+<hr>
+<h1 id="锁-的机制和管理"><a href="#锁-的机制和管理" class="headerlink" title="锁 的机制和管理"></a>锁 的机制和管理</h1><p>在 <code>PostgreSQL</code> 中，锁（Lock）是用来<strong>控制多个事务对同一资源并发访问的同步机制</strong>。当多个事务同时访问数据库的同一份数据时，锁用于防止数据不一致、保持隔离性。锁是实现隔离性的核心机制，用于协调多个事务对共享资源（数据页、行、表等）的访问。</p>
+<h2 id="锁的分类"><a href="#锁的分类" class="headerlink" title="锁的分类"></a>锁的分类</h2><table>
+<thead>
+<tr>
+<th>锁类型</th>
+<th>作用对象</th>
+<th>使用场景</th>
+<th>特征</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>表级锁（Table-level Lock）</strong></td>
+<td>整个表</td>
+<td>DDL &#x2F; DML 语句</td>
+<td>粒度大，持有时间短</td>
+</tr>
+<tr>
+<td><strong>行级锁（Row-level Lock）</strong></td>
+<td>单行记录</td>
+<td><code>SELECT ... FOR UPDATE</code>、<code>UPDATE</code>、<code>DELETE</code></td>
+<td>精细化控制，MVCC 兼容</td>
+</tr>
+<tr>
+<td><strong>页级锁（Page-level Lock）</strong></td>
+<td>数据页（8KB）</td>
+<td>VACUUM、索引维护</td>
+<td>系统内部使用</td>
+</tr>
+<tr>
+<td><strong>事务锁（Transaction-level Lock）</strong></td>
+<td>事务ID（XID）</td>
+<td>防止提交&#x2F;回滚冲突</td>
+<td>内部依赖</td>
+</tr>
+<tr>
+<td><strong>轻量级锁（Lightweight Lock, LWLock）</strong></td>
+<td>内部共享结构</td>
+<td>缓冲区、WAL 管理</td>
+<td>非用户可见</td>
+</tr>
+<tr>
+<td><strong>自旋锁（SpinLock）</strong></td>
+<td>CPU 级同步</td>
+<td>临界区保护</td>
+<td>极短期锁，用于内核代码</td>
+</tr>
+</tbody></table>
+<h2 id="表级锁"><a href="#表级锁" class="headerlink" title="表级锁"></a>表级锁</h2><p>表级锁及兼容性：</p>
+<table>
+<thead>
+<tr>
+<th>锁模式</th>
+<th>常见触发操作</th>
+<th>与其他锁兼容性（✅兼容 ❌冲突）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>AccessShareLock</strong></td>
+<td><code>SELECT</code></td>
+<td>✅ 大多数锁（除Exclusive）</td>
+</tr>
+<tr>
+<td><strong>RowShareLock</strong></td>
+<td><code>SELECT ... FOR UPDATE/SHARE</code></td>
+<td>❌ Exclusive</td>
+</tr>
+<tr>
+<td><strong>RowExclusiveLock</strong></td>
+<td><code>INSERT</code>、<code>UPDATE</code>、<code>DELETE</code></td>
+<td>❌ 共享类锁</td>
+</tr>
+<tr>
+<td><strong>ShareUpdateExclusiveLock</strong></td>
+<td><code>VACUUM</code>、<code>ANALYZE</code>、<code>CREATE INDEX CONCURRENTLY</code></td>
+<td>⚠️ 限制中等</td>
+</tr>
+<tr>
+<td><strong>ShareLock</strong></td>
+<td><code>CREATE INDEX</code></td>
+<td>❌ 与更新锁冲突</td>
+</tr>
+<tr>
+<td><strong>ShareRowExclusiveLock</strong></td>
+<td><code>CREATE TRIGGER</code></td>
+<td>❌ 几乎所有写锁</td>
+</tr>
+<tr>
+<td><strong>ExclusiveLock</strong></td>
+<td><code>ALTER TABLE</code></td>
+<td>❌ 除 AccessShareLock 外均冲突</td>
+</tr>
+<tr>
+<td><strong>AccessExclusiveLock</strong></td>
+<td><code>DROP TABLE</code>、<code>TRUNCATE</code>、<code>REINDEX</code></td>
+<td>❌ 与所有锁冲突</td>
+</tr>
+</tbody></table>
+<h2 id="行级锁"><a href="#行级锁" class="headerlink" title="行级锁"></a>行级锁</h2><table>
+<thead>
+<tr>
+<th>锁模式</th>
+<th>语句来源</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>FOR UPDATE</strong></td>
+<td><code>SELECT ... FOR UPDATE</code></td>
+<td>阻止他人修改&#x2F;删除该行</td>
+</tr>
+<tr>
+<td><strong>FOR NO KEY UPDATE</strong></td>
+<td><code>UPDATE</code>（未更改主键时）</td>
+<td>允许其他事务 FOR KEY SHARE</td>
+</tr>
+<tr>
+<td><strong>FOR SHARE</strong></td>
+<td><code>SELECT ... FOR SHARE</code></td>
+<td>允许并发读，阻止修改</td>
+</tr>
+<tr>
+<td><strong>FOR KEY SHARE</strong></td>
+<td><code>SELECT ... FOR KEY SHARE</code></td>
+<td>最弱行锁，允许更新非主键字段</td>
+</tr>
+</tbody></table>
+<h2 id="轻量级锁与自旋锁"><a href="#轻量级锁与自旋锁" class="headerlink" title="轻量级锁与自旋锁"></a>轻量级锁与自旋锁</h2><table>
+<thead>
+<tr>
+<th>锁类型</th>
+<th>用途</th>
+<th>粒度</th>
+<th>特征</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>轻量级锁LWLock</strong></td>
+<td>保护共享结构，如缓冲区链表、WAL缓冲区</td>
+<td>中等</td>
+<td>支持共享&#x2F;独占模式</td>
+</tr>
+<tr>
+<td><strong>自旋锁SpinLock</strong></td>
+<td>极短代码段的同步</td>
+<td>微观</td>
+<td>忙等，不可睡眠</td>
+</tr>
+</tbody></table>
+<h2 id="锁的实现机制以及流程"><a href="#锁的实现机制以及流程" class="headerlink" title="锁的实现机制以及流程"></a>锁的实现机制以及流程</h2><p>PostgreSQL 使用一套统一的 Lock Manager（锁管理器）实现所有表级、行级及事务锁。<br>所有锁信息存放于 <strong>共享内存</strong>（Shared Memory）；<br><strong>锁的主要结构：</strong></p>
+<ul>
+<li>LOCKTAG：锁对象标识（如 relation、tuple、transaction）；</li>
+<li>LOCK：实际锁结构；</li>
+<li>PROCLOCK：事务与锁对象的对应关系。</li>
+</ul>
+<p><strong>锁请求流程：</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">事务请求锁 →</span><br><span class="line">Lock Manager 检查兼容性 →</span><br><span class="line">若冲突则进入等待队列 →</span><br><span class="line">被唤醒后获得锁 →</span><br><span class="line">操作完成后释放锁</span><br></pre></td></tr></table></figure>
+<p><strong>可以通过<code>pg_locks</code>查看当前锁的情况：</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> pid, locktype, mode, granted, relation::regclass <span class="keyword">AS</span> <span class="keyword">table</span>, virtualtransaction</span><br><span class="line"><span class="keyword">FROM</span> pg_locks</span><br><span class="line"><span class="keyword">WHERE</span> <span class="keyword">NOT</span> granted <span class="keyword">IS</span> <span class="keyword">NULL</span>;</span><br></pre></td></tr></table></figure>
+
+
+
 <hr>
 <h1 id="MVCC-多版本并发控制"><a href="#MVCC-多版本并发控制" class="headerlink" title="MVCC(多版本并发控制)"></a>MVCC(多版本并发控制)</h1><p>简单说，它让多个事务可以同时访问同一张表的数据，<br>而又互不干扰、互不锁表。</p>
 <p>传统的并发控制方式是加锁（Locking）：<br>当一个事务正在修改某行数据时，其他事务必须等待,并发性能差。</p>

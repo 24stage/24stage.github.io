@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">846</span>
+            <span class="post-count">1.7k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">3 min</span>
+            <span class="post-count">6 min</span>
         </span>
     </span>
 </div>
@@ -149,8 +149,40 @@
 <h2 id="常用内存相关查询命令"><a href="#常用内存相关查询命令" class="headerlink" title="常用内存相关查询命令"></a>常用内存相关查询命令</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">## 查询关键参数</span><br><span class="line"><span class="keyword">SHOW</span> shared_buffers;</span><br><span class="line"><span class="keyword">SHOW</span> work_mem;</span><br><span class="line"><span class="keyword">SHOW</span> maintenance_work_mem;</span><br><span class="line"><span class="keyword">SHOW</span> wal_buffers;</span><br><span class="line"><span class="keyword">SHOW</span> max_connections;</span><br></pre></td></tr></table></figure>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看进程。</span></span><br><span class="line">ps aux | grep postgres </span><br><span class="line"><span class="comment"># 查看内存映射与占用（Linux）。</span></span><br><span class="line">pmap -x &lt;pid&gt; / <span class="built_in">cat</span> /proc/&lt;pid&gt;/smaps </span><br><span class="line"><span class="comment"># 观察 swap 与内存压力。</span></span><br><span class="line">vmstat / free -m </span><br></pre></td></tr></table></figure>
 
-
- 
+<h1 id="缓冲区管理-Buffer"><a href="#缓冲区管理-Buffer" class="headerlink" title="缓冲区管理(Buffer)"></a>缓冲区管理(Buffer)</h1><p><strong>缓冲区（Buffer）</strong> 是 <code>PostgreSQL</code> 用于缓存数据库文件中数据页（data page）的内存区域。<br><strong>缓冲池（Buffer Pool &#x2F; Shared Buffers）</strong> 是所有缓冲区的集合，它位于 <strong>共享内存</strong>（Shared Memory） 中，由所有后台进程共同使用。</p>
+<blockquote>
+<p><code>PostgreSQL</code> 的数据是以固定大小的“页（page）”为单位读写的，默认每页大小是 8KB。<br>缓冲池的任务就是将磁盘上的这些数据页缓存到内存中，避免频繁的磁盘 I&#x2F;O。</p>
+</blockquote>
+<h2 id="缓冲区的生命周期"><a href="#缓冲区的生命周期" class="headerlink" title="缓冲区的生命周期"></a>缓冲区的生命周期</h2><p><strong>1. 查询访问数据页时：</strong><br>若页在缓冲池中（称为 命中，Buffer Hit），直接使用。若不在缓冲池中（称为 未命中，Buffer Miss），则从磁盘读取页，若缓冲池已满，则通过<strong>替换算法淘汰旧页</strong>，将新页载入到缓冲池，更新缓冲描述表。</p>
+<p><strong>2. 更新数据时：</strong><br>修改缓冲区中的页，标记为<strong>脏页</strong>（dirty），由后台进程（如 Background Writer）异步写回磁盘。</p>
+<h2 id="缓冲替代算法"><a href="#缓冲替代算法" class="headerlink" title="缓冲替代算法"></a>缓冲替代算法</h2><p>PostgreSQL 使用 <strong>Clock-Sweep</strong> 算法 来替换缓冲页（类似 LRU，但更高效）。<br>其思想是：为每个缓冲页设置一个访问标识 <code>usage count</code>（使用计数），内存中的所有页面以链表的形式组成一个环形队列，<strong>当某页被访问时，其访问标识<code>usage count</code>就被加<code>1</code></strong> 当扫描指针循环扫过缓冲区时：<br>如果 <code>usage_count &gt; 0</code>，则减 1；<br>如果<code> usage_count = 0</code>，表示该页最近没被使用，可以被替换；<br>当缓冲区需要装载新页时，从 <code>usage_count=0</code> 的页中选择一个替换。</p>
+<h2 id="脏页与写回"><a href="#脏页与写回" class="headerlink" title="脏页与写回"></a>脏页与写回</h2><p>当缓冲页被修改后，它与磁盘上的数据就不一致，此时称为<strong>脏页</strong>。<br>PostgreSQL 不会立即写回磁盘，而是异步地由后台进程处理：</p>
+<table>
+<thead>
+<tr>
+<th>进程</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Background Writer</strong></td>
+<td>定期将脏页写回磁盘，减少 Checkpoint 压力。</td>
+</tr>
+<tr>
+<td><strong>Checkpoint Process</strong></td>
+<td>在检查点时强制将所有脏页写回磁盘。</td>
+</tr>
+<tr>
+<td><strong>WAL Writer</strong></td>
+<td>负责将日志（WAL）写入磁盘，以确保崩溃恢复能力。</td>
+</tr>
+</tbody></table>
+<p>这种延迟写机制能够显著的提高性能。</p>
+<p>其实pg作为学术派db，其缓冲替代算法是对脏页进行了优化的。</p>
+<blockquote>
+<p>如果替换算法选中了一个脏页作为“牺牲页”，那在装入新页之前必须先把脏页写回磁盘，这会导致 I&#x2F;O 阻塞，大大降低性能。</p>
+</blockquote>
+<h2 id="于是pg选择在算法层面“优先选择干净页（clean-page）”进行替换，从而避免在用户查询路径上发生写盘阻塞。具体来说就是Clock-Sweep-算法在-PostgreSQL-中被改造，使它在扫描缓冲区时遵循以下优先级：优先淘汰-usage-count-0-且干净（clean）的页-pg-buffercachepg-buffercache-是-PostgreSQL-自带的一个扩展（在-contrib-目录中），它提供一个系统视图-pg-buffercache，用于查看数据库-缓冲池（shared-buffers）-的实时状态（是否脏、是否被使用、属于哪个数据库）。可以通过以下启用该拓展："><a href="#于是pg选择在算法层面“优先选择干净页（clean-page）”进行替换，从而避免在用户查询路径上发生写盘阻塞。具体来说就是Clock-Sweep-算法在-PostgreSQL-中被改造，使它在扫描缓冲区时遵循以下优先级：优先淘汰-usage-count-0-且干净（clean）的页-pg-buffercachepg-buffercache-是-PostgreSQL-自带的一个扩展（在-contrib-目录中），它提供一个系统视图-pg-buffercache，用于查看数据库-缓冲池（shared-buffers）-的实时状态（是否脏、是否被使用、属于哪个数据库）。可以通过以下启用该拓展：" class="headerlink" title="于是pg选择在算法层面“优先选择干净页（clean page）”进行替换，从而避免在用户查询路径上发生写盘阻塞。具体来说就是Clock-Sweep 算法在 PostgreSQL 中被改造，使它在扫描缓冲区时遵循以下优先级：优先淘汰 usage_count &#x3D; 0 且干净（clean）的页## pg_buffercachepg_buffercache 是 PostgreSQL 自带的一个扩展（在 contrib&#x2F; 目录中），它提供一个系统视图 pg_buffercache，用于查看数据库 缓冲池（shared_buffers） 的实时状态（是否脏、是否被使用、属于哪个数据库）。可以通过以下启用该拓展："></a>于是pg选择在算法层面“优先选择干净页（clean page）”进行替换，从而避免在用户查询路径上发生写盘阻塞。具体来说就是<code>Clock-Sweep</code> 算法在 <code>PostgreSQL</code> 中被改造，使它在扫描缓冲区时遵循以下优先级：<strong>优先淘汰 usage_count &#x3D; 0 且干净（clean）的页</strong><br>## pg_buffercache<br><code>pg_buffercache</code> 是 <code>PostgreSQL</code> 自带的一个扩展（在 contrib&#x2F; 目录中），它提供一个系统视图 <code>pg_buffercache</code>，用于查看数据库 缓冲池（shared_buffers） 的实时状态（是否脏、是否被使用、属于哪个数据库）。<br>可以通过以下启用该拓展：<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> EXTENSION pg_buffercache;</span><br><span class="line"></span><br><span class="line">安装完成后，会生成一个系统视图：</span><br><span class="line">\d<span class="operator">+</span> pg_buffercache</span><br><span class="line"></span><br><span class="line">输出类似：</span><br><span class="line"><span class="keyword">View</span> &quot;public.pg_buffercache&quot;</span><br><span class="line"> <span class="keyword">Column</span>      <span class="operator">|</span>   Type    <span class="operator">|</span> Description</span><br><span class="line"><span class="comment">--------------+-----------+-------------</span></span><br><span class="line"> bufferid     <span class="operator">|</span> <span class="type">integer</span>   <span class="operator">|</span> 缓冲区编号</span><br><span class="line"> relfilenode  <span class="operator">|</span> oid       <span class="operator">|</span> 物理文件节点</span><br><span class="line"> reltablespace<span class="operator">|</span> oid       <span class="operator">|</span> 表空间OID</span><br><span class="line"> reldatabase  <span class="operator">|</span> oid       <span class="operator">|</span> 所属数据库OID</span><br><span class="line"> relforknumber<span class="operator">|</span> <span class="type">smallint</span>  <span class="operator">|</span> 数据文件类型(main, fsm, vm)</span><br><span class="line"> relblocknumber<span class="operator">|</span> <span class="type">bigint</span>   <span class="operator">|</span> 页号</span><br><span class="line"> isdirty      <span class="operator">|</span> <span class="type">boolean</span>   <span class="operator">|</span> 是否为脏页</span><br><span class="line"> usagecount   <span class="operator">|</span> <span class="type">smallint</span>  <span class="operator">|</span> 使用计数（Clock Sweep算法计数）</span><br><span class="line"> pinning_backends <span class="operator">|</span> <span class="type">integer</span> <span class="operator">|</span> 当前固定该页的进程数</span><br></pre></td></tr></table></figure></h2> 
       <!-- reward -->
       
     </div>
