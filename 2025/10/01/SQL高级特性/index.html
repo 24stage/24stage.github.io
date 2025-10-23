@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">5.2k</span>
+            <span class="post-count">4.4k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">19 min</span>
+            <span class="post-count">16 min</span>
         </span>
     </span>
 </div>
@@ -474,168 +474,6 @@
 <blockquote>
 <p><code>PostgreSQL</code> 采用 非阻塞式 <code>MVCC</code>，允许读写并发。当一行数据(元组)被更新或删除时，如果立即将该元组删除，其他仍在运行的事务可能仍需访问旧版本。因此，旧版本要等到没有任何活跃事务需要它后，才能被回收。</p>
 </blockquote>
-<hr>
-<h1 id="窗口函数"><a href="#窗口函数" class="headerlink" title="窗口函数"></a>窗口函数</h1><h3 id="基本语法"><a href="#基本语法" class="headerlink" title="基本语法"></a>基本语法</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator">&lt;</span>window_function<span class="operator">&gt;</span>(args) <span class="keyword">OVER</span> (</span><br><span class="line">    [<span class="keyword">PARTITION</span> <span class="keyword">BY</span> expr [, ...]]</span><br><span class="line">    [<span class="keyword">ORDER</span> <span class="keyword">BY</span> expr [<span class="keyword">ASC</span><span class="operator">|</span><span class="keyword">DESC</span>] [, ...]]</span><br><span class="line">    [frame_clause]</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-<ul>
-<li><code>PARTITION BY</code>：定义分区，即窗口划分（类似 GROUP BY，但不折叠行）。  </li>
-<li><code>ORDER BY</code>：定义窗口内行的逻辑顺序（影响排名、累积等）。  </li>
-<li><code>frame_clause</code>：定义窗口的行范围（例如前 2 行到当前行），常用的类型：<code>ROWS</code>, <code>RANGE</code>, <code>GROUPS</code>。</li>
-</ul>
-<h3 id="常见窗口函数与用途"><a href="#常见窗口函数与用途" class="headerlink" title="常见窗口函数与用途"></a>常见窗口函数与用途</h3><ul>
-<li><strong>排名类</strong>：<code>ROW_NUMBER()</code>, <code>RANK()</code>, <code>DENSE_RANK()</code>。  </li>
-<li><strong>偏移类</strong>：<code>LAG(expr, offset, default)</code>, <code>LEAD(expr, offset, default)</code>。  </li>
-<li><strong>窗口聚合</strong>：<code>SUM()</code>, <code>AVG()</code>, <code>COUNT()</code> 等可作为窗口函数使用。  </li>
-<li><strong>FIRST_VALUE &#x2F; LAST_VALUE</strong>：获取窗口内首&#x2F;末值。</li>
-</ul>
-<h3 id="FRAME-子句详解（关键）"><a href="#FRAME-子句详解（关键）" class="headerlink" title="FRAME 子句详解（关键）"></a>FRAME 子句详解（关键）</h3><ul>
-<li>语法（示例）：<code>ROWS BETWEEN 2 PRECEDING AND CURRENT ROW</code> 或 <code>RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code>。  </li>
-<li><strong>ROWS</strong>：基于物理行数，例如“前 2 行到当前行”。  </li>
-<li><strong>RANGE</strong>：基于值范围（对 ORDER BY 列的值相等或范围判断），在含有相同 ORDER BY 值时区别明显。  </li>
-<li><strong>默认行为</strong>：如果指定了 <code>ORDER BY</code> 但未指定 <code>frame_clause</code>，PostgreSQL 默认的窗口帧通常是 <code>RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code></li>
-</ul>
-<hr>
-<h2 id="窗口函数-与-GROUP-BY-的对比"><a href="#窗口函数-与-GROUP-BY-的对比" class="headerlink" title="窗口函数 与 GROUP BY 的对比"></a>窗口函数 与 GROUP BY 的对比</h2><h3 id="核心差别"><a href="#核心差别" class="headerlink" title="核心差别"></a>核心差别</h3><ul>
-<li><strong>行为</strong>：<code>GROUP BY</code> 会把多行“压缩”成每个分组一行；<code>OVER</code> 会<strong>保留所有原始行</strong>，并为每行附加窗口计算结果。  </li>
-<li><strong>用途</strong>：<code>GROUP BY</code> 用于生成分组级统计（报告&#x2F;汇总）；<code>OVER</code> 用于在明细行上做分析（排名、累加、分区统计等）。</li>
-<li><strong>在 SELECT 中的限制</strong>：使用 <code>GROUP BY</code> 时，SELECT 中出现的非聚合列必须出现在 GROUP BY 子句中；而 <code>OVER</code> 可以在SELECT中与普通列并存。</li>
-</ul>
-<h3 id="执行顺序相关"><a href="#执行顺序相关" class="headerlink" title="执行顺序相关"></a>执行顺序相关</h3><ul>
-<li>查询执行顺序（与 GROUP BY, HAVING, OVER 相关）通常是：<br><code>FROM -&gt; WHERE -&gt; GROUP BY -&gt; HAVING -&gt; SELECT (包括窗口函数计算) -&gt; ORDER BY -&gt; LIMIT</code>。  </li>
-<li>换句话说，窗口函数（OVER）在分组&#x2F;聚合之后计算，因此可以访问分组聚合的结果，但不能出现在 WHERE 或 GROUP BY 或 HAVING 子句中。</li>
-</ul>
-<h3 id="示例数据（employees）"><a href="#示例数据（employees）" class="headerlink" title="示例数据（employees）"></a>示例数据（employees）</h3><table>
-<thead>
-<tr>
-<th>name</th>
-<th>department</th>
-<th>salary</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Alice</td>
-<td>HR</td>
-<td>5000</td>
-</tr>
-<tr>
-<td>Bob</td>
-<td>HR</td>
-<td>6000</td>
-</tr>
-<tr>
-<td>Carol</td>
-<td>IT</td>
-<td>7000</td>
-</tr>
-<tr>
-<td>David</td>
-<td>IT</td>
-<td>8000</td>
-</tr>
-<tr>
-<td>Eve</td>
-<td>Sales</td>
-<td>4000</td>
-</tr>
-<tr>
-<td>Frank</td>
-<td>Sales</td>
-<td>4500</td>
-</tr>
-</tbody></table>
-<p><strong>示例 A — 使用 GROUP BY（部门级平均工资）</strong></p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> department, <span class="built_in">AVG</span>(salary) <span class="keyword">AS</span> dept_avg, <span class="built_in">COUNT</span>(<span class="operator">*</span>) <span class="keyword">AS</span> cnt</span><br><span class="line"><span class="keyword">FROM</span> employees</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> department</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> department;</span><br></pre></td></tr></table></figure>
-<p><strong>结果：</strong></p>
-<table>
-<thead>
-<tr>
-<th>department</th>
-<th>dept_avg</th>
-<th>cnt</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>HR</td>
-<td>5500</td>
-<td>2</td>
-</tr>
-<tr>
-<td>IT</td>
-<td>7500</td>
-<td>2</td>
-</tr>
-<tr>
-<td>Sales</td>
-<td>4250</td>
-<td>2</td>
-</tr>
-</tbody></table>
-<p><strong>说明</strong>：每个部门只有一行（分组级别）。</p>
-<p><strong>示例 B — 使用窗口函数（在每一行展示部门平均工资）</strong></p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> name, department, salary,</span><br><span class="line">       <span class="built_in">AVG</span>(salary) <span class="keyword">OVER</span> (<span class="keyword">PARTITION</span> <span class="keyword">BY</span> department) <span class="keyword">AS</span> dept_avg,</span><br><span class="line">       <span class="built_in">COUNT</span>(<span class="operator">*</span>) <span class="keyword">OVER</span> (<span class="keyword">PARTITION</span> <span class="keyword">BY</span> department) <span class="keyword">AS</span> dept_count</span><br><span class="line"><span class="keyword">FROM</span> employees</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> department, salary;</span><br></pre></td></tr></table></figure>
-<p><strong>结果：</strong></p>
-<table>
-<thead>
-<tr>
-<th>name</th>
-<th>department</th>
-<th>salary</th>
-<th>dept_avg</th>
-<th>dept_count</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Alice</td>
-<td>HR</td>
-<td>5000</td>
-<td>5500</td>
-<td>2</td>
-</tr>
-<tr>
-<td>Bob</td>
-<td>HR</td>
-<td>6000</td>
-<td>5500</td>
-<td>2</td>
-</tr>
-<tr>
-<td>Carol</td>
-<td>IT</td>
-<td>7000</td>
-<td>7500</td>
-<td>2</td>
-</tr>
-<tr>
-<td>David</td>
-<td>IT</td>
-<td>8000</td>
-<td>7500</td>
-<td>2</td>
-</tr>
-<tr>
-<td>Eve</td>
-<td>Sales</td>
-<td>4000</td>
-<td>4250</td>
-<td>2</td>
-</tr>
-<tr>
-<td>Frank</td>
-<td>Sales</td>
-<td>4500</td>
-<td>4250</td>
-<td>2</td>
-</tr>
-</tbody></table>
-<p><strong>说明</strong>：明细行保留，同时每行多出分组统计列。</p>
-<h3 id="什么时候用哪一个？"><a href="#什么时候用哪一个？" class="headerlink" title="什么时候用哪一个？"></a>什么时候用哪一个？</h3><ul>
-<li>只需要分组汇总（行折叠） → 使用 <code>GROUP BY</code>（更语义清晰，通常更高效）。  </li>
-<li>需要按明细行显示并且同时显示分组统计 → 使用 <code>OVER</code>（保留明细并做分析）。</li>
-</ul>
-<h3 id="性能提示"><a href="#性能提示" class="headerlink" title="性能提示"></a>性能提示</h3><ul>
-<li><code>GROUP BY</code> 常用 Hash Aggregate 或 Sort+Aggregate，可利用合适索引或并行聚合提升性能。  </li>
-<li>窗口函数通常需要对 <code>PARTITION BY</code>&#x2F;<code>ORDER BY</code> 列进行排序；对于大表，排序开销与内存（work_mem）有关。  </li>
-<li>如果想在窗口内做累积（running sum），可以考虑先按 partition&#x2F;order 排序再使用 <code>ROWS</code> 窗口框架来提高可预测性。</li>
-</ul>
 <hr>
 <h1 id="继承-INHERITS"><a href="#继承-INHERITS" class="headerlink" title="继承(INHERITS)"></a>继承(INHERITS)</h1><p>在 PostgreSQL 中，继承（table inheritance） 是一个比较独特的特性，它允许一个表继承另一个表的列定义和约束，有点类似于面向对象编程中的“类继承”。</p>
 <h3 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h3><ul>

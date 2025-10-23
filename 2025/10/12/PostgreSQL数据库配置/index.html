@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">3.1k</span>
+            <span class="post-count">4.3k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">11 min</span>
+            <span class="post-count">16 min</span>
         </span>
     </span>
 </div>
@@ -446,6 +446,245 @@
 <hr>
 <h1 id="系统目录（System-Catalog）"><a href="#系统目录（System-Catalog）" class="headerlink" title="系统目录（System Catalog）"></a>系统目录（System Catalog）</h1><p>系统目录（System Catalog） 就是数据库的“元数据库（Metadata Database）”。它存储了 <strong>数据库中所有对象的定义信息</strong>，包括：数据库、表、索引、视图、函数、类型、角色、权限等 。</p>
 <p><code>postgreSQL</code> 系统目录是一组表和视图，用于存储数据库对象的元数据，为数据库管理和查询提供关键信息。关键的系统目录表包括<code>pg_database</code>（数据库信息）、<code>pg_tables</code>（表的详细信息）、<code>pg_indexes</code>（索引信息）、<code>pg_class</code>（表、索引和序列的常规信息）、<code>pg_attribute</code>（每个表的列详细信息）以及<code>pg_roles</code>（用户和角色信息）。这些目录使数据库引擎和用户能够有效地管理模式、安全性和查询优化，从而确保高效的数据库操作和维护。</p>
+<hr>
+<h1 id="为每个用户-数据库配置"><a href="#为每个用户-数据库配置" class="headerlink" title="为每个用户&#x2F;数据库配置"></a>为每个用户&#x2F;数据库配置</h1><p>在 <code>PostgreSQL</code> 中，每个用户和每个数据库的设置允许管理员为特定用户或数据库自定义配置，从而增强性能和管理。这些设置使用<code> ALTER ROLE</code> 和<code>ALTER DATABASE</code>命令进行管理。<br>这些命令将设置存储在系统目录中，并在<strong>用户连接数据库或访问数据库时</strong>应用这些设置。常见的自定义参数包括 <code>search_path</code>、<code>work_mem</code> 和 <code>maintenance_work_mem</code>，允许根据特定需求对查询性能和资源使用情况进行精细控制。</p>
+<h2 id="配置的优先级"><a href="#配置的优先级" class="headerlink" title="配置的优先级"></a>配置的优先级</h2><p>在 PostgreSQL 中，大部分参数都可以通过以下三种层次进行设置（优先级从低到高），当多个层次同时定义同一参数时，后者 <strong>（更具体的层级）覆盖前者</strong>。例如，ALTER ROLE 中定义的参数会覆盖全局配置文件中的同名参数。</p>
+<table>
+<thead>
+<tr>
+<th align="center">优先级</th>
+<th align="left">设置层次</th>
+<th align="left">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">1️⃣</td>
+<td align="left"><code>postgresql.conf</code></td>
+<td align="left">全局配置，适用于整个实例</td>
+</tr>
+<tr>
+<td align="center">2️⃣</td>
+<td align="left"><code>ALTER DATABASE</code></td>
+<td align="left">针对特定数据库的配置</td>
+</tr>
+<tr>
+<td align="center">3️⃣</td>
+<td align="left"><code>ALTER ROLE</code></td>
+<td align="left">针对特定用户（角色）的配置</td>
+</tr>
+<tr>
+<td align="center">4️⃣</td>
+<td align="left"><code>SET</code> &#x2F; <code>SET LOCAL</code></td>
+<td align="left">针对当前会话或事务的临时设置</td>
+</tr>
+</tbody></table>
+<h2 id="为每个数据库配置-ALTER-DATABASE"><a href="#为每个数据库配置-ALTER-DATABASE" class="headerlink" title="为每个数据库配置(ALTER DATABASE)"></a>为每个数据库配置(ALTER DATABASE)</h2><p>通过 <code>ALTER DATABASE </code>命令，可以为某个数据库设置特定参数：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> DATABASE mydb <span class="keyword">SET</span> work_mem <span class="operator">=</span> <span class="string">&#x27;64MB&#x27;</span>;</span><br><span class="line"><span class="keyword">ALTER</span> DATABASE mydb <span class="keyword">SET</span> search_path <span class="operator">=</span> <span class="string">&#x27;myschema, public&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p>当客户端连接该数据库时，这些参数自动生效。这些参数会被记录在系统目录 <code>pg_db_role_setting</code> 中（字段 setdatabase 指向该数据库的 OID）。 </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> </span><br><span class="line"><span class="keyword">FROM</span> pg_db_role_setting </span><br><span class="line"><span class="keyword">WHERE</span> setdatabase <span class="operator">=</span> (<span class="keyword">SELECT</span> oid <span class="keyword">FROM</span> pg_database <span class="keyword">WHERE</span> datname <span class="operator">=</span> <span class="string">&#x27;mydb&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<h2 id="每个角色的设置-ALTER-ROLE"><a href="#每个角色的设置-ALTER-ROLE" class="headerlink" title="每个角色的设置(ALTER ROLE)"></a>每个角色的设置(ALTER ROLE)</h2><p>同理，可以使用 <code>ALTER ROLE</code> 为某个用户定义参数：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> ROLE alice <span class="keyword">SET</span> work_mem <span class="operator">=</span> <span class="string">&#x27;32MB&#x27;</span>;</span><br><span class="line"><span class="keyword">ALTER</span> ROLE bob <span class="keyword">SET</span> maintenance_work_mem <span class="operator">=</span> <span class="string">&#x27;512MB&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这些设置同样保存在 pg_db_role_setting 表中（字段 setrole 指向角色 OID）。用户登录时，这些设置会自动加载。<br>你也可以同时为某个用户和数据库定义参数（<strong>双重限定设置</strong>）：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">## 当用户 alice 连接数据库 mydb 时，将自动禁用顺序扫描。</span><br><span class="line"><span class="keyword">ALTER</span> ROLE alice <span class="keyword">IN</span> DATABASE mydb <span class="keyword">SET</span> enable_seqscan <span class="operator">=</span> off;</span><br></pre></td></tr></table></figure>
+
+<h2 id="常见参数"><a href="#常见参数" class="headerlink" title="常见参数"></a>常见参数</h2><table>
+<thead>
+<tr>
+<th align="left">参数</th>
+<th align="left">说明</th>
+<th align="left">建议设置场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>search_path</code></td>
+<td align="left">默认 schema 搜索路径</td>
+<td align="left">每个项目独立 schema</td>
+</tr>
+<tr>
+<td align="left"><code>work_mem</code></td>
+<td align="left">单个查询操作可用内存</td>
+<td align="left">查询较大的排序或 join</td>
+</tr>
+<tr>
+<td align="left"><code>maintenance_work_mem</code></td>
+<td align="left">VACUUM、CREATE INDEX 时可用内存</td>
+<td align="left">维护操作频繁的库</td>
+</tr>
+<tr>
+<td align="left"><code>log_statement</code></td>
+<td align="left">控制 SQL 日志记录级别</td>
+<td align="left">调试或审计</td>
+</tr>
+<tr>
+<td align="left"><code>statement_timeout</code></td>
+<td align="left">查询超时时间</td>
+<td align="left">限制低效长查询</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="存储参数"><a href="#存储参数" class="headerlink" title="存储参数"></a>存储参数</h1><p>存储参数是 PostgreSQL 提供的一组表级或索引级的可调节配置项。它们定义了数据库对象（表、索引、物化视图等）的<strong>存储策略</strong>，如：</p>
+<ul>
+<li><p>自动清理行为 (autovacuum_*)</p>
+</li>
+<li><p>TOAST 压缩与存储策略 (toast.*)</p>
+</li>
+<li><p>I&#x2F;O 缓冲策略 (fillfactor, buffering)</p>
+</li>
+<li><p>索引维护参数 (fastupdate, deduplicate_items)</p>
+</li>
+<li><p>表分区或数据压缩策略等</p>
+</li>
+</ul>
+<p>这些参数不会影响逻辑结构（如列或约束），<strong>而是影响底层物理存储和性能</strong>。</p>
+<h2 id="设置方式"><a href="#设置方式" class="headerlink" title="设置方式"></a>设置方式</h2><p>可以在创建或修改表&#x2F;索引时设置存储参数：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 创建表时设置</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> orders (</span><br><span class="line">    id serial <span class="keyword">PRIMARY</span> KEY,</span><br><span class="line">    details text</span><br><span class="line">) <span class="keyword">WITH</span> (fillfactor <span class="operator">=</span> <span class="number">80</span>, autovacuum_vacuum_scale_factor <span class="operator">=</span> <span class="number">0.1</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 修改已存在的表</span></span><br><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> orders <span class="keyword">SET</span> (autovacuum_enabled <span class="operator">=</span> <span class="literal">true</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 设置索引参数</span></span><br><span class="line"><span class="keyword">CREATE</span> INDEX idx_orders_date <span class="keyword">ON</span> orders(order_date) <span class="keyword">WITH</span> (fillfactor <span class="operator">=</span> <span class="number">70</span>);</span><br><span class="line"><span class="keyword">ALTER</span> INDEX idx_orders_date <span class="keyword">SET</span> (fastupdate <span class="operator">=</span> off);</span><br></pre></td></tr></table></figure>
+
+<h2 id="常见存储参数及作用分类"><a href="#常见存储参数及作用分类" class="headerlink" title="常见存储参数及作用分类"></a>常见存储参数及作用分类</h2><p><strong>1. 填充与空间利用</strong></p>
+<table>
+<thead>
+<tr>
+<th align="left">参数</th>
+<th align="left">作用</th>
+<th align="left">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>fillfactor</code></td>
+<td align="left">页填充比例</td>
+<td align="left">控制每个表页或索引页填充的百分比（默认 100%）。留出空间可减少更新引发的页分裂。</td>
+</tr>
+<tr>
+<td align="left"><code>parallel_workers</code></td>
+<td align="left">并行工作者数</td>
+<td align="left">指定在并行扫描或操作中可用的工作线程数。</td>
+</tr>
+</tbody></table>
+<p><strong>2. 自动清理（Autovacuum）控制类</strong></p>
+<table>
+<thead>
+<tr>
+<th align="left">参数</th>
+<th align="left">含义</th>
+<th align="left">默认值</th>
+<th align="left">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>autovacuum_enabled</code></td>
+<td align="left">是否启用自动清理</td>
+<td align="left"><code>true</code></td>
+<td align="left">控制是否对该表启用 autovacuum</td>
+</tr>
+<tr>
+<td align="left"><code>autovacuum_vacuum_threshold</code></td>
+<td align="left">触发清理的最小更新&#x2F;删除行数</td>
+<td align="left">50</td>
+<td align="left">当更新&#x2F;删除数超过阈值时触发</td>
+</tr>
+<tr>
+<td align="left"><code>autovacuum_vacuum_scale_factor</code></td>
+<td align="left">清理触发比例</td>
+<td align="left">0.2</td>
+<td align="left">与阈值共同决定何时触发</td>
+</tr>
+<tr>
+<td align="left"><code>autovacuum_analyze_threshold</code></td>
+<td align="left">触发 ANALYZE 的最小行变化数</td>
+<td align="left">50</td>
+<td align="left">用于更新统计信息</td>
+</tr>
+<tr>
+<td align="left"><code>autovacuum_analyze_scale_factor</code></td>
+<td align="left">ANALYZE 触发比例</td>
+<td align="left">0.1</td>
+<td align="left">同上</td>
+</tr>
+<tr>
+<td align="left"><code>autovacuum_freeze_min_age</code></td>
+<td align="left">冻结行龄阈值</td>
+<td align="left">50M</td>
+<td align="left">防止 XID 溢出</td>
+</tr>
+</tbody></table>
+<ol start="3">
+<li>TOAST 存储与压缩类<br>TOAST用于存储超大字段。（text &#x2F; bytea &#x2F; jsonb等）</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th align="left">参数</th>
+<th align="left">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>toast_tuple_target</code></td>
+<td align="left">TOAST 行大小目标（默认 2KB）</td>
+</tr>
+<tr>
+<td align="left"><code>toast.autovacuum_enabled</code></td>
+<td align="left">是否为 TOAST 表启用 autovacuum</td>
+</tr>
+<tr>
+<td align="left"><code>toast.autovacuum_vacuum_scale_factor</code></td>
+<td align="left">TOAST 表清理比例</td>
+</tr>
+<tr>
+<td align="left"><code>toast.autovacuum_vacuum_threshold</code></td>
+<td align="left">TOAST 表清理阈值</td>
+</tr>
+</tbody></table>
+<ol start="4">
+<li>索引类参数</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th align="left">参数</th>
+<th align="left">作用</th>
+<th align="left">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>fastupdate</code></td>
+<td align="left">GiST&#x2F;Gin 索引是否使用缓冲区</td>
+<td align="left"><code>true</code> 时可加速插入，但稍后需要合并。</td>
+</tr>
+<tr>
+<td align="left"><code>deduplicate_items</code></td>
+<td align="left">B-Tree 索引是否去重重复项</td>
+<td align="left">默认 <code>on</code>，节省空间。</td>
+</tr>
+<tr>
+<td align="left"><code>buffering</code></td>
+<td align="left">控制 GiST 索引构建时是否使用缓冲构建</td>
+<td align="left">提升大索引创建性能。</td>
+</tr>
+</tbody></table>
+<ol start="5">
+<li>分区、存储表空间相关参数</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th align="left">参数</th>
+<th align="left">作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>tablespace</code></td>
+<td align="left">指定表或索引的物理存储位置</td>
+</tr>
+<tr>
+<td align="left"><code>parallel_workers</code></td>
+<td align="left">为表扫描指定并行线程</td>
+</tr>
+<tr>
+<td align="left"><code>user_catalog_table</code></td>
+<td align="left">声明此表为系统目录表（供扩展使用）</td>
+</tr>
+</tbody></table>
  
       <!-- reward -->
       
