@@ -13,7 +13,7 @@
         name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1"
       />
-      <title>Android测试依赖项 |  24stage</title>
+      <title>慢查询 |  24stage</title>
   <meta name="generator" content="hexo-theme-ayer">
       
       <link rel="shortcut icon" href="/smile.ico" />
@@ -55,7 +55,7 @@
     <main class="content on">
       <section class="outer">
   <article
-  id="post-Android测试依赖项"
+  id="post-慢查询"
   class="article article-type-post"
   itemscope
   itemprop="blogPost"
@@ -66,7 +66,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  Android测试依赖项
+  慢查询
 </h1>
  
 
@@ -74,15 +74,15 @@
     </header>
      
     <div class="article-meta">
-      <a href="/2025/06/15/Android%E6%B5%8B%E8%AF%95%E4%BE%9D%E8%B5%96%E9%A1%B9/" class="article-date">
-  <time datetime="2025-06-15T01:04:25.000Z" itemprop="datePublished">2025-06-15</time>
+      <a href="/2025/10/24/%E6%85%A2%E6%9F%A5%E8%AF%A2/" class="article-date">
+  <time datetime="2025-10-24T01:09:31.000Z" itemprop="datePublished">2025-10-24</time>
 </a>   
 <div class="word_count">
     <span class="post-time">
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">465</span>
+            <span class="post-count">654</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">1 min</span>
+            <span class="post-count">2 min</span>
         </span>
     </span>
 </div>
@@ -106,21 +106,122 @@
   
     <div class="article-entry" itemprop="articleBody">
        
-  <h1 id="添加-androidTest-依赖项"><a href="#添加-androidTest-依赖项" class="headerlink" title="添加 androidTest 依赖项"></a>添加 androidTest 依赖项</h1><p>使用 Gradle 构建工具为特定模块添加依赖项。此功能可防止对依赖项进行不必要的编译。在项目中添加依赖项时，您已经熟悉了 implementation 配置。您已经使用此关键字在应用模块的 build.gradle.kts 文件中导入依赖项。使用 implementation 关键字可将该依赖项提供给该模块中的所有源代码集使用；在本课程的这一阶段，您已经具备处理 main、test 和 androidTest 源代码集的经验。</p>
-<p>界面测试位于各自的源代码集中，名称为 androidTest。一些依赖项仅需要用于此模块，对于这种情况，不需要为其他模块（例如包含应用代码的 main 模块）编译这些依赖项。在添加仅供界面测试使用的依赖项时，请使用 androidTestImplementation 关键字在应用模块的 build.gradle.kts 文件中声明依赖项。这样做可确保仅在您运行界面测试时才会编译界面测试依赖项。</p>
-<h3 id="添加编写界面测试所需的依赖项"><a href="#添加编写界面测试所需的依赖项" class="headerlink" title="添加编写界面测试所需的依赖项"></a>添加编写界面测试所需的依赖项</h3><ol>
-<li>打开 build.gradle.kts(Module :app) 文件。</li>
-<li>将以下依赖项添加到该文件的 dependencies 部分：<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">androidTestImplementation(platform(<span class="string">&quot;androidx.compose:compose-bom:2023.05.01&quot;</span>))</span><br><span class="line">androidTestImplementation(<span class="string">&quot;androidx.compose.ui:ui-test-junit4&quot;</span>)</span><br><span class="line">androidTestImplementation(<span class="string">&quot;androidx.navigation:navigation-testing:2.6.0&quot;</span>)</span><br><span class="line">androidTestImplementation(<span class="string">&quot;androidx.test.espresso:espresso-intents:3.5.1&quot;</span>)</span><br><span class="line">androidTestImplementation(<span class="string">&quot;androidx.test.ext:junit:1.1.5&quot;</span>)</span><br></pre></td></tr></table></figure></li>
-</ol>
-<h1 id="创建界面测试目录"><a href="#创建界面测试目录" class="headerlink" title="创建界面测试目录"></a>创建界面测试目录</h1><ol>
-<li>右键点击项目视图中的 src 目录，然后依次选择 New &gt; Directory。</li>
-<li>选择 androidTest&#x2F;java 选项。</li>
-</ol>
-<h1 id="创建测试软件包"><a href="#创建测试软件包" class="headerlink" title="创建测试软件包"></a>创建测试软件包</h1><ol>
-<li>右键点击项目窗口中的 androidTest&#x2F;java 目录，然后依次选择 New &gt; Package。</li>
-<li>将软件包命名为 com.example.yourProjectName.test</li>
-<li>创建导航测试类<br>(测试包和文件名称与项目文件名称一致)</li>
-</ol>
+  <h1 id="慢查询"><a href="#慢查询" class="headerlink" title="慢查询"></a>慢查询</h1><p>慢查询指的是：<strong>执行时间超过预期或阈值的 SQL 语句</strong>，通常意味着索引缺失、执行计划错误、I&#x2F;O 过高、锁等待等问题。</p>
+<p>比如，你设定阈值为 1 秒：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">log_min_duration_statement <span class="operator">=</span> <span class="number">1000</span>   # 超过<span class="number">1000</span>毫秒的<span class="keyword">SQL</span>会记录日志</span><br></pre></td></tr></table></figure>
+<p>如果有 SQL 花了 2.5 秒执行，PostgreSQL 就会在日志中自动记录：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">duration: <span class="number">2500.321</span> ms  statement: <span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> orders <span class="keyword">WHERE</span> user_id <span class="operator">=</span> <span class="number">10000</span>;</span><br></pre></td></tr></table></figure>
+<p>这类 SQL 就属于 “慢查询”。</p>
+<h2 id="常见原因"><a href="#常见原因" class="headerlink" title="常见原因"></a>常见原因</h2><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>常见原因</th>
+<th>举例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>索引问题</strong></td>
+<td>没有合适索引、索引未被使用</td>
+<td><code>WHERE col LIKE &#39;%abc&#39;</code> 无法用索引</td>
+</tr>
+<tr>
+<td><strong>执行计划不合理</strong></td>
+<td>统计信息过期导致选择了错误的 JOIN&#x2F;SCAN 方式</td>
+<td>该用 index scan 却用了 seq scan</td>
+</tr>
+<tr>
+<td><strong>数据量膨胀</strong></td>
+<td>表&#x2F;索引太大，I&#x2F;O 过重</td>
+<td>表有上千万行</td>
+</tr>
+<tr>
+<td><strong>锁等待</strong></td>
+<td>SQL 在等其他事务释放锁</td>
+<td>update&#x2F;delete 被阻塞</td>
+</tr>
+<tr>
+<td><strong>配置不当</strong></td>
+<td>work_mem, shared_buffers 太小</td>
+<td>排序&#x2F;哈希落盘</td>
+</tr>
+<tr>
+<td><strong>网络与并发</strong></td>
+<td>客户端等待时间长</td>
+<td>连接池未优化</td>
+</tr>
+</tbody></table>
+<h2 id="慢查询的检测"><a href="#慢查询的检测" class="headerlink" title="慢查询的检测"></a>慢查询的检测</h2><p>PostgreSQL 提供三种主要手段：</p>
+<h3 id="日常检测"><a href="#日常检测" class="headerlink" title="日常检测"></a>日常检测</h3><p>在 <code>postgresql.conf</code> 中开启：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">logging_collector <span class="operator">=</span> <span class="keyword">on</span></span><br><span class="line">log_min_duration_statement <span class="operator">=</span> <span class="number">500</span>   # 超过<span class="number">0.5</span>秒的<span class="keyword">SQL</span>记录下来</span><br><span class="line">log_line_prefix <span class="operator">=</span> <span class="string">&#x27;%t [%p]: user=%u,db=%d &#x27;</span></span><br></pre></td></tr></table></figure>
+<p>查看日志：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">duration: <span class="number">1200.45</span> ms  statement: <span class="keyword">SELECT</span> ...;</span><br></pre></td></tr></table></figure>
+
+<h3 id="实时统计：pg-stat-statements"><a href="#实时统计：pg-stat-statements" class="headerlink" title="实时统计：pg_stat_statements"></a>实时统计：pg_stat_statements</h3><p>启用扩展：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> EXTENSION pg_stat_statements;</span><br></pre></td></tr></table></figure>
+<p>查看最慢的 SQL：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> query, calls, total_exec_time, mean_exec_time</span><br><span class="line"><span class="keyword">FROM</span> pg_stat_statements</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> mean_exec_time <span class="keyword">DESC</span></span><br><span class="line">LIMIT <span class="number">5</span>;</span><br></pre></td></tr></table></figure>
+<p>这能看到：执行最慢的 SQL、被执行次数、平均耗时、总耗时占比。</p>
+<h3 id="EXPLAIN-EXPLAIN-ANALYZE"><a href="#EXPLAIN-EXPLAIN-ANALYZE" class="headerlink" title="EXPLAIN &#x2F; EXPLAIN ANALYZE"></a>EXPLAIN &#x2F; EXPLAIN ANALYZE</h3><p>分析单条 SQL 的执行计划：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">EXPLAIN (ANALYZE, BUFFERS)</span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> orders <span class="keyword">WHERE</span> user_id <span class="operator">=</span> <span class="number">12345</span>;</span><br></pre></td></tr></table></figure>
+<p>输出示例：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Index Scan <span class="keyword">using</span> idx_orders_user <span class="keyword">on</span> orders  (cost<span class="operator">=</span><span class="number">0.42</span>.<span class="number">.8</span><span class="number">.44</span> <span class="keyword">rows</span><span class="operator">=</span><span class="number">1</span> width<span class="operator">=</span><span class="number">48</span>)</span><br><span class="line">(actual <span class="type">time</span><span class="operator">=</span><span class="number">0.031</span>.<span class="number">.0</span><span class="number">.033</span> <span class="keyword">rows</span><span class="operator">=</span><span class="number">1</span> loops<span class="operator">=</span><span class="number">1</span>)</span><br><span class="line">Buffers: shared hit<span class="operator">=</span><span class="number">3</span></span><br></pre></td></tr></table></figure>
+
+<p>含义：</p>
+<ul>
+<li><p>Index Scan：使用了索引</p>
+</li>
+<li><p>cost：估算开销</p>
+</li>
+<li><p>actual time：实际耗时</p>
+</li>
+<li><p>rows：返回行数</p>
+</li>
+</ul>
+<p>如果实际时间比预估高很多，说明执行计划有问题。</p>
+<h2 id="慢查询的优化"><a href="#慢查询的优化" class="headerlink" title="慢查询的优化"></a>慢查询的优化</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>️⃣ 开启 log_min_duration_statement</span><br><span class="line"><span class="number">2</span>️⃣ 日志中定位最慢 <span class="keyword">SQL</span></span><br><span class="line"><span class="number">3</span>️⃣ 用 EXPLAIN ANALYZE 查看执行计划</span><br><span class="line"><span class="number">4</span>️⃣ 检查是否使用索引、连接顺序、过滤条件</span><br><span class="line"><span class="number">5</span>️⃣ 根据结果调整 <span class="keyword">SQL</span> <span class="operator">/</span> 索引 <span class="operator">/</span> 配置</span><br><span class="line"><span class="number">6</span>️⃣ 重新验证性能</span><br></pre></td></tr></table></figure>
+
+<p>常见优化思路：</p>
+<table>
+<thead>
+<tr>
+<th>问题类型</th>
+<th>优化方向</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>没有用索引</strong></td>
+<td>建立合适索引（B-Tree、GIN、HASH）</td>
+</tr>
+<tr>
+<td><strong>全表扫描</strong></td>
+<td>改写 SQL 逻辑或增加索引</td>
+</tr>
+<tr>
+<td><strong>JOIN 很慢</strong></td>
+<td>优化连接条件或拆分查询</td>
+</tr>
+<tr>
+<td><strong>排序&#x2F;聚合慢</strong></td>
+<td>增大 <code>work_mem</code> 或使用物化表</td>
+</tr>
+<tr>
+<td><strong>频繁执行相同SQL</strong></td>
+<td>开启 <code>prepare statement</code></td>
+</tr>
+<tr>
+<td><strong>统计信息不准</strong></td>
+<td>手动执行 <code>ANALYZE</code></td>
+</tr>
+<tr>
+<td><strong>锁等待</strong></td>
+<td>优化事务逻辑、减少长事务</td>
+</tr>
+<tr>
+<td><strong>频繁I&#x2F;O</strong></td>
+<td>调整 <code>shared_buffers</code>, <code>effective_cache_size</code></td>
+</tr>
+</tbody></table>
  
       <!-- reward -->
       
@@ -131,7 +232,7 @@
     
     <footer class="article-footer">
        
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Android/" rel="tag">Android</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0/" rel="tag">学习</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%B5%8B%E8%AF%95/" rel="tag">测试</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DBA/" rel="tag">DBA</a></li></ul>
 
     </footer>
   </div>
@@ -139,19 +240,10 @@
    
   <nav class="article-nav">
     
-      <a href="/2025/08/08/%E5%AE%89%E5%8D%93Room/" class="article-nav-link">
-        <strong class="article-nav-caption">上一篇</strong>
-        <div class="article-nav-title">
-          
-            安卓Room
-          
-        </div>
-      </a>
     
-    
-      <a href="/2025/06/10/AndroidStuidoDebug/" class="article-nav-link">
+      <a href="/2025/10/23/PL%E4%BB%A5%E5%8F%8A%E5%87%BD%E6%95%B0%E5%92%8C%E8%A7%A6%E5%8F%91%E5%99%A8/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">AndroidStuidoDebug</div>
+        <div class="article-nav-title">PL以及函数和触发器</div>
       </a>
     
   </nav>
