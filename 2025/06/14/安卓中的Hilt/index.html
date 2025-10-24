@@ -13,7 +13,7 @@
         name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1"
       />
-      <title>Android常见数据存储方式分类 |  24stage</title>
+      <title>安卓中的Hilt |  24stage</title>
   <meta name="generator" content="hexo-theme-ayer">
       
       <link rel="shortcut icon" href="/smile.ico" />
@@ -55,7 +55,7 @@
     <main class="content on">
       <section class="outer">
   <article
-  id="post-Android常见数据存储方式分类"
+  id="post-安卓中的Hilt"
   class="article article-type-post"
   itemscope
   itemprop="blogPost"
@@ -66,7 +66,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  Android常见数据存储方式分类
+  安卓中的Hilt
 </h1>
  
 
@@ -74,15 +74,15 @@
     </header>
      
     <div class="article-meta">
-      <a href="/2025/08/16/Android%E5%B8%B8%E8%A7%81%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%96%B9%E5%BC%8F%E5%88%86%E7%B1%BB/" class="article-date">
-  <time datetime="2025-08-16T09:54:17.000Z" itemprop="datePublished">2025-08-16</time>
+      <a href="/2025/06/14/%E5%AE%89%E5%8D%93%E4%B8%AD%E7%9A%84Hilt/" class="article-date">
+  <time datetime="2025-06-14T02:51:37.000Z" itemprop="datePublished">2025-06-14</time>
 </a>   
 <div class="word_count">
     <span class="post-time">
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">970</span>
+            <span class="post-count">759</span>
         </span>
     </span>
 
@@ -106,142 +106,80 @@
   
     <div class="article-entry" itemprop="articleBody">
        
-  <h1 id="Android-常见数据存储方式对比"><a href="#Android-常见数据存储方式对比" class="headerlink" title="Android 常见数据存储方式对比"></a>Android 常见数据存储方式对比</h1><p>在 Android 开发中，数据存储方式多种多样，不同的方案适合不同的场景。常见的有 <strong>SharedPreferences、Preferences DataStore、Proto DataStore 和 Room</strong>。本文将对它们进行分类与对比。</p>
+  <h1 id="Hilt-依赖注入详解"><a href="#Hilt-依赖注入详解" class="headerlink" title="Hilt 依赖注入详解"></a>Hilt 依赖注入详解</h1><h2 id="什么是依赖注入？"><a href="#什么是依赖注入？" class="headerlink" title="什么是依赖注入？"></a>什么是依赖注入？</h2><p>依赖注入（Dependency Injection, DI）是一种设计模式，它的核心思想是：<strong>一个类所依赖的对象，不由自己创建，而是由外部提供</strong>。<br>这样做可以降低耦合度、方便测试和扩展。</p>
 <hr>
-<h2 id="1-轻量级存储"><a href="#1-轻量级存储" class="headerlink" title="1. 轻量级存储"></a>1. 轻量级存储</h2><p>SQL 和 Room 是功能强大的工具。但是，在不需要存储关系型数据的情况下，DataStore 可以提供一种简单的解决方案。Jetpack 中的 DataStore 组件非常适合存储简单的小型数据集，且开销较低。</p>
-<h3 id="SharedPreferences"><a href="#SharedPreferences" class="headerlink" title="SharedPreferences"></a>SharedPreferences</h3><ul>
-<li><strong>定位</strong>：最传统的轻量级存储方式  </li>
-<li><strong>数据结构</strong>：Key-Value  </li>
-<li><strong>存储位置</strong>：XML 文件（<code>data/data/&lt;package&gt;/shared_prefs/</code>）  </li>
-<li><strong>优点</strong>：简单、易用  </li>
-<li><strong>缺点</strong>：  <ul>
-<li>同步 API，可能阻塞主线程  </li>
-<li>多线程写入可能导致数据不一致</li>
-</ul>
-</li>
-<li><strong>适用场景</strong>：保存布尔开关、用户设置等少量数据</li>
-</ul>
+<h2 id="手动依赖注入"><a href="#手动依赖注入" class="headerlink" title="手动依赖注入"></a>手动依赖注入</h2><p>比如我们有一个 <code>UserRepository</code>，需要 <code>ApiService</code>：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ApiService</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">fetchData</span><span class="params">()</span></span> = <span class="string">&quot;Data from API&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">UserRepository</span>(<span class="keyword">private</span> <span class="keyword">val</span> apiService: ApiService) &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">getUserData</span><span class="params">()</span></span> = apiService.fetchData()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果我们要在 <code>ViewModel</code> 使用它：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">MyViewModel</span>(<span class="keyword">private</span> <span class="keyword">val</span> userRepository: UserRepository) : ViewModel() &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">loadData</span><span class="params">()</span></span> = userRepository.getUserData()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后在 <code>Activity</code> 中：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> apiService = ApiService()</span><br><span class="line"><span class="keyword">val</span> userRepository = UserRepository(apiService)</span><br><span class="line"><span class="keyword">val</span> viewModel = MyViewModel(userRepository)</span><br></pre></td></tr></table></figure>
+
+<p>这里就是手动依赖注入。</p>
+<p><strong>缺点：</strong></p>
+<ol>
+<li>依赖链复杂时要手动一层一层传入。</li>
+<li>生命周期管理麻烦（比如 Retrofit 想要全局单例）。</li>
+<li>测试替换实现麻烦。</li>
+<li>随着项目变大，Activity&#x2F;Fragment 的构造越来越复杂。</li>
+</ol>
 <hr>
-<h3 id="🔹Preferences-DataStore"><a href="#🔹Preferences-DataStore" class="headerlink" title="🔹Preferences DataStore"></a>🔹Preferences DataStore</h3><p><code>Preferences DataStore</code> 存储键值对。这些值可以是 <code>Kotlin</code> 的基本数据类型，例如 String、Boolean 和 Integer。它不存储复杂的数据集，也不需要预定义的架构。<code>Preferences Datastore</code> 的主要应用场景是在用户的设备上存储其偏好设置。</p>
+<h2 id="Hilt-的出现"><a href="#Hilt-的出现" class="headerlink" title="Hilt 的出现"></a>Hilt 的出现</h2><p>Hilt 是 <strong>Google 官方推荐的依赖注入框架</strong>，基于 Dagger。它解决了：</p>
 <ul>
-<li><strong>定位</strong>：Google 推荐的 SharedPreferences 替代方案  </li>
-<li><strong>数据结构</strong>：Key-Value  </li>
-<li><strong>基于</strong>：Kotlin 协程 + Flow  </li>
-<li><strong>存储位置</strong>：<code>preferences_pb</code> 文件（protobuf 格式）  </li>
-<li><strong>优点</strong>：  <ul>
-<li>异步、线程安全  </li>
-<li>数据一致性强  </li>
-<li>支持 <code>Flow</code> 实时监听数据变化</li>
+<li>自动创建依赖对象。</li>
+<li>自动管理作用域（如单例，全局作用域，ViewModel 生命周期等）。</li>
+<li>自动注入对象到需要的地方。</li>
+<li>支持测试时快速替换依赖。</li>
 </ul>
-</li>
-<li><strong>适用场景</strong>：用户配置、轻量级设置参数</li>
-</ul>
-<p>示例：</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">UserPreferenceRepository</span>(</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> dataStore: DataStore&lt;Preferences&gt;</span><br><span class="line">) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">companion</span> <span class="keyword">object</span>&#123;</span><br><span class="line">        <span class="keyword">val</span> IS_LINEAR_LAYOUT = booleanPreferencesKey(<span class="string">&quot;is_linear_layout&quot;</span>)</span><br><span class="line">        <span class="keyword">const</span> <span class="keyword">val</span> TAG = <span class="string">&quot;UserPreferencesRepo&quot;</span>   <span class="comment">//用于日志记录</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">saveLayoutPreference</span><span class="params">(isLinearLayout: <span class="type">Boolean</span>)</span></span> &#123;</span><br><span class="line"><span class="comment">//      在edit()方法中设置键值对，将isLinearLayout写入dataStore</span></span><br><span class="line">        dataStore.edit &#123; preferences -&gt;     <span class="comment">//preferences 是一个 MutablePreferences 对象</span></span><br><span class="line">            preferences[IS_LINEAR_LAYOUT] = isLinearLayout  <span class="comment">//这里的 [] 其实是 Kotlin 的运算符重载，对应 get 和 set 运算符函数。</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//  从 DataStore 中读取, 但data 属性是Flow&lt;Preference&gt;, 使用.map转换成Flow&lt;Boolean&gt;,并且在没存值时默认用 true。</span></span><br><span class="line">    <span class="keyword">val</span> isLinearLayout: Flow&lt;<span class="built_in">Boolean</span>&gt; = dataStore.<span class="keyword">data</span></span><br><span class="line">        .<span class="keyword">catch</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (it <span class="keyword">is</span> IOException) &#123;</span><br><span class="line">                Log.e(TAG, <span class="string">&quot;Error reading preferences.&quot;</span>, it)</span><br><span class="line">                emit(emptyPreferences())</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">throw</span> it</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        .map &#123; preferences -&gt;</span><br><span class="line">            preferences[IS_LINEAR_LAYOUT] ?: <span class="literal">true</span></span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>一句话总结：</strong><br>你只需要声明依赖关系，Hilt 会帮你完成对象的创建和传递。</p>
+<hr>
+<h2 id="Inject-constructor"><a href="#Inject-constructor" class="headerlink" title="@Inject constructor"></a><code>@Inject constructor</code></h2><p>当你在类的构造函数前写上 <code>@Inject</code>：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ApiService</span> <span class="meta">@Inject</span> <span class="keyword">constructor</span>(</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> retrofit: Retrofit</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>它的意思是：</p>
+<ol>
+<li>告诉 Hilt：这个类可以自动构建。</li>
+<li>它需要的依赖（<code>Retrofit</code>）请 Hilt 提供。</li>
+</ol>
+<hr>
+<h2 id="Hilt-如何知道传什么？"><a href="#Hilt-如何知道传什么？" class="headerlink" title="Hilt 如何知道传什么？"></a>Hilt 如何知道传什么？</h2><p><code>Retrofit</code> 并不是我们自己写的类，所以 Hilt 不会自动知道怎么创建它。<br>这时我们需要用 <strong><code>@Provides</code></strong> 来告诉 Hilt：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Module</span></span><br><span class="line"><span class="meta">@InstallIn(SingletonComponent::class)</span></span><br><span class="line"><span class="keyword">object</span> NetworkModule &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Provides</span></span><br><span class="line">    <span class="meta">@Singleton</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">provideRetrofit</span><span class="params">()</span></span>: Retrofit &#123;</span><br><span class="line">        <span class="keyword">return</span> Retrofit.Builder()</span><br><span class="line">            .baseUrl(<span class="string">&quot;https://api.example.com&quot;</span>)</span><br><span class="line">            .build()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样，Hilt 在创建 <code>ApiService</code> 时：</p>
+<ol>
+<li>看到 <code>@Inject constructor</code>。</li>
+<li>发现它需要 <code>Retrofit</code>。</li>
+<li>找到 <code>provideRetrofit()</code> 提供的 <code>Retrofit</code>。</li>
+<li>自动注入并创建 <code>ApiService</code>。</li>
+</ol>
+<hr>
+<h2 id="在-ViewModel-中使用"><a href="#在-ViewModel-中使用" class="headerlink" title="在 ViewModel 中使用"></a>在 ViewModel 中使用</h2><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@HiltViewModel</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MyViewModel</span> <span class="meta">@Inject</span> <span class="keyword">constructor</span>(</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> apiService: ApiService</span><br><span class="line">) : ViewModel() &#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">loadData</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="comment">// apiService 已经由 Hilt 自动注入</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在 <code>Activity</code> 中：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@AndroidEntryPoint</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MainActivity</span> : <span class="type">AppCompatActivity</span>() &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> viewModel: MyViewModel <span class="keyword">by</span> viewModels()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这时 <code>viewModel</code> 自动拥有完整依赖链：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Retrofit -&gt; ApiService -&gt; ViewModel -&gt; Activity</span><br></pre></td></tr></table></figure>
 
 <hr>
-<h3 id="Proto-DataStore"><a href="#Proto-DataStore" class="headerlink" title="Proto DataStore"></a>Proto DataStore</h3><p><code>Proto DataStore</code> 存储自定义数据的类型。它需要一个预定义的架构，用于将 <code>proto</code> 定义映射到对象结构。</p>
-<ul>
-<li><strong>定位</strong>：比 Preferences DataStore 更灵活的存储方式  </li>
-<li><strong>数据结构</strong>：自定义对象（通过 <code>.proto</code> 定义）  </li>
-<li><strong>存储位置</strong>：二进制 Protobuf 文件  </li>
-<li><strong>优点</strong>：  <ul>
-<li>可以存储复杂对象  </li>
-<li>类型安全，避免 Key 拼写错误  </li>
-<li>便于数据 schema 演进（版本升级时更容易迁移）</li>
+<h2 id="疑问与解答"><a href="#疑问与解答" class="headerlink" title="疑问与解答"></a>疑问与解答</h2><h3 id="❓-手动传入依赖的方式有什么缺点？"><a href="#❓-手动传入依赖的方式有什么缺点？" class="headerlink" title="❓ 手动传入依赖的方式有什么缺点？"></a>❓ 手动传入依赖的方式有什么缺点？</h3><ul>
+<li><strong>依赖链长时很麻烦</strong>：例如 <code>ViewModel -&gt; Repository -&gt; ApiService -&gt; Retrofit</code>，每一层都要自己创建。  </li>
+<li><strong>单例不好管理</strong>：想让 Retrofit 在全局只创建一次，就得手动写单例模式。  </li>
+<li><strong>测试替换困难</strong>：想用 FakeRepository 替换真实的 Repository，要修改调用处。</li>
 </ul>
-</li>
-<li><strong>适用场景</strong>：需要保存结构化的配置或复杂对象</li>
+<h3 id="❓-Hilt-如何解决这些？"><a href="#❓-Hilt-如何解决这些？" class="headerlink" title="❓ Hilt 如何解决这些？"></a>❓ Hilt 如何解决这些？</h3><ul>
+<li>Hilt 会 <strong>递归解析依赖链</strong>，自动完成实例化。  </li>
+<li>Hilt 有内置的 <strong>作用域管理</strong>（例如 <code>@Singleton</code>）。  </li>
+<li>测试时只需要在 Hilt Module 里替换绑定的实现类，而不用改业务代码。</li>
 </ul>
-<hr>
-<h2 id="2-关系型数据库存储"><a href="#2-关系型数据库存储" class="headerlink" title="2. 关系型数据库存储"></a>2. 关系型数据库存储</h2><h3 id="Room"><a href="#Room" class="headerlink" title="Room"></a>Room</h3><ul>
-<li><strong>定位</strong>：官方推荐的 SQLite ORM 封装  </li>
-<li><strong>数据结构</strong>：关系型表（SQL）  </li>
-<li><strong>存储位置</strong>：SQLite 数据库文件（<code>.db</code>）  </li>
-<li><strong>优点</strong>：  <ul>
-<li>支持复杂 SQL 查询  </li>
-<li>支持关系映射（外键、一对多、多对多）  </li>
-<li>编译时检查 SQL 语句合法性  </li>
-<li>内置协程和 Flow 支持</li>
-</ul>
-</li>
-<li><strong>适用场景</strong>：  <ul>
-<li>大量结构化数据  </li>
-<li>离线缓存（如新闻列表、用户收藏、聊天记录）</li>
-</ul>
-</li>
-</ul>
-<hr>
-<h2 id="对比总结表"><a href="#对比总结表" class="headerlink" title="对比总结表"></a>对比总结表</h2><table>
-<thead>
-<tr>
-<th>特性</th>
-<th>SharedPreferences</th>
-<th>Preferences DataStore</th>
-<th>Proto DataStore</th>
-<th>Room</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>存储类型</strong></td>
-<td>Key-Value</td>
-<td>Key-Value</td>
-<td>自定义对象 (Proto)</td>
-<td>关系型数据库 (SQL)</td>
-</tr>
-<tr>
-<td><strong>数据量</strong></td>
-<td>很小</td>
-<td>小</td>
-<td>小到中</td>
-<td>大</td>
-</tr>
-<tr>
-<td><strong>数据结构</strong></td>
-<td>XML</td>
-<td>protobuf (内部)</td>
-<td>protobuf</td>
-<td>SQLite</td>
-</tr>
-<tr>
-<td><strong>线程安全</strong></td>
-<td>❌ 否</td>
-<td>✅ 是</td>
-<td>✅ 是</td>
-<td>✅ 是</td>
-</tr>
-<tr>
-<td><strong>适用场景</strong></td>
-<td>简单配置</td>
-<td>简单配置（推荐）</td>
-<td>复杂对象、小型配置</td>
-<td>大量结构化数据</td>
-</tr>
-<tr>
-<td><strong>API 风格</strong></td>
-<td>同步</td>
-<td>异步 + Flow</td>
-<td>异步 + Flow</td>
-<td>异步 + Flow &#x2F; RxJava</td>
-</tr>
-<tr>
-<td><strong>推荐程度</strong></td>
-<td>❌ 已过时</td>
-<td>✅ 推荐</td>
-<td>✅ 推荐</td>
-<td>✅ 推荐</td>
-</tr>
-</tbody></table>
 <hr>
 <h2 id="📌-总结"><a href="#📌-总结" class="headerlink" title="📌 总结"></a>📌 总结</h2><ul>
-<li><strong>SharedPreferences</strong>：老旧的方式，能用但已不推荐  </li>
-<li><strong>Preferences DataStore</strong>：现代化 Key-Value 存储，轻量首选  </li>
-<li><strong>Proto DataStore</strong>：适合存储复杂结构化对象  </li>
-<li><strong>Room</strong>：关系型数据库，适合存储大量、复杂的数据</li>
+<li><strong>手动依赖注入</strong>：简单直观，但依赖链一长就很繁琐。  </li>
+<li><strong>Hilt</strong>：自动化依赖注入框架，帮你创建和管理依赖，降低耦合，方便测试，是 Google 官方推荐方案。</li>
 </ul>
-<blockquote>
-<p>✅ 一句话：<br><strong>小数据 → DataStore（Preferences&#x2F;Proto）</strong><br><strong>大数据 → Room</strong>  </p>
-</blockquote>
+<hr>
  
       <!-- reward -->
       
@@ -260,19 +198,19 @@
    
   <nav class="article-nav">
     
-      <a href="/2025/08/18/%E5%AE%89%E5%8D%93WorkManager/" class="article-nav-link">
+      <a href="/2025/06/15/Android%E6%B5%8B%E8%AF%95%E4%BE%9D%E8%B5%96%E9%A1%B9/" class="article-nav-link">
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            安卓WorkManager
+            Android测试依赖项
           
         </div>
       </a>
     
     
-      <a href="/2025/08/15/ViewModel/" class="article-nav-link">
+      <a href="/2025/06/10/AndroidStuidoDebug/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">ViewModel</div>
+        <div class="article-nav-title">AndroidStuidoDebug</div>
       </a>
     
   </nav>
