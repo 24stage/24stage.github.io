@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">2.4k</span>
+            <span class="post-count">2.3k</span>
         </span>
     </span>
 
@@ -107,13 +107,6 @@
     <div class="article-entry" itemprop="articleBody">
        
   <h1 id="在-Ubuntu-上从源码使用-Autoconf-Make-安装-PostgreSQL-16-8"><a href="#在-Ubuntu-上从源码使用-Autoconf-Make-安装-PostgreSQL-16-8" class="headerlink" title="在 Ubuntu 上从源码使用 Autoconf + Make 安装 PostgreSQL 16.8"></a>在 Ubuntu 上从源码使用 Autoconf + Make 安装 PostgreSQL 16.8</h1><p>本文档记录了在 Ubuntu 上用 Autoconf + Make 编译安装 PostgreSQL (版本 16.8) 的完整步骤</p>
-<hr>
-<h2 id="前提说明"><a href="#前提说明" class="headerlink" title="前提说明"></a>前提说明</h2><ul>
-<li>操作系统：Ubuntu</li>
-<li>具备 sudo 权限  </li>
-<li>学习&#x2F;开发环境使用，非生产环境</li>
-</ul>
-<hr>
 <h2 id="步骤一：安装编译依赖"><a href="#步骤一：安装编译依赖" class="headerlink" title="步骤一：安装编译依赖"></a>步骤一：安装编译依赖</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">sudo apt update</span><br><span class="line">sudo apt upgrade -y</span><br><span class="line"></span><br><span class="line">sudo apt install -y build-essential libreadline-dev zlib1g-dev \</span><br><span class="line">    flex bison libxml2-dev libxslt1-dev libssl-dev wget pkg-config</span><br></pre></td></tr></table></figure>
 
 <p>说明：</p>
@@ -127,11 +120,9 @@
 <li><code>wget</code>：下载源码包  </li>
 <li><code>pkg-config</code>：辅助 <code>configure</code> 脚本查找库及其路径信息</li>
 </ul>
-<hr>
 <h2 id="步骤二：下载并解压-PostgreSQL-源码"><a href="#步骤二：下载并解压-PostgreSQL-源码" class="headerlink" title="步骤二：下载并解压 PostgreSQL 源码"></a>步骤二：下载并解压 PostgreSQL 源码</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /usr/local/src</span><br><span class="line">sudo wget https://ftp.postgresql.org/pub/source/v16.8/postgresql-16.8.tar.gz</span><br><span class="line">sudo tar -xzf postgresql-16.8.tar.gz</span><br><span class="line"><span class="built_in">cd</span> postgresql-16.8</span><br></pre></td></tr></table></figure>
 
 <p>此时你进入源码根目录 <code>postgresql-16.8</code>。</p>
-<hr>
 <h2 id="步骤三：运行-configure-脚本，配置构建选项"><a href="#步骤三：运行-configure-脚本，配置构建选项" class="headerlink" title="步骤三：运行 configure 脚本，配置构建选项"></a>步骤三：运行 <code>configure</code> 脚本，配置构建选项</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">./configure --prefix=/usr/local/pgsql \</span><br><span class="line">            --with-openssl \</span><br><span class="line">            --with-libxml \</span><br><span class="line">            --with-libxslt</span><br></pre></td></tr></table></figure>
 
 <p>各选项说明：</p>
@@ -149,7 +140,6 @@
 <li>修改源码目录的属主 &#x2F; 权限，使当前用户拥有写权限  </li>
 <li>将源码复制 &#x2F; 移动到当前用户有写权限的目录下操作</li>
 </ul>
-<hr>
 <h2 id="步骤四：编译、测试与安装"><a href="#步骤四：编译、测试与安装" class="headerlink" title="步骤四：编译、测试与安装"></a>步骤四：编译、测试与安装</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">make</span><br><span class="line">make check      <span class="comment"># 可选，运行回归测试以验证功能是否正确</span></span><br><span class="line">sudo make install</span><br></pre></td></tr></table></figure>
 
 <p>说明：</p>
@@ -159,11 +149,9 @@
 <li><code>sudo make install</code>：将编译所得的程序、库、头文件等安装到 <code>--prefix</code> 指定的目录</li>
 </ul>
 <p>如果需要安装额外模块、文档等，也可以使用命令如 <code>make world</code> &#x2F; <code>make world-bin</code> &#x2F; <code>make install-world</code> 等。</p>
-<hr>
 <h2 id="步骤五：初始化数据库集群"><a href="#步骤五：初始化数据库集群" class="headerlink" title="步骤五：初始化数据库集群"></a>步骤五：初始化数据库集群</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sudo <span class="built_in">mkdir</span> -p /usr/local/pgsql/data</span><br><span class="line">sudo <span class="built_in">chown</span> wqstage:wqstage /usr/local/pgsql/data</span><br><span class="line"></span><br><span class="line">/usr/local/pgsql/bin/initdb -D /usr/local/pgsql/data</span><br></pre></td></tr></table></figure>
 
 <p>这一步会创建系统所需目录结构、默认数据库、系统表格、默认配置文件（如 <code>postgresql.conf</code>、<code>pg_hba.conf</code> 等）。</p>
-<hr>
 <h2 id="步骤六：启动-PostgreSQL-服务器进程"><a href="#步骤六：启动-PostgreSQL-服务器进程" class="headerlink" title="步骤六：启动 PostgreSQL 服务器进程"></a>步骤六：启动 PostgreSQL 服务器进程</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /usr/local/pgsql/data</span><br><span class="line">/usr/local/pgsql/bin/pg_ctl -D /usr/local/pgsql/data -l /usr/local/pgsql/data/logfile start</span><br></pre></td></tr></table></figure>
 
 <ul>
@@ -174,7 +162,6 @@
 <p>可以通过以下方式确认是否成功启动：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ps aux | grep postgres</span><br></pre></td></tr></table></figure>
 
-<hr>
 <h2 id="步骤七：配置环境变量"><a href="#步骤七：配置环境变量" class="headerlink" title="步骤七：配置环境变量"></a>步骤七：配置环境变量</h2><p>将 PostgreSQL 的可执行路径加入 <code>PATH</code>，并设置 <code>PGDATA</code> 环境变量：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;export PATH=/usr/local/pgsql/bin:$PATH&#x27;</span> &gt;&gt; ~/.bashrc</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;export PGDATA=/usr/local/pgsql/data&#x27;</span> &gt;&gt; ~/.bashrc</span><br><span class="line"><span class="built_in">source</span> ~/.bashrc</span><br></pre></td></tr></table></figure>
 <p>这样你就可以直接在终端使用 <code>psql</code>、<code>pg_ctl</code> 等命令，而无需写完整路径。<br>例如以后启动数据库服务时可以直接这样写：</p>
@@ -189,7 +176,6 @@
 <li><code>fast</code>：立刻断开连接并做检查点（推荐）。  </li>
 <li><code>immediate</code>：紧急停止（类似 kill）。</li>
 </ul>
-<hr>
 <h2 id="步骤八：创建、访问数据库，用客户端-psql-连接数据库，进入交互式-SQL-命令行"><a href="#步骤八：创建、访问数据库，用客户端-psql-连接数据库，进入交互式-SQL-命令行" class="headerlink" title="步骤八：创建、访问数据库，用客户端 psql 连接数据库，进入交互式 SQL 命令行"></a>步骤八：创建、访问数据库，用客户端 psql 连接数据库，进入交互式 SQL 命令行</h2><p>首先来创建一个数据库</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">createdb mydb</span><br></pre></td></tr></table></figure>
 <p>如果不产生任何响应则表示该步骤成功。</p>
@@ -364,9 +350,9 @@
       </a>
     
     
-      <a href="/2025/08/15/ViewModel/" class="article-nav-link">
+      <a href="/2025/06/24/%E5%AE%89%E5%8D%93Room/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">ViewModel</div>
+        <div class="article-nav-title">安卓Room数据库</div>
       </a>
     
   </nav>

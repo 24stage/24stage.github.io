@@ -13,7 +13,7 @@
         name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1"
       />
-      <title>Repository和AppContainer |  24stage</title>
+      <title>ViewModel |  24stage</title>
   <meta name="generator" content="hexo-theme-ayer">
       
       <link rel="shortcut icon" href="/smile.ico" />
@@ -55,7 +55,7 @@
     <main class="content on">
       <section class="outer">
   <article
-  id="post-Repository和AppContainer"
+  id="post-ViewModel"
   class="article article-type-post"
   itemscope
   itemprop="blogPost"
@@ -66,7 +66,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  Repository和AppContainer
+  ViewModel
 </h1>
  
 
@@ -74,15 +74,15 @@
     </header>
      
     <div class="article-meta">
-      <a href="/2025/08/14/Repository%E5%92%8CAppContainer/" class="article-date">
-  <time datetime="2025-08-14T12:37:50.000Z" itemprop="datePublished">2025-08-14</time>
+      <a href="/2025/06/09/ViewModel/" class="article-date">
+  <time datetime="2025-06-09T13:42:41.000Z" itemprop="datePublished">2025-06-09</time>
 </a>   
 <div class="word_count">
     <span class="post-time">
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">567</span>
+            <span class="post-count">295</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">2 min</span>
+            <span class="post-count">1 min</span>
         </span>
     </span>
 </div>
@@ -106,45 +106,21 @@
   
     <div class="article-entry" itemprop="articleBody">
        
-  <p><strong>三种文件的关系：</strong><br>应用层 (InventoryApplication)<br>    ↓<br>容器层 (AppContainer + AppDataContainer)<br>    ↓<br>数据层 (ItemsRepository + OfflineItemsRepository)</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">graph TB</span><br><span class="line">    subgraph &quot;应用层&quot;</span><br><span class="line">        A[InventoryApplication]</span><br><span class="line">    end</span><br><span class="line">    </span><br><span class="line">    subgraph &quot;容器层&quot;</span><br><span class="line">        B[AppContainer 接口]</span><br><span class="line">        C[AppDataContainer 实现]</span><br><span class="line">    end</span><br><span class="line">    </span><br><span class="line">    subgraph &quot;数据层&quot;</span><br><span class="line">        D[ItemsRepository 接口]</span><br><span class="line">        E[OfflineItemsRepository 实现]</span><br><span class="line">    end</span><br><span class="line">    </span><br><span class="line">    A --&gt; B</span><br><span class="line">    A --&gt; C</span><br><span class="line">    C --&gt; D</span><br><span class="line">    C --&gt; E</span><br><span class="line">    </span><br><span class="line">    style A fill:#e3f2fd</span><br><span class="line">    style B fill:#f3e5f5</span><br><span class="line">    style C fill:#e8f5e8</span><br><span class="line">    style D fill:#fff3e0</span><br><span class="line">    style E fill:#fce4ec</span><br></pre></td></tr></table></figure>
+  <h1 id="✅ViewModel"><a href="#✅ViewModel" class="headerlink" title="✅ViewModel"></a>✅ViewModel</h1><p>主要功能：</p>
+<ul>
+<li>从 Repository 获取数据</li>
+<li>将数据转换为 UI 状态</li>
+<li>管理数据流和生命周期</li>
+</ul>
+<h2 id="1-数据管理"><a href="#1-数据管理" class="headerlink" title="1. 数据管理"></a>1. 数据管理</h2><p><code>HomeScreenViewModel.kt</code>:</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">HomeViewModel</span>(itemsRepository: ItemsRepository): ViewModel()&#123;</span><br><span class="line">    <span class="keyword">companion</span> <span class="keyword">object</span> &#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">const</span> <span class="keyword">val</span> TIMEOUT_MILLIS = <span class="number">5_000L</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">val</span> homeUiState: StateFlow&lt;HomeUiState&gt; = itemsRepository.getAllItemsStream().map &#123; HomeUiState(it) &#125;</span><br><span class="line">        .stateIn(scope = viewModelScope,</span><br><span class="line">            started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),</span><br><span class="line">            initialValue = HomeUiState()</span><br><span class="line">        )</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * itemsRepository.getAllItemsStream() - 获取商品数据流</span></span><br><span class="line"><span class="comment"> *.map &#123; HomeUiState(it) &#125; - 将数据转换为 UI 状态</span></span><br><span class="line"><span class="comment"> *.stateIn(...) - 转换为 StateFlow 供 UI 使用</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">HomeUiState</span>(<span class="keyword">val</span> itemList: List&lt;Item&gt; = listOf())</span><br></pre></td></tr></table></figure>
 
-<h2 id="✅-Repository"><a href="#✅-Repository" class="headerlink" title="✅ Repository"></a>✅ Repository</h2><p><strong>创建 <code>Repository</code> 的目的:</strong></p>
-<ol>
-<li>简化操作：你不需要知道数据存在哪里（数据库、网络、文件）</li>
-<li>统一接口：不管数据来源是什么，都用同样的方法操作</li>
-<li>便于测试：测试时可以轻松替换成”假数据”</li>
-</ol>
-<p><code>ItemsRepository.kt</code>:</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">ItemsRepository</span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">getAllItemsStream</span><span class="params">()</span></span>: Flow&lt;List&lt;Item&gt;&gt;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">getItemStream</span><span class="params">(id: <span class="type">Int</span>)</span></span>: Flow&lt;Item&gt;</span><br><span class="line">    <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">insertItem</span><span class="params">(item: <span class="type">Item</span>)</span></span></span><br><span class="line">    <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">deleteItem</span><span class="params">(item: <span class="type">Item</span>)</span></span></span><br><span class="line">    <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">updateItem</span><span class="params">(item: <span class="type">Item</span>)</span></span></span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="2-业务逻辑处理"><a href="#2-业务逻辑处理" class="headerlink" title="2. 业务逻辑处理"></a>2. 业务逻辑处理</h2><p><code>ItemEntryViewModel.kt</code>:</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ItemEntryViewModel</span>(<span class="keyword">private</span> <span class="keyword">val</span> itemsRepository: ItemsRepository) : ViewModel() &#123;</span><br><span class="line">    <span class="keyword">var</span> itemUiState <span class="keyword">by</span> mutableStateOf(ItemUiState())</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">set</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">updateUiState</span><span class="params">(itemDetails: <span class="type">ItemDetails</span>)</span></span> &#123;</span><br><span class="line">        itemUiState =</span><br><span class="line">            ItemUiState(itemDetails = itemDetails, isEntryValid = validateInput(itemDetails))</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 处理用户输入验证</span></span><br><span class="line">    <span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">validateInput</span><span class="params">(uiState: <span class="type">ItemDetails</span>)</span></span>: <span class="built_in">Boolean</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> with(uiState) &#123;</span><br><span class="line">            name.isNotBlank() &amp;&amp; price.isNotBlank() &amp;&amp; quantity.isNotBlank()</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 处理数据保存</span></span><br><span class="line">    <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">saveItem</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (validateInput()) &#123;</span><br><span class="line">            itemsRepository.insertItem(itemUiState.itemDetails.toItem())</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">ItemDetails</span>(</span><br><span class="line">    <span class="keyword">val</span> id: <span class="built_in">Int</span> = <span class="number">0</span>,</span><br><span class="line">    <span class="keyword">val</span> name: String = <span class="string">&quot;&quot;</span>,</span><br><span class="line">    <span class="keyword">val</span> price: String = <span class="string">&quot;&quot;</span>,</span><br><span class="line">    <span class="keyword">val</span> quantity: String = <span class="string">&quot;&quot;</span>,</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
 
-<p><code>OfflineItemsRepository.kt</code>:</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">OfflineItemsRepository</span>(<span class="keyword">private</span> <span class="keyword">val</span> itemDao: ItemDao) : ItemsRepository&#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">getAllItemsStream</span><span class="params">()</span></span>: Flow&lt;List&lt;Item&gt;&gt; = itemDao.getAllItems()</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">getItemStream</span><span class="params">(id: <span class="type">Int</span>)</span></span>: Flow&lt;Item&gt; = itemDao.getItem(id)</span><br><span class="line">    <span class="keyword">override</span> <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">insertItem</span><span class="params">(item: <span class="type">Item</span>)</span></span> = itemDao.insert(item)</span><br><span class="line">    <span class="keyword">override</span> <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">deleteItem</span><span class="params">(item: <span class="type">Item</span>)</span></span> = itemDao.delete(item)</span><br><span class="line">    <span class="keyword">override</span> <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">updateItem</span><span class="params">(item: <span class="type">Item</span>)</span></span> = itemDao.update(item)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="✅依赖项注入-AppContainer"><a href="#✅依赖项注入-AppContainer" class="headerlink" title="✅依赖项注入 AppContainer"></a>✅依赖项注入 AppContainer</h2><p>依赖项注入: 在运行时提供依赖项，而不是将其硬编码到调用类中。通俗点说就是在一个类中将所需的对象作为实参传入。</p>
-<p>容器: 是一个包含应用所需的依赖项的对象</p>
-<p><strong>AppContainer 的目的:</strong></p>
-<ol>
-<li>集中管理：所有需要的”工具”都在一个地方</li>
-<li>自动创建：你不需要手动创建每个工具</li>
-<li>统一配置：所有工具都按照统一的方式配置</li>
-</ol>
-<p><code>AppContainer.kt</code>:</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">AppContainer</span> &#123;</span><br><span class="line">    <span class="keyword">val</span> itemsRepository: ItemsRepository</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">AppDataContainer</span>(<span class="keyword">private</span> <span class="keyword">val</span> context: Context) : AppContainer &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="keyword">val</span> itemsRepository: ItemsRepository <span class="keyword">by</span> lazy &#123;</span><br><span class="line">        OfflineItemsRepository(InventoryDatabase.getDatabase(context).itemDao())</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="✅Application文件"><a href="#✅Application文件" class="headerlink" title="✅Application文件"></a>✅Application文件</h2><p><strong>作用：</strong></p>
-<ol>
-<li>创建并管理 AppContainer 实例</li>
-<li>所有需要依赖的类都可以通过这个容器获取</li>
-<li>确保整个应用使用同一个依赖注入容器</li>
-</ol>
-<p><code>InventoryApplication.kt</code>:</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">InventoryApplication</span> : <span class="type">Application</span>() &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * AppContainer instance used by the rest of classes to obtain dependencies</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">lateinit</span> <span class="keyword">var</span> container: AppContainer</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onCreate</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate()</span><br><span class="line">        container = AppDataContainer(<span class="keyword">this</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p><strong>在 AndroidManifest.xml 文件的 <code>application</code> 标记内，添加以下代码行。</strong><br>将 <code>InventoryApplication</code> 类定义为应用的入口点。此代码用于在启动 <code>MainActivity</code> 之前，初始化 <code>InventoryApplication</code>类中定义的依赖项。</p>
-<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;application</span><br><span class="line">    android:name=<span class="string">&quot;.InventoryApplication&quot;</span></span><br><span class="line">    ...</span><br><span class="line">&lt;/application&gt;</span><br></pre></td></tr></table></figure>
-
+<h1 id="✅ViewModelProvider"><a href="#✅ViewModelProvider" class="headerlink" title="✅ViewModelProvider"></a>✅ViewModelProvider</h1><p>主要功能：<br>创建 ViewModel 实例<br>注入必要的依赖（如 Repository）<br>管理 ViewModel 的生命周期</p>
+<p><code>AppViewModelProvider.kt</code>:</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">object</span> AppViewModelProvider &#123;</span><br><span class="line">    <span class="keyword">val</span> Factory = viewModelFactory &#123;</span><br><span class="line">        <span class="comment">// Initializer for ItemEntryViewModel</span></span><br><span class="line">        initializer &#123;</span><br><span class="line">            ItemEntryViewModel(inventoryApplication().container.itemsRepository)</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Initializer for HomeViewModel</span></span><br><span class="line">        initializer &#123;</span><br><span class="line">            HomeViewModel(inventoryApplication().container.itemsRepository)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> CreationExtras.<span class="title">inventoryApplication</span><span class="params">()</span></span>: InventoryApplication =</span><br><span class="line">    (<span class="keyword">this</span>[AndroidViewModelFactory.APPLICATION_KEY] <span class="keyword">as</span> InventoryApplication)</span><br></pre></td></tr></table></figure>
  
       <!-- reward -->
       
@@ -163,19 +139,19 @@
    
   <nav class="article-nav">
     
-      <a href="/2025/08/15/ViewModel/" class="article-nav-link">
+      <a href="/2025/06/10/AndroidStuidoDebug/" class="article-nav-link">
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            ViewModel
+            AndroidStuidoDebug
           
         </div>
       </a>
     
     
-      <a href="/2025/06/24/%E5%AE%89%E5%8D%93Room/" class="article-nav-link">
+      <a href="/2025/06/08/%E5%AE%89%E5%8D%93Activity%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">安卓Room数据库</div>
+        <div class="article-nav-title">安卓Activity生命周期</div>
       </a>
     
   </nav>

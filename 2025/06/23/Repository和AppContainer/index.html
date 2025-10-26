@@ -13,7 +13,7 @@
         name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1"
       />
-      <title>慢查询 |  24stage</title>
+      <title>Repository和AppContainer |  24stage</title>
   <meta name="generator" content="hexo-theme-ayer">
       
       <link rel="shortcut icon" href="/smile.ico" />
@@ -55,7 +55,7 @@
     <main class="content on">
       <section class="outer">
   <article
-  id="post-慢查询"
+  id="post-Repository和AppContainer"
   class="article article-type-post"
   itemscope
   itemprop="blogPost"
@@ -66,7 +66,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  慢查询
+  Repository和AppContainer
 </h1>
  
 
@@ -74,15 +74,15 @@
     </header>
      
     <div class="article-meta">
-      <a href="/2025/10/24/%E6%85%A2%E6%9F%A5%E8%AF%A2/" class="article-date">
-  <time datetime="2025-10-24T01:09:31.000Z" itemprop="datePublished">2025-10-24</time>
+      <a href="/2025/06/23/Repository%E5%92%8CAppContainer/" class="article-date">
+  <time datetime="2025-06-23T12:37:50.000Z" itemprop="datePublished">2025-06-23</time>
 </a>   
 <div class="word_count">
     <span class="post-time">
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">654</span>
+            <span class="post-count">567</span>
         </span>
     </span>
 
@@ -106,122 +106,45 @@
   
     <div class="article-entry" itemprop="articleBody">
        
-  <h1 id="慢查询"><a href="#慢查询" class="headerlink" title="慢查询"></a>慢查询</h1><p>慢查询指的是：<strong>执行时间超过预期或阈值的 SQL 语句</strong>，通常意味着索引缺失、执行计划错误、I&#x2F;O 过高、锁等待等问题。</p>
-<p>比如，你设定阈值为 1 秒：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">log_min_duration_statement <span class="operator">=</span> <span class="number">1000</span>   # 超过<span class="number">1000</span>毫秒的<span class="keyword">SQL</span>会记录日志</span><br></pre></td></tr></table></figure>
-<p>如果有 SQL 花了 2.5 秒执行，PostgreSQL 就会在日志中自动记录：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">duration: <span class="number">2500.321</span> ms  statement: <span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> orders <span class="keyword">WHERE</span> user_id <span class="operator">=</span> <span class="number">10000</span>;</span><br></pre></td></tr></table></figure>
-<p>这类 SQL 就属于 “慢查询”。</p>
-<h2 id="常见原因"><a href="#常见原因" class="headerlink" title="常见原因"></a>常见原因</h2><table>
-<thead>
-<tr>
-<th>类型</th>
-<th>常见原因</th>
-<th>举例</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>索引问题</strong></td>
-<td>没有合适索引、索引未被使用</td>
-<td><code>WHERE col LIKE &#39;%abc&#39;</code> 无法用索引</td>
-</tr>
-<tr>
-<td><strong>执行计划不合理</strong></td>
-<td>统计信息过期导致选择了错误的 JOIN&#x2F;SCAN 方式</td>
-<td>该用 index scan 却用了 seq scan</td>
-</tr>
-<tr>
-<td><strong>数据量膨胀</strong></td>
-<td>表&#x2F;索引太大，I&#x2F;O 过重</td>
-<td>表有上千万行</td>
-</tr>
-<tr>
-<td><strong>锁等待</strong></td>
-<td>SQL 在等其他事务释放锁</td>
-<td>update&#x2F;delete 被阻塞</td>
-</tr>
-<tr>
-<td><strong>配置不当</strong></td>
-<td>work_mem, shared_buffers 太小</td>
-<td>排序&#x2F;哈希落盘</td>
-</tr>
-<tr>
-<td><strong>网络与并发</strong></td>
-<td>客户端等待时间长</td>
-<td>连接池未优化</td>
-</tr>
-</tbody></table>
-<h2 id="慢查询的检测"><a href="#慢查询的检测" class="headerlink" title="慢查询的检测"></a>慢查询的检测</h2><p>PostgreSQL 提供三种主要手段：</p>
-<h3 id="日常检测"><a href="#日常检测" class="headerlink" title="日常检测"></a>日常检测</h3><p>在 <code>postgresql.conf</code> 中开启：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">logging_collector <span class="operator">=</span> <span class="keyword">on</span></span><br><span class="line">log_min_duration_statement <span class="operator">=</span> <span class="number">500</span>   # 超过<span class="number">0.5</span>秒的<span class="keyword">SQL</span>记录下来</span><br><span class="line">log_line_prefix <span class="operator">=</span> <span class="string">&#x27;%t [%p]: user=%u,db=%d &#x27;</span></span><br></pre></td></tr></table></figure>
-<p>查看日志：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">duration: <span class="number">1200.45</span> ms  statement: <span class="keyword">SELECT</span> ...;</span><br></pre></td></tr></table></figure>
+  <p><strong>三种文件的关系：</strong><br>应用层 (InventoryApplication)<br>    ↓<br>容器层 (AppContainer + AppDataContainer)<br>    ↓<br>数据层 (ItemsRepository + OfflineItemsRepository)</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">graph TB</span><br><span class="line">    subgraph &quot;应用层&quot;</span><br><span class="line">        A[InventoryApplication]</span><br><span class="line">    end</span><br><span class="line">    </span><br><span class="line">    subgraph &quot;容器层&quot;</span><br><span class="line">        B[AppContainer 接口]</span><br><span class="line">        C[AppDataContainer 实现]</span><br><span class="line">    end</span><br><span class="line">    </span><br><span class="line">    subgraph &quot;数据层&quot;</span><br><span class="line">        D[ItemsRepository 接口]</span><br><span class="line">        E[OfflineItemsRepository 实现]</span><br><span class="line">    end</span><br><span class="line">    </span><br><span class="line">    A --&gt; B</span><br><span class="line">    A --&gt; C</span><br><span class="line">    C --&gt; D</span><br><span class="line">    C --&gt; E</span><br><span class="line">    </span><br><span class="line">    style A fill:#e3f2fd</span><br><span class="line">    style B fill:#f3e5f5</span><br><span class="line">    style C fill:#e8f5e8</span><br><span class="line">    style D fill:#fff3e0</span><br><span class="line">    style E fill:#fce4ec</span><br></pre></td></tr></table></figure>
 
-<h3 id="实时统计：pg-stat-statements"><a href="#实时统计：pg-stat-statements" class="headerlink" title="实时统计：pg_stat_statements"></a>实时统计：pg_stat_statements</h3><p>启用扩展：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> EXTENSION pg_stat_statements;</span><br></pre></td></tr></table></figure>
-<p>查看最慢的 SQL：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> query, calls, total_exec_time, mean_exec_time</span><br><span class="line"><span class="keyword">FROM</span> pg_stat_statements</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> mean_exec_time <span class="keyword">DESC</span></span><br><span class="line">LIMIT <span class="number">5</span>;</span><br></pre></td></tr></table></figure>
-<p>这能看到：执行最慢的 SQL、被执行次数、平均耗时、总耗时占比。</p>
-<h3 id="EXPLAIN-EXPLAIN-ANALYZE"><a href="#EXPLAIN-EXPLAIN-ANALYZE" class="headerlink" title="EXPLAIN &#x2F; EXPLAIN ANALYZE"></a>EXPLAIN &#x2F; EXPLAIN ANALYZE</h3><p>分析单条 SQL 的执行计划：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">EXPLAIN (ANALYZE, BUFFERS)</span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> orders <span class="keyword">WHERE</span> user_id <span class="operator">=</span> <span class="number">12345</span>;</span><br></pre></td></tr></table></figure>
-<p>输出示例：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Index Scan <span class="keyword">using</span> idx_orders_user <span class="keyword">on</span> orders  (cost<span class="operator">=</span><span class="number">0.42</span>.<span class="number">.8</span><span class="number">.44</span> <span class="keyword">rows</span><span class="operator">=</span><span class="number">1</span> width<span class="operator">=</span><span class="number">48</span>)</span><br><span class="line">(actual <span class="type">time</span><span class="operator">=</span><span class="number">0.031</span>.<span class="number">.0</span><span class="number">.033</span> <span class="keyword">rows</span><span class="operator">=</span><span class="number">1</span> loops<span class="operator">=</span><span class="number">1</span>)</span><br><span class="line">Buffers: shared hit<span class="operator">=</span><span class="number">3</span></span><br></pre></td></tr></table></figure>
+<h2 id="✅-Repository"><a href="#✅-Repository" class="headerlink" title="✅ Repository"></a>✅ Repository</h2><p><strong>创建 <code>Repository</code> 的目的:</strong></p>
+<ol>
+<li>简化操作：你不需要知道数据存在哪里（数据库、网络、文件）</li>
+<li>统一接口：不管数据来源是什么，都用同样的方法操作</li>
+<li>便于测试：测试时可以轻松替换成”假数据”</li>
+</ol>
+<p><code>ItemsRepository.kt</code>:</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">ItemsRepository</span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">getAllItemsStream</span><span class="params">()</span></span>: Flow&lt;List&lt;Item&gt;&gt;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">getItemStream</span><span class="params">(id: <span class="type">Int</span>)</span></span>: Flow&lt;Item&gt;</span><br><span class="line">    <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">insertItem</span><span class="params">(item: <span class="type">Item</span>)</span></span></span><br><span class="line">    <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">deleteItem</span><span class="params">(item: <span class="type">Item</span>)</span></span></span><br><span class="line">    <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">updateItem</span><span class="params">(item: <span class="type">Item</span>)</span></span></span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>含义：</p>
-<ul>
-<li><p>Index Scan：使用了索引</p>
-</li>
-<li><p>cost：估算开销</p>
-</li>
-<li><p>actual time：实际耗时</p>
-</li>
-<li><p>rows：返回行数</p>
-</li>
-</ul>
-<p>如果实际时间比预估高很多，说明执行计划有问题。</p>
-<h2 id="慢查询的优化"><a href="#慢查询的优化" class="headerlink" title="慢查询的优化"></a>慢查询的优化</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>️⃣ 开启 log_min_duration_statement</span><br><span class="line"><span class="number">2</span>️⃣ 日志中定位最慢 <span class="keyword">SQL</span></span><br><span class="line"><span class="number">3</span>️⃣ 用 EXPLAIN ANALYZE 查看执行计划</span><br><span class="line"><span class="number">4</span>️⃣ 检查是否使用索引、连接顺序、过滤条件</span><br><span class="line"><span class="number">5</span>️⃣ 根据结果调整 <span class="keyword">SQL</span> <span class="operator">/</span> 索引 <span class="operator">/</span> 配置</span><br><span class="line"><span class="number">6</span>️⃣ 重新验证性能</span><br></pre></td></tr></table></figure>
+<p><code>OfflineItemsRepository.kt</code>:</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">OfflineItemsRepository</span>(<span class="keyword">private</span> <span class="keyword">val</span> itemDao: ItemDao) : ItemsRepository&#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">getAllItemsStream</span><span class="params">()</span></span>: Flow&lt;List&lt;Item&gt;&gt; = itemDao.getAllItems()</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">getItemStream</span><span class="params">(id: <span class="type">Int</span>)</span></span>: Flow&lt;Item&gt; = itemDao.getItem(id)</span><br><span class="line">    <span class="keyword">override</span> <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">insertItem</span><span class="params">(item: <span class="type">Item</span>)</span></span> = itemDao.insert(item)</span><br><span class="line">    <span class="keyword">override</span> <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">deleteItem</span><span class="params">(item: <span class="type">Item</span>)</span></span> = itemDao.delete(item)</span><br><span class="line">    <span class="keyword">override</span> <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">updateItem</span><span class="params">(item: <span class="type">Item</span>)</span></span> = itemDao.update(item)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>常见优化思路：</p>
-<table>
-<thead>
-<tr>
-<th>问题类型</th>
-<th>优化方向</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>没有用索引</strong></td>
-<td>建立合适索引（B-Tree、GIN、HASH）</td>
-</tr>
-<tr>
-<td><strong>全表扫描</strong></td>
-<td>改写 SQL 逻辑或增加索引</td>
-</tr>
-<tr>
-<td><strong>JOIN 很慢</strong></td>
-<td>优化连接条件或拆分查询</td>
-</tr>
-<tr>
-<td><strong>排序&#x2F;聚合慢</strong></td>
-<td>增大 <code>work_mem</code> 或使用物化表</td>
-</tr>
-<tr>
-<td><strong>频繁执行相同SQL</strong></td>
-<td>开启 <code>prepare statement</code></td>
-</tr>
-<tr>
-<td><strong>统计信息不准</strong></td>
-<td>手动执行 <code>ANALYZE</code></td>
-</tr>
-<tr>
-<td><strong>锁等待</strong></td>
-<td>优化事务逻辑、减少长事务</td>
-</tr>
-<tr>
-<td><strong>频繁I&#x2F;O</strong></td>
-<td>调整 <code>shared_buffers</code>, <code>effective_cache_size</code></td>
-</tr>
-</tbody></table>
+
+<h2 id="✅依赖项注入-AppContainer"><a href="#✅依赖项注入-AppContainer" class="headerlink" title="✅依赖项注入 AppContainer"></a>✅依赖项注入 AppContainer</h2><p>依赖项注入: 在运行时提供依赖项，而不是将其硬编码到调用类中。通俗点说就是在一个类中将所需的对象作为实参传入。</p>
+<p>容器: 是一个包含应用所需的依赖项的对象</p>
+<p><strong>AppContainer 的目的:</strong></p>
+<ol>
+<li>集中管理：所有需要的”工具”都在一个地方</li>
+<li>自动创建：你不需要手动创建每个工具</li>
+<li>统一配置：所有工具都按照统一的方式配置</li>
+</ol>
+<p><code>AppContainer.kt</code>:</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">AppContainer</span> &#123;</span><br><span class="line">    <span class="keyword">val</span> itemsRepository: ItemsRepository</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">AppDataContainer</span>(<span class="keyword">private</span> <span class="keyword">val</span> context: Context) : AppContainer &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="keyword">val</span> itemsRepository: ItemsRepository <span class="keyword">by</span> lazy &#123;</span><br><span class="line">        OfflineItemsRepository(InventoryDatabase.getDatabase(context).itemDao())</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="✅Application文件"><a href="#✅Application文件" class="headerlink" title="✅Application文件"></a>✅Application文件</h2><p><strong>作用：</strong></p>
+<ol>
+<li>创建并管理 AppContainer 实例</li>
+<li>所有需要依赖的类都可以通过这个容器获取</li>
+<li>确保整个应用使用同一个依赖注入容器</li>
+</ol>
+<p><code>InventoryApplication.kt</code>:</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">InventoryApplication</span> : <span class="type">Application</span>() &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * AppContainer instance used by the rest of classes to obtain dependencies</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">lateinit</span> <span class="keyword">var</span> container: AppContainer</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onCreate</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate()</span><br><span class="line">        container = AppDataContainer(<span class="keyword">this</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>在 AndroidManifest.xml 文件的 <code>application</code> 标记内，添加以下代码行。</strong><br>将 <code>InventoryApplication</code> 类定义为应用的入口点。此代码用于在启动 <code>MainActivity</code> 之前，初始化 <code>InventoryApplication</code>类中定义的依赖项。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;application</span><br><span class="line">    android:name=<span class="string">&quot;.InventoryApplication&quot;</span></span><br><span class="line">    ...</span><br><span class="line">&lt;/application&gt;</span><br></pre></td></tr></table></figure>
+
  
       <!-- reward -->
       
@@ -232,7 +155,7 @@
     
     <footer class="article-footer">
        
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DBA/" rel="tag">DBA</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Android/" rel="tag">Android</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0/" rel="tag">学习</a></li></ul>
 
     </footer>
   </div>
@@ -240,19 +163,19 @@
    
   <nav class="article-nav">
     
-      <a href="/2025/10/26/PostgreSQL%E9%AB%98%E5%8F%AF%E7%94%A8%E5%B9%B3%E5%8F%B0%E8%BF%90%E7%BB%B4%E9%A1%B9%E7%9B%AE/" class="article-nav-link">
+      <a href="/2025/06/24/%E5%AE%89%E5%8D%93Room/" class="article-nav-link">
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            PostgreSQL高可用平台运维项目
+            安卓Room数据库
           
         </div>
       </a>
     
     
-      <a href="/2025/10/23/PL%E4%BB%A5%E5%8F%8A%E5%87%BD%E6%95%B0%E5%92%8C%E8%A7%A6%E5%8F%91%E5%99%A8/" class="article-nav-link">
+      <a href="/2025/06/18/%E5%AE%89%E5%8D%93WorkManager/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">PL以及函数和触发器</div>
+        <div class="article-nav-title">安卓WorkManager</div>
       </a>
     
   </nav>
