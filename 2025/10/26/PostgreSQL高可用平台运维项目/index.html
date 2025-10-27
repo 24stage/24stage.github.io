@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">1.4k</span>
+            <span class="post-count">1.7k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">4 min</span>
+            <span class="post-count">6 min</span>
         </span>
     </span>
 </div>
@@ -171,7 +171,28 @@
 <p>在简历里加上项目链接（GitHub）+ 项目说明 + 技术栈 + 亮点成果。</p>
 <figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">项目名称：PostgreSQL 企业级运维平台（个人项目）  </span><br><span class="line">项目概述：搭建基于 PostgreSQL 的运维自动化及高可用平台，覆盖备份恢复、高可用主从架构、监控与性能优化。  </span><br><span class="line">关键职责：  </span><br><span class="line"><span class="deletion">- 设计并实现每日全量/增量备份与恢复演练流程，实现恢复时间 ≤ 1 小时；  </span></span><br><span class="line"><span class="deletion">- 搭建主库-从库复制 + Patroni 自动故障切换方案，模拟主库故障切换，切换时间 ≤ 30秒；  </span></span><br><span class="line"><span class="deletion">- 部署 Prometheus+Grafana 监控系统，编写脚本检测锁等待、表膨胀、慢查询，并发送自动告警；  </span></span><br><span class="line"><span class="deletion">- 通过慢查询分析与索引调整，将关键查询响应时间从 5 秒降至 1 秒，缓存命中率提升 20%。  </span></span><br><span class="line">技术栈：PostgreSQL、Shell、Python、Patroni、etcd、HAProxy、Prometheus、Grafana、Linux  </span><br><span class="line">项目链接：[GitHub 地址]</span><br></pre></td></tr></table></figure>
 
-<h1 id=""><a href="#" class="headerlink" title=""></a></h1> 
+
+
+
+
+<h1 id="环境配置"><a href="#环境配置" class="headerlink" title="环境配置"></a>环境配置</h1><p>在阿里云服务器上使用源码安装<code>PostgreSQL</code>,安装流程见<a href="./Postgre%E5%9C%A8Linux%E4%B8%8A%E7%9A%84%E5%AE%89%E8%A3%85.md">在Linux上安装PostgresSQL</a>。</p>
+<h2 id="在主库部署-dvdrental-示例数据库"><a href="#在主库部署-dvdrental-示例数据库" class="headerlink" title="在主库部署 dvdrental 示例数据库"></a>在主库部署 dvdrental 示例数据库</h2><p>我的linux虚拟机上的<code>PostgreSQL</code>已经安装过了，因此只需导入数据库就行了。</p>
+<p><strong>1. 下载示例数据库文件</strong><br>官方提供 .tar 备份文件（dvdrental.tar）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /usr/local/src</span><br><span class="line">wget https://www.postgresqltutorial.com/wp-content/uploads/2019/05/dvdrental.zip</span><br><span class="line">unzip dvdrental.zip</span><br></pre></td></tr></table></figure>
+<p>得到文件：dvdrental.tar<br><strong>2. 创建数据库并恢复数据</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">createdb -U wqstage dvdrental</span><br><span class="line">pg_restore -U wqstage -d dvdrental --no-owner --role=wqstage /usr/local/src/dvdrental.tar</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>--no-owner</code> 忽略备份文件中记录的所有权信息。</li>
+<li><code>--role=wqstage</code> 表示以当前用户恢复对象。<blockquote>
+<p>这里出了一点小问题：因为我之前在导入拓展的时候误执行了apt命令安装，导致多了一个apt版本的postgreSQL实例，因此会报错pg_restore: error: connection to server on socket “&#x2F;var&#x2F;run&#x2F;postgresql&#x2F;.s.PGSQL.5433” failed: FATAL: role “wqstage” does not exist 。解决办法是先关闭apt版本的实例，然后执行<code>sudo systemctl disable postgresql</code>禁止其自启动。</p>
+</blockquote>
+</li>
+</ul>
+<ol start="3">
+<li>最后验证<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="built_in">COUNT</span>(<span class="operator">*</span>) <span class="keyword">FROM</span> film;</span><br></pre></td></tr></table></figure>
+结果返回1000行，导入成功。</li>
+</ol>
+<h1 id="主从同步-复制-配置"><a href="#主从同步-复制-配置" class="headerlink" title="主从同步(复制)配置"></a>主从同步(复制)配置</h1> 
       <!-- reward -->
       
     </div>

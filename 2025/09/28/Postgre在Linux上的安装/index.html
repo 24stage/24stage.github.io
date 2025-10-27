@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">2.3k</span>
+            <span class="post-count">2.5k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">9 min</span>
+            <span class="post-count">10 min</span>
         </span>
     </span>
 </div>
@@ -151,7 +151,7 @@
 <p>如果需要安装额外模块、文档等，也可以使用命令如 <code>make world</code> &#x2F; <code>make world-bin</code> &#x2F; <code>make install-world</code> 等。</p>
 <h2 id="步骤五：初始化数据库集群"><a href="#步骤五：初始化数据库集群" class="headerlink" title="步骤五：初始化数据库集群"></a>步骤五：初始化数据库集群</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sudo <span class="built_in">mkdir</span> -p /usr/local/pgsql/data</span><br><span class="line">sudo <span class="built_in">chown</span> wqstage:wqstage /usr/local/pgsql/data</span><br><span class="line"></span><br><span class="line">/usr/local/pgsql/bin/initdb -D /usr/local/pgsql/data</span><br></pre></td></tr></table></figure>
 
-<p>这一步会创建系统所需目录结构、默认数据库、系统表格、默认配置文件（如 <code>postgresql.conf</code>、<code>pg_hba.conf</code> 等）。</p>
+<p>这一步会创建系统所需目录结构、默认数据库、系统表格、默认配置文件（如 <code>postgresql.conf</code>、<code>pg_hba.conf</code> 等）。<br>此外<code>PostgreSQL</code> 出于安全考虑，不允许以 <code>root</code> 用户身份初始化数据库。你需要使用一个普通用户来执行 <code>initdb</code> 命令。</p>
 <h2 id="步骤六：启动-PostgreSQL-服务器进程"><a href="#步骤六：启动-PostgreSQL-服务器进程" class="headerlink" title="步骤六：启动 PostgreSQL 服务器进程"></a>步骤六：启动 PostgreSQL 服务器进程</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /usr/local/pgsql/data</span><br><span class="line">/usr/local/pgsql/bin/pg_ctl -D /usr/local/pgsql/data -l /usr/local/pgsql/data/logfile start</span><br></pre></td></tr></table></figure>
 
 <ul>
@@ -164,7 +164,13 @@
 
 <h2 id="步骤七：配置环境变量"><a href="#步骤七：配置环境变量" class="headerlink" title="步骤七：配置环境变量"></a>步骤七：配置环境变量</h2><p>将 PostgreSQL 的可执行路径加入 <code>PATH</code>，并设置 <code>PGDATA</code> 环境变量：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;export PATH=/usr/local/pgsql/bin:$PATH&#x27;</span> &gt;&gt; ~/.bashrc</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;export PGDATA=/usr/local/pgsql/data&#x27;</span> &gt;&gt; ~/.bashrc</span><br><span class="line"><span class="built_in">source</span> ~/.bashrc</span><br></pre></td></tr></table></figure>
-<p>这样你就可以直接在终端使用 <code>psql</code>、<code>pg_ctl</code> 等命令，而无需写完整路径。<br>例如以后启动数据库服务时可以直接这样写：</p>
+<ul>
+<li><p><code>export PATH=/usr/local/pgsql/bin:$PATH</code>将 <code>PostgreSQL</code> 的二进制目录 (&#x2F;usr&#x2F;local&#x2F;pgsql&#x2F;bin) 添加到系统的 <code>PATH</code> 环境变量中。<code>$PATH</code> 保留原有的 <code>PATH</code> 内容，确保其他命令仍然可用。这样可以直接在终端运行 <code>psql</code>、<code>pg_dump</code> 等命令，而无需输入完整路径。</p>
+</li>
+<li><p><code>export PGDATA=/usr/local/pgsql/data</code>设置 PostgreSQL 的默认数据目录 (PGDATA 环境变量)。某些 PostgreSQL 命令（如 pg_ctl）会依赖这个变量来找到数据库集群的存储位置。如果不设置，某些操作可能需要额外指定 -D 参数。</p>
+</li>
+</ul>
+<p>这样就可以直接在终端使用 <code>psql</code>、<code>pg_ctl</code> 等命令，而无需写完整路径。<br>例如，以后启动数据库服务时可以直接这样写：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pg_ctl -l /usr/local/pgsql/data/logfile start</span><br></pre></td></tr></table></figure>
 
 <p><strong>关闭PostgreSQL服务进程</strong></p>

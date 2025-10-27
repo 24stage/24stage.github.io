@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">4.7k</span>
+            <span class="post-count">4.8k</span>
         </span>
     </span>
 
@@ -451,7 +451,9 @@
 <figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">────────●────────●────────●────────●────────▶</span><br><span class="line">        <span class="selector-tag">A</span>        <span class="selector-tag">B</span>        <span class="selector-tag">C</span>        <span class="selector-tag">D</span></span><br><span class="line">      <span class="selector-tag">Base</span>      <span class="selector-tag">WAL</span>      <span class="selector-tag">WAL</span>      <span class="selector-tag">Crash</span></span><br><span class="line">     <span class="selector-tag">Backup</span>     <span class="selector-id">#1</span>       <span class="selector-id">#2</span></span><br></pre></td></tr></table></figure>
 <p>恢复时：从 A 点的基础备份（Base Backup）开始，顺序回放归档的 WAL 日志，当时间到达指定的恢复点（例如“C点”）就停止回放。</p>
 <p><strong>当需要时间点恢复时，可参考如下步骤：</strong><br><strong>1. 首先要提前开启wal归档</strong><br>在 <code>postgresql.conf</code> 开启 <code>WAL</code> 归档，这样 <code>PostgreSQL</code> 每生成一个 <code>WAL</code> 文件，就会自动复制到 <code>/archive</code> 目录。</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">wal_level <span class="operator">=</span> replica</span><br><span class="line">archive_mode <span class="operator">=</span> <span class="keyword">on</span></span><br><span class="line">archive_command <span class="operator">=</span> <span class="string">&#x27;cp %p /archive/%f&#x27;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">wal_level <span class="operator">=</span> replica</span><br><span class="line">archive_mode <span class="operator">=</span> <span class="keyword">on</span></span><br><span class="line">archive_command <span class="operator">=</span> <span class="string">&#x27;cp %p /usr/local/src/archive/%f&#x27;</span></span><br></pre></td></tr></table></figure>
+<p>还要手动创建一个<code>/usr/local/src/archive</code>目录并修改权限，因为PostgreSQL不会自动创建。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo <span class="built_in">mkdir</span> /usr/local/src/archive</span><br><span class="line">sudo <span class="built_in">chown</span> wqstage:wqstage /usr/local/src/archive</span><br><span class="line">sudo <span class="built_in">chmod</span> 700 /usr/local/src/archive</span><br></pre></td></tr></table></figure>
 <p><strong>2. 定期做基础备份</strong><br>得到一个完整的数据快照（不含 WAL）。</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pg_basebackup <span class="operator">-</span>D <span class="operator">/</span>backup<span class="operator">/</span>base <span class="operator">-</span>Ft <span class="operator">-</span>z <span class="operator">-</span>P <span class="operator">-</span>X <span class="keyword">none</span></span><br></pre></td></tr></table></figure>
 <p><strong>3. 出现灾难后恢复步骤</strong></p>
