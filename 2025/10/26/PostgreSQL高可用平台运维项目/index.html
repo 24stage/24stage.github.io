@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">1.7k</span>
+            <span class="post-count">4k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">6 min</span>
+            <span class="post-count">15 min</span>
         </span>
     </span>
 </div>
@@ -175,7 +175,7 @@
 
 
 
-<h1 id="环境配置"><a href="#环境配置" class="headerlink" title="环境配置"></a>环境配置</h1><p>在阿里云服务器上使用源码安装<code>PostgreSQL</code>,安装流程见<a href="./Postgre%E5%9C%A8Linux%E4%B8%8A%E7%9A%84%E5%AE%89%E8%A3%85.md">在Linux上安装PostgresSQL</a>。</p>
+<h1 id="环境配置"><a href="#环境配置" class="headerlink" title="环境配置"></a>环境配置</h1><p>分别在腾讯云服务器和阿里云服务器上使用源码安装<code>PostgreSQL</code>,安装流程见<a href="./Postgre%E5%9C%A8Linux%E4%B8%8A%E7%9A%84%E5%AE%89%E8%A3%85.md">在Linux上安装PostgresSQL</a>。</p>
 <h2 id="在主库部署-dvdrental-示例数据库"><a href="#在主库部署-dvdrental-示例数据库" class="headerlink" title="在主库部署 dvdrental 示例数据库"></a>在主库部署 dvdrental 示例数据库</h2><p>我的linux虚拟机上的<code>PostgreSQL</code>已经安装过了，因此只需导入数据库就行了。</p>
 <p><strong>1. 下载示例数据库文件</strong><br>官方提供 .tar 备份文件（dvdrental.tar）：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /usr/local/src</span><br><span class="line">wget https://www.postgresqltutorial.com/wp-content/uploads/2019/05/dvdrental.zip</span><br><span class="line">unzip dvdrental.zip</span><br></pre></td></tr></table></figure>
@@ -192,7 +192,85 @@
 <li>最后验证<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="built_in">COUNT</span>(<span class="operator">*</span>) <span class="keyword">FROM</span> film;</span><br></pre></td></tr></table></figure>
 结果返回1000行，导入成功。</li>
 </ol>
-<h1 id="主从同步-复制-配置"><a href="#主从同步-复制-配置" class="headerlink" title="主从同步(复制)配置"></a>主从同步(复制)配置</h1> 
+<h1 id="主从同步-复制-配置"><a href="#主从同步-复制-配置" class="headerlink" title="主从同步(复制)配置"></a>主从同步(复制)配置</h1><h2 id="主库配置"><a href="#主库配置" class="headerlink" title="主库配置"></a>主库配置</h2><p>**1. 修改<code> postgresql.conf</code>**（打开远程连接、启用 WAL&#x2F;归档等）<br>文件位置示例：&#x2F;usr&#x2F;local&#x2F;pgsql&#x2F;data&#x2F;postgresql.conf<br><strong>首先备份配置文件：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo <span class="built_in">cp</span> /usr/local/pgsql/data/postgresql.conf /usr/local/pgsql/data/postgresql.conf.bak</span><br></pre></td></tr></table></figure>
+<p><strong>执行<code>vim postgresql.conf</code> 修改以下参数:</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 允许外部主机连接数据库</span></span><br><span class="line">listen_addresses = <span class="string">&#x27;*&#x27;</span>              <span class="comment"># 解释: 允许来自任意 IP 的客户端连接（生产中按需限制）</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># WAL / 复制相关（必须）</span></span><br><span class="line">wal_level = replica                 <span class="comment"># 解释: 生成足够的 WAL 信息用于物理复制（必需）</span></span><br><span class="line">max_wal_senders = 10                <span class="comment"># 解释: 同时允许的 WAL 发送进程数量（从库数量 + 余量）</span></span><br><span class="line">wal_keep_size = 64                  <span class="comment"># 解释: 保留多少 WAL 用于避免过早删除（单位 MB）</span></span><br><span class="line">archive_mode = on                   <span class="comment"># 解释: 启用 WAL 归档（做 PITR/归档备份时需要）</span></span><br><span class="line">archive_command = <span class="string">&#x27;cp %p /usr/local/src/archive/%f&#x27;</span></span><br><span class="line">                                    <span class="comment"># 解释: 将 WAL 文件复制到归档目录（</span></span><br></pre></td></tr></table></figure>
+
+<p>因为修改了<code>archive_command</code>，所以还要手动创建一个<code>/usr/local/src/archive</code>目录并修改权限，因为<code>PostgreSQL</code>不会自动创建。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo <span class="built_in">mkdir</span> /usr/local/src/archive</span><br><span class="line">sudo <span class="built_in">chown</span> wqstage:wqstage /usr/local/src/archive</span><br><span class="line">sudo <span class="built_in">chmod</span> 700 /usr/local/src/archive</span><br></pre></td></tr></table></figure>
+<p><strong>2. 创建 <code>replication</code> <code>repmgr</code>专用账号</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 习惯上我们用 postgres 或 template1 来执行管理操作，因为这些数据库通用且易于管理。</span></span><br><span class="line"><span class="comment"># 主从复制专用用户(因为是源码安装的，所以指定端口为5432)</span></span><br><span class="line">sudo -u postgres psql -h localhost -p 5432 -c <span class="string">&quot;CREATE ROLE replicator WITH REPLICATION LOGIN PASSWORD &#x27;replica_pass&#x27;;&quot;</span></span><br><span class="line"><span class="comment"># 后面使用 repmgr 进行自动化故障切换，还需要 repmgr 用户（介绍 repmgr 时会用到）</span></span><br><span class="line">sudo -u postgres psql -h localhost -p 5432 -c <span class="string">&quot;CREATE ROLE repmgr WITH SUPERUSER LOGIN PASSWORD &#x27;repmgr_pass&#x27;;&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>3. 编辑 pg_hba.conf</strong><br>允许指定<code>用户</code>从指定 <code>IP</code> 地址以复制 (replication) 权限连接。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">vim /usr/local/pgsql/data/pg_hba.conf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 允许 standby 用 replicator 用户做 replication</span></span><br><span class="line">host replication replicator &lt;STANDBY_IP&gt;/32 md5</span><br><span class="line"><span class="comment"># 如果仲裁节点也需要连接（例如 repmgr 会用到），可以添加：</span></span><br><span class="line">host replication repmgr &lt;WITNESS_IP&gt;/32 md5</span><br></pre></td></tr></table></figure>
+<p><strong>4. 重启 PostgreSQL 使配置生效</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pg_ctl restart</span><br></pre></td></tr></table></figure>
+<h2 id="内网组建"><a href="#内网组建" class="headerlink" title="内网组建"></a>内网组建</h2><p>首先我的一台虚拟机和两台服务器不在一个局域网，我选择使用<code>Tailscale</code>进行内网穿透。</p>
+<blockquote>
+<p> Tailscale是一个基于 WireGuard 的 点对点网状 VPN (mesh VPN)，每台节点通过加密隧道直接互联，允许分布在不同网络、不同 NAT&#x2F;防火墙后的设备互联。</p>
+</blockquote>
+<ol>
+<li><p>在每台服务器上（主库 + 从库1 + 仲裁&#x2F;见证机）下载<code>Tailscale</code>执行下面的命令，然后登录同一个账号。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl -fsSL https://tailscale.com/install.sh | sh</span><br><span class="line">sudo tailscale up</span><br></pre></td></tr></table></figure>
+<p>完成后每台机器会加入同一个 <code>Tailnet</code>，并分配一个 <code>Tailscale</code> <strong>私有 IP 地址</strong>（如 100.x.y.z）。</p>
+</li>
+<li><p>查看PostgreSQL监听的端口：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo ss -ltnp | grep postgres</span><br></pre></td></tr></table></figure></li>
+<li><p>测试三台机器之间能相互连通（至少主库能被 Standby 连通，仲裁节点也需要与主&#x2F;从连通）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 测试能连到主库的 5432 端口</span></span><br><span class="line">nc -zv &lt;PRIMARY_IP&gt; 5432</span><br></pre></td></tr></table></figure></li>
+</ol>
+<blockquote>
+<p>使用<code>Tailscale</code>后发现阿里云的<code>Workbench</code>一键连接会断开连接，试了一上午没找到解决办法，转用<code>ssh</code>连接解决</p>
+</blockquote>
+<h2 id="从库配置"><a href="#从库配置" class="headerlink" title="从库配置"></a>从库配置</h2><p>把 主库 <code>PostgreSQL</code>安装的 <strong>整个数据目录</strong>（包括系统库、所有用户库、配置、WAL 日志等） 拷贝到从库目标目录。它拉取的是 <code>PostgreSQL</code> 集群所有数据库和相关文件的物理拷贝。这样从库就可以基于这个拷贝启动，与主库同步进行复制。</p>
+<p><strong>1. 停止从库服务</strong>（确保数据目录没被占用）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo -u postgres pg_ctl -D /usr/local/pgsql/data stop</span><br></pre></td></tr></table></figure>
+<p><strong>2. 创建一个负责管理的Linux用户postgres</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">sudo adduser postgres</span><br><span class="line"></span><br><span class="line"><span class="comment">## 新加的用户没有sudo命令权限</span></span><br><span class="line">su -          <span class="comment"># 切换为 root</span></span><br><span class="line">usermod -aG sudo postgres <span class="comment"># 将 postgres 用户加入 sudoers 或 sudo 组</span></span><br><span class="line">su - postgres <span class="comment">#切换回来</span></span><br></pre></td></tr></table></figure>
+<p><strong>3. 清空旧数据目录并重建</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sudo -u postgres <span class="built_in">rm</span> -rf /usr/local/pgsql/data/*</span><br><span class="line">sudo -u postgres <span class="built_in">mkdir</span> -p /usr/local/pgsql/data</span><br><span class="line">sudo <span class="built_in">chown</span> -R postgres:postgres /usr/local/pgsql/data</span><br><span class="line">sudo <span class="built_in">chmod</span> 700 /usr/local/pgsql/data</span><br></pre></td></tr></table></figure>
+<p><strong>4. 从主库拉取基础备份,实现物理复制初始化</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo -u postgres pg_basebackup -h &lt;PRIMARY_IP&gt; -p 5432 -U replicator -D /usr/local/pgsql/data -Fp -Xs -P -R</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>-D 指定目标数据目录。</li>
+<li>-Fp 指定格式为 “plain files”（默认格式，不压缩为 tar）。</li>
+<li>-Xs 指定 WAL 文件通过流方式获取（stream）且包括相关 WAL。</li>
+<li>-P 显示进度。</li>
+<li>-R 指示自动创建恢复配置文件（比如 standby.signal 或 recovery.conf 根据 PostgreSQL 版本），使得该节点自动作为 standby 启动。</li>
+</ul>
+<p><code>pg_basebackup</code> 会提示输入 <code>replica_pass</code>（即你在主库创建 replicator 的密码）: <a href="#%E4%B8%BB%E5%BA%93%E9%85%8D%E7%BD%AE">replica_pass</a><br>执行成功后 <code>/usr/local/pssql/data </code>会包含主库的 <code>basebackup</code> 数据，并生成一个文件 <code>standby.signal</code>。  <code>postgresql.auto.conf</code> 文件中应该包含一行 <code>primary_conninfo = &#39;host=&lt;PRIMARY_IP&gt; port=5432 user=replicator password=...&#39;</code></p>
+<blockquote>
+<p>可能的报错：sudo: pg_basebackup: command not found，原因可能是sudo 会用一个受限的环境执行命令，没有继承用户的 PATH 。用绝对路径执行命令：<code>sudo -u postgres /usr/local/pgsql/bin/pg_basebackup -h &lt;PRIMARY_IP&gt; -p 5432 -U replicator -D /usr/local/pgsql/data -Fp -Xs -P -R</code></p>
+</blockquote>
+<p><strong>5. 在拉取完成后，启动从库</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo -u postgres pg_ctl -D /usr/local/pgsql/data start</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>遇到了一个报错：<code>waiting for server to start....2025-10-28 17:45:57.797 CST [4539] FATAL: could not access file &quot;pg_stat_statements&quot;</code> 这是之前学习时在主库安装了拓展，从库没安装。安装方法：<code>cd /usr/local/src/postgresql-16.8/contrib</code> 执行<code>make</code> 然后<code>sudo make install</code></p>
+</blockquote>
+<h2 id="验证是否连接并接受-WAL"><a href="#验证是否连接并接受-WAL" class="headerlink" title="验证是否连接并接受 WAL"></a>验证是否连接并接受 WAL</h2><p><strong>1. 在从库上查看 WAL 接收器状态</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo -u postgres psql -c <span class="string">&quot;SELECT * FROM pg_stat_wal_receiver;&quot;</span></span><br></pre></td></tr></table></figure>
+<p>正常时会看到 <code>status = streaming</code> 和有相关连接信息<br>结果返回：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">bash</span><br><span class="line">pid  |  status   | receive_start_lsn | receive_start_tli | written_lsn | flushed_lsn | received_tli |      last_msg_send_time       |     last_msg_receipt_time     | latest_end_lsn |        latest_end_time        | slot</span><br><span class="line">_name |  sender_host  | sender_port |                                                                                                                                                                       conninfo        </span><br><span class="line">                                                                                                                                                                </span><br><span class="line">------+-----------+-------------------+-------------------+-------------+-------------+--------------+-------------------------------+-------------------------------+----------------+-------------------------------+-----</span><br><span class="line">------+---------------+-------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span><br><span class="line">----------------------------------------------------------------------------------------------------------------------------------------------------------------</span><br><span class="line"> 5583 | streaming | 0/13000000        |                 1 | 0/13000148  | 0/13000148  |            1 | 2025-10-28 18:05:01.389383+08 | 2025-10-28 18:05:01.507617+08 | 0/13000148     | 2025-10-28 18:01:27.806105+08 |     </span><br><span class="line">      | 100.89.48.112 |        5432 | user=replicator password=******** channel_binding=prefer dbname=replication host=100.89.48.112 port=5432 fallback_application_name=walreceiver sslmode=prefer sslcompression=0 sslcert</span><br><span class="line">mode=allow sslsni=1 ssl_min_protocol_version=TLSv1.2 gssencmode=disable krbsrvname=postgres gssdelegation=0 target_session_attrs=any load_balance_hosts=disable</span><br><span class="line">(1 row)</span><br></pre></td></tr></table></figure>
+<p><strong>2. 验证从库是否连接并接受 WAL</strong><br>在从库上查看 WAL 接收器状态：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">sudo -u postgres psql -c <span class="string">&quot;SELECT * FROM pg_stat_wal_receiver;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 结果返回</span></span><br><span class="line">  pid  | application_name |  client_addr  |   state   | sync_state </span><br><span class="line">-------+------------------+---------------+-----------+------------</span><br><span class="line"> 18973 | walreceiver      | 100.119.50.59 | streaming | async</span><br><span class="line">(1 row)</span><br></pre></td></tr></table></figure>
+
+<h2 id="验证主从同步"><a href="#验证主从同步" class="headerlink" title="验证主从同步"></a>验证主从同步</h2><ol>
+<li>在主库创建测试表并插入记录（在主库 psql 执行）：</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">sudo -u postgres psql -d dvdrental -c <span class="string">&quot;CREATE TABLE test_ha(id serial primary key, note text);&quot;</span></span><br><span class="line">sudo -u postgres psql -d dvdrental -c <span class="string">&quot;INSERT INTO test_ha(note) VALUES (&#x27;from_primary&#x27;);&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#或者执行，然后在psql执行SQL语句</span></span><br><span class="line">psql dvdrental</span><br><span class="line"></span><br><span class="line">CREATE TABLE test_ha(<span class="built_in">id</span> serial primary key, note text);</span><br><span class="line">INSERT INTO test_ha(note) VALUES (<span class="string">&#x27;from_primary&#x27;</span>);</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>在从库查询（注意：从库是 hot_standby，只能读）</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo -u postgres psql -d dvdrental -c <span class="string">&quot;SELECT * FROM test_ha;&quot;</span></span><br></pre></td></tr></table></figure>
+<p>结果是能看到主库插入的数据。</p>
+<h2 id="有关Linux用户和PostgreSQL用户的问题"><a href="#有关Linux用户和PostgreSQL用户的问题" class="headerlink" title="有关Linux用户和PostgreSQL用户的问题"></a>有关Linux用户和PostgreSQL用户的问题</h2><h3 id="Linux用户"><a href="#Linux用户" class="headerlink" title="Linux用户"></a>Linux用户</h3><p><strong>Linux 系统用户</strong>是操作系统层面的用户账号，比如 root、wqstage、postgres 等。它用于控制文件系统访问、进程启动、系统权限、登录操作等。OS 用户有用户名、UID（用户 ID）、所属群组、家目录、shell 等等。<br>当运行：<code>sudo -u wqstage psql …</code>命令时，只是操作系统的 “切换用户” 活动，而不是切换数据库角色。</p>
+<p>值得注意的是：**<code>sudo</code> 命令默认会 重置或清除大部分环境变量，包括 PATH，以保证安全<strong>。当你运行<code> sudo -u wqstage which psql</code> 时，该命令在一个新的环境下执行，此时 <code>PATH</code> 可能只包含标准系统路径（如 &#x2F;usr&#x2F;bin、&#x2F;bin）而不包含你源码安装的 <code>/usr/local/pgsql/bin</code>。因此，即便你在普通登录 session 中设定了 <code>export PATH=/usr/local/pgsql/bin:$PATH</code>，但使用 <code>sudo</code> 切换用户时，这条 <strong><code>PATH</code> 设定未被继承或已被重置</strong> 。结果就是：直接登录 <code>wqstage</code> 使用源码安装的客户端正常；但 <code>sudo</code> 切换执行时却用了系统版本客户端，导致连接可能指向错误的 <code>PostgreSQL</code> 实例或 <code>socket</code> 路径，</strong>从而出现 “没有那个文件或目录” 的错误**。</p>
+<h3 id="PostgreSQL角色"><a href="#PostgreSQL角色" class="headerlink" title="PostgreSQL角色"></a>PostgreSQL角色</h3><p>在 <code>PostgreSQL</code> 中，<strong>数据库用户</strong>其实是 “角色（role）” 的一种情况。一个角色如果被赋予 <code>LOGIN</code> 属性，就可以作为“用户”登录数据库。没有 <code>LOGIN</code> 的角色更像“组”或“权限集合”。角色拥有或被授予权限（如创建数据库、复制权限、表的所有者、连接权限等），并控制谁能访问哪个数据库、哪个表、执行何种操作。</p>
+<p>数据库角色 不需要与 <code>OS</code> 用户名、UID 对应。容易混淆的是：很多人在安装 <code>PostgreSQL</code> 时，系统自动创建 <code>OS</code> 用户 <code>postgres</code>，数据库也自动创建角色<code> postgres</code>。由于名称相同，人们容易误以为它们是同一个账号。事实上它们是不同层级的账号，但出于便利它们常被“配对”。</p>
+<p><strong>连接默认行为</strong>：在 PostgreSQL 中，如果你使用 <code>OS</code> 用户 <code>wqstage</code> 登录系统然后执行 <code>psql</code> 而未指定<code> -U</code> 参数，很可能 <code>psql</code> 会尝试用角色名 <code>wqstage</code> 登录数据库。因为默认数据库用户名为当前 <code>OS</code> 用户名。正如文档指出：默认连接数据库名为当前 <code>OS</code> 用户。</p>
+ 
       <!-- reward -->
       
     </div>
