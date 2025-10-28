@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">4k</span>
+            <span class="post-count">4.1k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">15 min</span>
+            <span class="post-count">16 min</span>
         </span>
     </span>
 </div>
@@ -270,6 +270,11 @@
 <h3 id="PostgreSQL角色"><a href="#PostgreSQL角色" class="headerlink" title="PostgreSQL角色"></a>PostgreSQL角色</h3><p>在 <code>PostgreSQL</code> 中，<strong>数据库用户</strong>其实是 “角色（role）” 的一种情况。一个角色如果被赋予 <code>LOGIN</code> 属性，就可以作为“用户”登录数据库。没有 <code>LOGIN</code> 的角色更像“组”或“权限集合”。角色拥有或被授予权限（如创建数据库、复制权限、表的所有者、连接权限等），并控制谁能访问哪个数据库、哪个表、执行何种操作。</p>
 <p>数据库角色 不需要与 <code>OS</code> 用户名、UID 对应。容易混淆的是：很多人在安装 <code>PostgreSQL</code> 时，系统自动创建 <code>OS</code> 用户 <code>postgres</code>，数据库也自动创建角色<code> postgres</code>。由于名称相同，人们容易误以为它们是同一个账号。事实上它们是不同层级的账号，但出于便利它们常被“配对”。</p>
 <p><strong>连接默认行为</strong>：在 PostgreSQL 中，如果你使用 <code>OS</code> 用户 <code>wqstage</code> 登录系统然后执行 <code>psql</code> 而未指定<code> -U</code> 参数，很可能 <code>psql</code> 会尝试用角色名 <code>wqstage</code> 登录数据库。因为默认数据库用户名为当前 <code>OS</code> 用户名。正如文档指出：默认连接数据库名为当前 <code>OS</code> 用户。</p>
+<h1 id="故障切换"><a href="#故障切换" class="headerlink" title="故障切换"></a>故障切换</h1><h2 id="手动切换"><a href="#手动切换" class="headerlink" title="手动切换"></a>手动切换</h2><ol>
+<li>在从库上执行命令，将从库提升(promote)为新的主库<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo -u postgres /usr/local/pgsql/bin/pg_ctl -D /usr/local/pgsql/data promote</span><br></pre></td></tr></table></figure>
+之后该从库成功 promotion，<strong>会成为可写的主库</strong>。可以验证其可写性：<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo -u postgres psql -c <span class="string">&quot;CREATE TABLE promoted_test(id serial);&quot;</span></span><br></pre></td></tr></table></figure></li>
+<li>若要退回到未提升前的状态<br>当你在某台从库上执行了 <code>pg_ctl promote</code> 让它成为新的主库后，<strong>原主库就不再自动变成从库</strong>。你必须手动将其变更为从库。</li>
+</ol>
  
       <!-- reward -->
       
