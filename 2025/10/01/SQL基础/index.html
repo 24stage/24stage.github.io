@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">3.5k</span>
+            <span class="post-count">3.9k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">13 min</span>
+            <span class="post-count">15 min</span>
         </span>
     </span>
 </div>
@@ -106,7 +106,7 @@
   
     <div class="article-entry" itemprop="articleBody">
        
-  <h2 id="DDL——数据定义语言"><a href="#DDL——数据定义语言" class="headerlink" title="DDL——数据定义语言"></a>DDL——数据定义语言</h2><p>用于 <strong>定义和修改数据库结构</strong>，例如数据库、表、索引、视图、约束等。</p>
+  <h1 id="DDL——数据定义语言"><a href="#DDL——数据定义语言" class="headerlink" title="DDL——数据定义语言"></a>DDL——数据定义语言</h1><p>用于 <strong>定义和修改数据库结构</strong>，例如数据库、表、索引、视图、约束等。</p>
 <p>这些操作会直接<strong>影响数据库的结构</strong>，而不仅仅是表中的数据。<br>执行 DDL 语句后，系统会<strong>自动提交事务</strong>（即无法回滚）。</p>
 <p>常见DDL命令</p>
 <table>
@@ -150,7 +150,7 @@
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">TRUNCATE</span> <span class="keyword">TABLE</span> employees;</span><br></pre></td></tr></table></figure></li>
 </ul>
 <hr>
-<h2 id="DML——数据操作语言"><a href="#DML——数据操作语言" class="headerlink" title="DML——数据操作语言"></a>DML——数据操作语言</h2><p>用于 <strong>查询和操作数据本身</strong>（不是结构），<br>即增、删、改、查操作。</p>
+<h1 id="DML——数据操作语言"><a href="#DML——数据操作语言" class="headerlink" title="DML——数据操作语言"></a>DML——数据操作语言</h1><p>用于 <strong>查询和操作数据本身</strong>（不是结构），<br>即增、删、改、查操作。</p>
 <p>DML 语句可以在事务中执行，因此<strong>可以回滚（ROLLBACK）或提交（COMMIT）</strong>。</p>
 <p>常见DML命令</p>
 <table>
@@ -190,11 +190,11 @@
 <li><p><strong>删除数据</strong>：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DELETE</span> <span class="keyword">FROM</span> students</span><br><span class="line"><span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">1</span>;</span><br></pre></td></tr></table></figure></li>
 </ul>
-<h2 id="分组（GROUP-BY）"><a href="#分组（GROUP-BY）" class="headerlink" title="分组（GROUP BY）"></a>分组（GROUP BY）</h2><p><code>GROUP BY</code> 子句用于将结果集中的<strong>行分组</strong>，每个组代表在指定列上具有相同值的记录集合。<br>分组通常与<strong>聚集函数（aggregate functions）</strong>（如 <code>COUNT()</code>、<code>AVG()</code>、<code>SUM()</code>、<code>MAX()</code>、<code>MIN()</code>）一起使用，以便对每个组进行统计计算。</p>
+<h1 id="分组（GROUP-BY）"><a href="#分组（GROUP-BY）" class="headerlink" title="分组（GROUP BY）"></a>分组（GROUP BY）</h1><p><code>GROUP BY</code> 子句用于将结果集中的<strong>行分组</strong>，每个组代表在指定列上具有相同值的记录集合。<br>分组通常与<strong>聚集函数（aggregate functions）</strong>（如 <code>COUNT()</code>、<code>AVG()</code>、<code>SUM()</code>、<code>MAX()</code>、<code>MIN()</code>）一起使用，以便对每个组进行统计计算。</p>
 <p><strong>基本语法：</strong></p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> 列名, 聚集函数(列名)</span><br><span class="line"><span class="keyword">FROM</span> 表名</span><br><span class="line">[<span class="keyword">WHERE</span> 条件]</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> 列名</span><br><span class="line">[<span class="keyword">HAVING</span> 分组条件]</span><br><span class="line">[<span class="keyword">ORDER</span> <span class="keyword">BY</span> 排序列];</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 <hr>
-<h2 id="集合运算"><a href="#集合运算" class="headerlink" title="集合运算"></a>集合运算</h2><p>PostgreSQL 支持以下四种主要集合运算： </p>
+<h1 id="集合运算"><a href="#集合运算" class="headerlink" title="集合运算"></a>集合运算</h1><p>PostgreSQL 支持以下四种主要集合运算： </p>
 <table>
 <thead>
 <tr>
@@ -234,7 +234,7 @@
 </ol>
 <p>集合运算与 <code>DISTINCT </code>的关系:<br><code>UNION、INTERSECT、EXCEPT</code> 都会隐式执行去重（相当于 DISTINCT）。<br>如果不需要去重，用 ALL 版本可提高性能。</p>
 <hr>
-<h2 id="连接-JOIN"><a href="#连接-JOIN" class="headerlink" title="连接 (JOIN)"></a>连接 (JOIN)</h2><p>连接包括几个类型：</p>
+<h1 id="连接-JOIN"><a href="#连接-JOIN" class="headerlink" title="连接 (JOIN)"></a>连接 (JOIN)</h1><p>连接包括几个类型：</p>
 <ul>
 <li><p><strong>内连接（INNER JOIN）</strong>：<br>仅返回两个表中匹配的行。</p>
 </li>
@@ -286,7 +286,7 @@
 </tr>
 </tbody></table>
 <hr>
-<h2 id="聚集函数与-WHERE-HAVING-FILTER"><a href="#聚集函数与-WHERE-HAVING-FILTER" class="headerlink" title="聚集函数与 WHERE &#x2F; HAVING &#x2F; FILTER"></a>聚集函数与 WHERE &#x2F; HAVING &#x2F; FILTER</h2><ul>
+<h1 id="聚集函数与-WHERE-HAVING-FILTER"><a href="#聚集函数与-WHERE-HAVING-FILTER" class="headerlink" title="聚集函数与 WHERE &#x2F; HAVING &#x2F; FILTER"></a>聚集函数与 WHERE &#x2F; HAVING &#x2F; FILTER</h1><ul>
 <li><p><strong>WHERE 子句</strong>：  </p>
 <ul>
 <li>在分组与聚合之前过滤行。  </li>
@@ -324,7 +324,42 @@
 </li>
 </ul>
 <hr>
-<h2 id="SQL-查询的执行顺序"><a href="#SQL-查询的执行顺序" class="headerlink" title="SQL 查询的执行顺序"></a>SQL 查询的执行顺序</h2><p>SQL 编写顺序：</p>
+<h1 id="窗口函数（Window-Functions）"><a href="#窗口函数（Window-Functions）" class="headerlink" title="窗口函数（Window Functions）"></a>窗口函数（Window Functions）</h1><p>作用是：在不分组、不聚合整行的情况下，对数据集中的“窗口（window）”进行计算。<br>窗口函数在 SELECT 或 ORDER BY 子句中使用，一般形式如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">function_name (expression) <span class="keyword">OVER</span> (</span><br><span class="line">    [<span class="keyword">PARTITION</span> <span class="keyword">BY</span> column_list]</span><br><span class="line">    [<span class="keyword">ORDER</span> <span class="keyword">BY</span> column_list]</span><br><span class="line">    [frame_clause]</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h2 id="窗口函数与聚合函数的区别"><a href="#窗口函数与聚合函数的区别" class="headerlink" title="窗口函数与聚合函数的区别"></a>窗口函数与聚合函数的区别</h2><table>
+<thead>
+<tr>
+<th>功能</th>
+<th>聚合函数</th>
+<th>窗口函数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>作用范围</td>
+<td>整组聚合，行被合并</td>
+<td>每行保留，只在“窗口”内计算</td>
+</tr>
+<tr>
+<td>示例</td>
+<td><code>AVG(salary)</code> 计算整个部门的平均工资</td>
+<td><code>AVG(salary) OVER (PARTITION BY dept)</code> 计算每行所在部门的平均工资</td>
+</tr>
+</tbody></table>
+<h2 id="常见窗口函数实例"><a href="#常见窗口函数实例" class="headerlink" title="常见窗口函数实例"></a>常见窗口函数实例</h2><p><strong>1. 排序相关</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">  name,</span><br><span class="line">  salary,</span><br><span class="line">  <span class="built_in">RANK</span>() <span class="keyword">OVER</span> (<span class="keyword">ORDER</span> <span class="keyword">BY</span> salary <span class="keyword">DESC</span>) <span class="keyword">AS</span> rank,   # 并列时跳号（<span class="number">1</span>,<span class="number">2</span>,<span class="number">2</span>,<span class="number">4</span>）</span><br><span class="line">  <span class="built_in">DENSE_RANK</span>() <span class="keyword">OVER</span> (<span class="keyword">ORDER</span> <span class="keyword">BY</span> salary <span class="keyword">DESC</span>) <span class="keyword">AS</span> dense_rank,   # 并列不跳号（<span class="number">1</span>,<span class="number">2</span>,<span class="number">2</span>,<span class="number">3</span>）</span><br><span class="line">  <span class="built_in">ROW_NUMBER</span>() <span class="keyword">OVER</span> (<span class="keyword">ORDER</span> <span class="keyword">BY</span> salary <span class="keyword">DESC</span>) <span class="keyword">AS</span> row_num   # 每行唯一编号（无并列）</span><br><span class="line"><span class="keyword">FROM</span> employees;</span><br></pre></td></tr></table></figure>
+<p><strong>2. 分区计算</strong><br>每个部门内部计算平均工资，同时保留每行记录。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">  dept,</span><br><span class="line">  name,</span><br><span class="line">  salary,</span><br><span class="line">  <span class="built_in">AVG</span>(salary) <span class="keyword">OVER</span> (<span class="keyword">PARTITION</span> <span class="keyword">BY</span> dept) <span class="keyword">AS</span> dept_avg</span><br><span class="line"><span class="keyword">FROM</span> employees;</span><br></pre></td></tr></table></figure>
+
+<p><strong>3. 累加计算</strong><br>按 id 排序，计算“截至当前”的累计工资。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">  name,</span><br><span class="line">  salary,</span><br><span class="line">  <span class="built_in">SUM</span>(salary) <span class="keyword">OVER</span> (<span class="keyword">ORDER</span> <span class="keyword">BY</span> id) <span class="keyword">AS</span> running_total</span><br><span class="line"><span class="keyword">FROM</span> employees;</span><br></pre></td></tr></table></figure>
+<p><strong>4. LAG&#x2F;LESD 前后行取值</strong><br>可以访问相邻行（上一行、下一行）的值，非常适合计算差值、增长率等</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">  name,</span><br><span class="line">  salary,</span><br><span class="line">  <span class="built_in">LAG</span>(salary, <span class="number">1</span>) <span class="keyword">OVER</span> (<span class="keyword">ORDER</span> <span class="keyword">BY</span> id) <span class="keyword">AS</span> prev_salary,</span><br><span class="line">  <span class="built_in">LEAD</span>(salary, <span class="number">1</span>) <span class="keyword">OVER</span> (<span class="keyword">ORDER</span> <span class="keyword">BY</span> id) <span class="keyword">AS</span> next_salary</span><br><span class="line"><span class="keyword">FROM</span> employees;</span><br></pre></td></tr></table></figure>
+<p><strong>5. NTILE 均匀分组</strong><br>将数据按工资从高到低分成 4 个“等份区间”（分位数分析）。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">  name,</span><br><span class="line">  salary,</span><br><span class="line">  <span class="built_in">NTILE</span>(<span class="number">4</span>) <span class="keyword">OVER</span> (<span class="keyword">ORDER</span> <span class="keyword">BY</span> salary <span class="keyword">DESC</span>) <span class="keyword">AS</span> quartile</span><br><span class="line"><span class="keyword">FROM</span> employees;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="SQL-查询的执行顺序"><a href="#SQL-查询的执行顺序" class="headerlink" title="SQL 查询的执行顺序"></a>SQL 查询的执行顺序</h1><p>SQL 编写顺序：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> ... <span class="keyword">FROM</span> ... <span class="keyword">WHERE</span> ... <span class="keyword">GROUP</span> <span class="keyword">BY</span> ... <span class="keyword">HAVING</span> ... <span class="keyword">ORDER</span> <span class="keyword">BY</span> ... LIMIT ...</span><br></pre></td></tr></table></figure>
 
 <p>SQL 实际执行顺序：</p>
@@ -342,7 +377,7 @@
 <p>注意：执行顺序和书写顺序不一致，理解这一点有助于正确使用 WHERE 与 HAVING。</p>
 </blockquote>
 <hr>
-<h2 id="IN-ANY-SOME-ALL操作符"><a href="#IN-ANY-SOME-ALL操作符" class="headerlink" title="IN,ANY&#x2F;SOME,ALL操作符"></a>IN,ANY&#x2F;SOME,ALL操作符</h2><p>在 SQL 中，<code>IN</code>、<code>ANY</code>（或 <code>SOME</code>）、<code>ALL</code> 都可以用于 <strong>比较一个值与多个值</strong>，<br>尤其常用于子查询中，用来实现更灵活的条件判断。</p>
+<h1 id="IN-ANY-SOME-ALL操作符"><a href="#IN-ANY-SOME-ALL操作符" class="headerlink" title="IN,ANY&#x2F;SOME,ALL操作符"></a>IN,ANY&#x2F;SOME,ALL操作符</h1><p>在 SQL 中，<code>IN</code>、<code>ANY</code>（或 <code>SOME</code>）、<code>ALL</code> 都可以用于 <strong>比较一个值与多个值</strong>，<br>尤其常用于子查询中，用来实现更灵活的条件判断。</p>
 <p><strong>1. IN</strong><br>判断某个表达式的值是否 在指定的列表或子查询结果中。<br>示例：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> name, department</span><br><span class="line"><span class="keyword">FROM</span> employees</span><br><span class="line"><span class="keyword">WHERE</span> department <span class="keyword">IN</span> (<span class="string">&#x27;HR&#x27;</span>, <span class="string">&#x27;Sales&#x27;</span>, <span class="string">&#x27;Finance&#x27;</span>);</span><br></pre></td></tr></table></figure>
 <p>表示：选择部门是 HR、Sales 或 Finance 的员工。</p>
@@ -362,14 +397,15 @@
 <p>示例<br>查询工资高于所有部门平均工资的员工：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> name, salary</span><br><span class="line"><span class="keyword">FROM</span> employees</span><br><span class="line"><span class="keyword">WHERE</span> salary <span class="operator">&gt;</span> <span class="keyword">ALL</span> (</span><br><span class="line">    <span class="keyword">SELECT</span> avg_salary <span class="keyword">FROM</span> departments</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
 <p>表示：该员工的工资要比所有部门的平均工资都高。</p>
-<h2 id="行构造器比较"><a href="#行构造器比较" class="headerlink" title="行构造器比较"></a>行构造器比较</h2><p><strong>基本规则:</strong></p>
+<hr>
+<h1 id="行构造器比较"><a href="#行构造器比较" class="headerlink" title="行构造器比较"></a>行构造器比较</h1><p><strong>基本规则:</strong></p>
 <ol>
 <li><p>两个行构造器必须包含相同数量的字段。<br>否则 PostgreSQL 无法逐一对应比较。</p>
 </li>
 <li><p>比较时，系统会从左到右依次比较每一对字段。<br>当遇到第一对“可以区分结果”的字段时，就会停止比较。</p>
 </li>
 </ol>
-<h3 id="各类比较符的行为"><a href="#各类比较符的行为" class="headerlink" title="各类比较符的行为"></a>各类比较符的行为</h3><p><strong>1. &#x3D; 与 &lt;&gt;（等于与不等）</strong></p>
+<h2 id="各类比较符的行为"><a href="#各类比较符的行为" class="headerlink" title="各类比较符的行为"></a>各类比较符的行为</h2><p><strong>1. &#x3D; 与 &lt;&gt;（等于与不等）</strong></p>
 <p>这两种情况的逻辑是：</p>
 <ul>
 <li>如果所有对应字段都 非空 且 相等，则整行相等。</li>
@@ -398,7 +434,8 @@
 <p>示例：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> (<span class="number">1</span>, <span class="keyword">NULL</span>) <span class="keyword">IS</span> <span class="keyword">DISTINCT</span> <span class="keyword">FROM</span> (<span class="number">1</span>, <span class="keyword">NULL</span>);   <span class="comment">-- false</span></span><br><span class="line"><span class="keyword">SELECT</span> (<span class="number">1</span>, <span class="keyword">NULL</span>) <span class="keyword">IS</span> <span class="keyword">DISTINCT</span> <span class="keyword">FROM</span> (<span class="number">1</span>, <span class="number">2</span>);      <span class="comment">-- true</span></span><br><span class="line"><span class="keyword">SELECT</span> (<span class="number">1</span>, <span class="keyword">NULL</span>) <span class="keyword">IS</span> <span class="keyword">NOT</span> <span class="keyword">DISTINCT</span> <span class="keyword">FROM</span> (<span class="number">1</span>, <span class="keyword">NULL</span>); <span class="comment">-- true</span></span><br></pre></td></tr></table></figure>
 <p>这样可以避免因为 NULL 导致比较结果不确定的问题。</p>
-<h2 id="约束-constraint"><a href="#约束-constraint" class="headerlink" title="约束(constraint)"></a>约束(constraint)</h2><p>约束（Constraint） 用于限制表中数据的取值范围和关系，以保证数据的准确性、一致性和完整性。</p>
+<hr>
+<h1 id="约束-constraint"><a href="#约束-constraint" class="headerlink" title="约束(constraint)"></a>约束(constraint)</h1><p>约束（Constraint） 用于限制表中数据的取值范围和关系，以保证数据的准确性、一致性和完整性。</p>
 <table>
 <thead>
 <tr>
@@ -443,17 +480,17 @@
 <td><code>DEFERRABLE INITIALLY DEFERRED</code></td>
 </tr>
 </tbody></table>
-<h3 id="CHECK-约束"><a href="#CHECK-约束" class="headerlink" title="CHECK 约束"></a>CHECK 约束</h3><p>一个检查约束也可以引用多个列。例如我们存储一个普通价格和一个打折后的价格，而我们希望保证打折后的价格低于普通价格：</p>
+<h2 id="CHECK-约束"><a href="#CHECK-约束" class="headerlink" title="CHECK 约束"></a>CHECK 约束</h2><p>一个检查约束也可以引用多个列。例如我们存储一个普通价格和一个打折后的价格，而我们希望保证打折后的价格低于普通价格：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> products (</span><br><span class="line">    product_no <span class="type">integer</span>,</span><br><span class="line">    name text,</span><br><span class="line">    price <span class="type">numeric</span> <span class="keyword">CHECK</span> (price <span class="operator">&gt;</span> <span class="number">0</span>),</span><br><span class="line">    discounted_price <span class="type">numeric</span> <span class="keyword">CHECK</span> (discounted_price <span class="operator">&gt;</span> <span class="number">0</span>),</span><br><span class="line">    <span class="keyword">CHECK</span> (price <span class="operator">&gt;</span> discounted_price)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
 
 <p>前两个约束看起来很相似。第三个则使用了一种新语法。它并没有依附在一个特定的列，而是<strong>作为一个独立的项出现在逗号分隔的列列表中</strong>。列定义和这种约束定义可以以混合的顺序出现在列表中。</p>
 <p>我们将前两个约束称为列约束，而第三个约束为<strong>表约束</strong>，因为它独立于任何一个列定义。列约束也可以写成表约束，但反过来不行，因为一个列约束只能引用它所依附的那一个列</p>
-<h3 id="UNIQUE-约束"><a href="#UNIQUE-约束" class="headerlink" title="UNIQUE 约束"></a>UNIQUE 约束</h3><p>通常情况下，如果表中有多行，其中包含约束中包含的所有列的值相等，则违反了唯一约束。 默认情况下，在此比较中，两个空值不被视为相等。这意味着即使存在唯一约束，也可以存储包含至少一个受约束列中的空值的重复行。 可以通过添加子句<code>NULLS NOT DISTINCT</code>来更改此行为，例如</p>
+<h2 id="UNIQUE-约束"><a href="#UNIQUE-约束" class="headerlink" title="UNIQUE 约束"></a>UNIQUE 约束</h2><p>通常情况下，如果表中有多行，其中包含约束中包含的所有列的值相等，则违反了唯一约束。 默认情况下，在此比较中，两个空值不被视为相等。这意味着即使存在唯一约束，也可以存储包含至少一个受约束列中的空值的重复行。 可以通过添加子句<code>NULLS NOT DISTINCT</code>来更改此行为，例如</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> products (</span><br><span class="line">    count <span class="type">int</span> <span class="keyword">UNIQUE</span>,</span><br><span class="line">    product_no <span class="type">integer</span> <span class="keyword">UNIQUE</span> NULLS <span class="keyword">NOT</span> <span class="keyword">DISTINCT</span>,</span><br><span class="line">    name text,</span><br><span class="line">    price <span class="type">numeric</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line">或者</span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> products (</span><br><span class="line">    product_no <span class="type">integer</span>,</span><br><span class="line">    name text,</span><br><span class="line">    price <span class="type">numeric</span>,</span><br><span class="line">    <span class="keyword">UNIQUE</span> NULLS <span class="keyword">NOT</span> <span class="keyword">DISTINCT</span> (product_no)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
 
-<h3 id="主键-PRIMARY-KEY"><a href="#主键-PRIMARY-KEY" class="headerlink" title="主键(PRIMARY KEY)"></a>主键(PRIMARY KEY)</h3><p>一个主键约束表示可以用作表中行的唯一标识符的一个列或者一组列。这要求那些值都是唯一的并且非空。因此<code>id PRIMARY KEY</code> 相当于 <code>id UNIQUE NOT NULL</code>。</p>
+<h2 id="主键-PRIMARY-KEY"><a href="#主键-PRIMARY-KEY" class="headerlink" title="主键(PRIMARY KEY)"></a>主键(PRIMARY KEY)</h2><p>一个主键约束表示可以用作表中行的唯一标识符的一个列或者一组列。这要求那些值都是唯一的并且非空。因此<code>id PRIMARY KEY</code> 相当于 <code>id UNIQUE NOT NULL</code>。</p>
 <p>一个表最多只能有一个主键（可以有任意数量的唯一和非空约束，它们可以达到和主键几乎一样的功能，但只能有一个被标识为主键）。</p>
-<h3 id="外键-FOREIGN-KEY"><a href="#外键-FOREIGN-KEY" class="headerlink" title="外键(FOREIGN KEY)"></a>外键(FOREIGN KEY)</h3><ul>
+<h2 id="外键-FOREIGN-KEY"><a href="#外键-FOREIGN-KEY" class="headerlink" title="外键(FOREIGN KEY)"></a>外键(FOREIGN KEY)</h2><ul>
 <li><strong>定义</strong>：外键是用于保持 <strong>引用完整性（Referential Integrity）</strong> 的约束。一个外键约束指定一列（或一组列）中的值必须匹配出现在另一个表中某些行的值。我们说这维持了两个关联表之间的引用完整性。</li>
 <li><strong>作用</strong>：建立子表与父表的联系，保证数据一致性。外键值必须匹配父表主键&#x2F;唯一键的值，或者为 NULL。防止“孤儿数据”。</li>
 </ul>
@@ -476,7 +513,7 @@
 <li>ON DELETE RESTRICT: 阻止删除一个被引用的行</li>
 <li>SET NULL 和 SET DEFAULT: 将导致在被引用行被删除后，引用行中的引用列被置为空值或它们的默认值</li>
 </ul>
-<h4 id="已有表如何添加外键"><a href="#已有表如何添加外键" class="headerlink" title="已有表如何添加外键"></a>已有表如何添加外键</h4><p><strong>假设 weather 表中 city 字段唯一，可以加主键(PRIMARY KEY)：</strong></p>
+<h3 id="已有表如何添加外键"><a href="#已有表如何添加外键" class="headerlink" title="已有表如何添加外键"></a>已有表如何添加外键</h3><p><strong>假设 weather 表中 city 字段唯一，可以加主键(PRIMARY KEY)：</strong></p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> weather</span><br><span class="line"><span class="keyword">ADD</span> <span class="keyword">CONSTRAINT</span> weather_pkey </span><br><span class="line"><span class="keyword">PRIMARY</span> KEY (city);</span><br></pre></td></tr></table></figure>
 <p><code>weather_pkey</code>是主键名</p>
 <p><strong>添加外键（FOREIGN KEY）</strong></p>
@@ -487,7 +524,7 @@
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> orders</span><br><span class="line"><span class="keyword">DROP</span> <span class="keyword">CONSTRAINT</span> weather_city_fkey;</span><br></pre></td></tr></table></figure>
 
 <hr>
-<h2 id="域-Domain"><a href="#域-Domain" class="headerlink" title="域 (Domain)"></a>域 (Domain)</h2><p>在 SQL 中，域（Domain） 是一种 <strong>基于已有数据类型创建的新“类型”</strong>，<br>它可以带有默认值、检查约束（CHECK）或 NOT NULL 限制。</p>
+<h1 id="域-Domain"><a href="#域-Domain" class="headerlink" title="域 (Domain)"></a>域 (Domain)</h1><p>在 SQL 中，域（Domain） 是一种 <strong>基于已有数据类型创建的新“类型”</strong>，<br>它可以带有默认值、检查约束（CHECK）或 NOT NULL 限制。</p>
 <blockquote>
 <p>📘 简单来说：<br>域 &#x3D; 数据类型 + 约束规则</p>
 </blockquote>
@@ -501,7 +538,11 @@
 <p>之后只需要：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> users (</span><br><span class="line">  id SERIAL <span class="keyword">PRIMARY</span> KEY,</span><br><span class="line">  email email_domain</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
 
-<h2 id="查看已有域"><a href="#查看已有域" class="headerlink" title="查看已有域:"></a><strong>查看已有域:</strong><br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">\dD        <span class="comment">-- 查看所有域</span></span><br><span class="line">\dD domain_name  <span class="comment">-- 查看具体域定义</span></span><br></pre></td></tr></table></figure></h2><h2 id="WITH-查询（CTE）"><a href="#WITH-查询（CTE）" class="headerlink" title="WITH 查询（CTE）"></a>WITH 查询（CTE）</h2><p>WITH 查询（CTE, Common Table Expression）用于在一个 SQL 语句中定义临时的结果集，这些结果集在后续的主查询中可以像普通表一样使用。<br>它让复杂查询更清晰、可读性更强，也能避免重复子查询。</p>
+<p><strong>查看已有域:</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">\dD        <span class="comment">-- 查看所有域</span></span><br><span class="line">\dD domain_name  <span class="comment">-- 查看具体域定义</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="WITH-查询（CTE）"><a href="#WITH-查询（CTE）" class="headerlink" title="WITH 查询（CTE）"></a>WITH 查询（CTE）</h1><p>WITH 查询（CTE, Common Table Expression）用于在一个 SQL 语句中定义临时的结果集，这些结果集在后续的主查询中可以像普通表一样使用。<br>它让复杂查询更清晰、可读性更强，也能避免重复子查询。</p>
 <blockquote>
 <p>使用场景	多步逻辑、复用子查询、递归结构</p>
 </blockquote>
@@ -540,6 +581,7 @@
 <td>❌ 不支持</td>
 </tr>
 </tbody></table>
+<hr>
  
       <!-- reward -->
       
