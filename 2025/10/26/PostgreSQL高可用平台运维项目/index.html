@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">4.1k</span>
+            <span class="post-count">6k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">16 min</span>
+            <span class="post-count">24 min</span>
         </span>
     </span>
 </div>
@@ -192,32 +192,33 @@
 <li>最后验证<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="built_in">COUNT</span>(<span class="operator">*</span>) <span class="keyword">FROM</span> film;</span><br></pre></td></tr></table></figure>
 结果返回1000行，导入成功。</li>
 </ol>
-<h1 id="主从同步-复制-配置"><a href="#主从同步-复制-配置" class="headerlink" title="主从同步(复制)配置"></a>主从同步(复制)配置</h1><h2 id="主库配置"><a href="#主库配置" class="headerlink" title="主库配置"></a>主库配置</h2><p>**1. 修改<code> postgresql.conf</code>**（打开远程连接、启用 WAL&#x2F;归档等）<br>文件位置示例：&#x2F;usr&#x2F;local&#x2F;pgsql&#x2F;data&#x2F;postgresql.conf<br><strong>首先备份配置文件：</strong></p>
+<hr>
+<h1 id="主从同步-复制-手动"><a href="#主从同步-复制-手动" class="headerlink" title="主从同步(复制)手动"></a>主从同步(复制)手动</h1><h2 id="主库配置"><a href="#主库配置" class="headerlink" title="主库配置"></a>主库配置</h2><p>**1. 修改<code> postgresql.conf</code>**（打开远程连接、启用 WAL&#x2F;归档等）<br>文件位置示例：<code>/usr/local/pgsql/data/postgresql.conf</code><br><strong>首先备份配置文件：</strong></p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo <span class="built_in">cp</span> /usr/local/pgsql/data/postgresql.conf /usr/local/pgsql/data/postgresql.conf.bak</span><br></pre></td></tr></table></figure>
 <p><strong>执行<code>vim postgresql.conf</code> 修改以下参数:</strong></p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 允许外部主机连接数据库</span></span><br><span class="line">listen_addresses = <span class="string">&#x27;*&#x27;</span>              <span class="comment"># 解释: 允许来自任意 IP 的客户端连接（生产中按需限制）</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># WAL / 复制相关（必须）</span></span><br><span class="line">wal_level = replica                 <span class="comment"># 解释: 生成足够的 WAL 信息用于物理复制（必需）</span></span><br><span class="line">max_wal_senders = 10                <span class="comment"># 解释: 同时允许的 WAL 发送进程数量（从库数量 + 余量）</span></span><br><span class="line">wal_keep_size = 64                  <span class="comment"># 解释: 保留多少 WAL 用于避免过早删除（单位 MB）</span></span><br><span class="line">archive_mode = on                   <span class="comment"># 解释: 启用 WAL 归档（做 PITR/归档备份时需要）</span></span><br><span class="line">archive_command = <span class="string">&#x27;cp %p /usr/local/src/archive/%f&#x27;</span></span><br><span class="line">                                    <span class="comment"># 解释: 将 WAL 文件复制到归档目录（</span></span><br></pre></td></tr></table></figure>
 
 <p>因为修改了<code>archive_command</code>，所以还要手动创建一个<code>/usr/local/src/archive</code>目录并修改权限，因为<code>PostgreSQL</code>不会自动创建。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo <span class="built_in">mkdir</span> /usr/local/src/archive</span><br><span class="line">sudo <span class="built_in">chown</span> wqstage:wqstage /usr/local/src/archive</span><br><span class="line">sudo <span class="built_in">chmod</span> 700 /usr/local/src/archive</span><br></pre></td></tr></table></figure>
-<p><strong>2. 创建 <code>replication</code> <code>repmgr</code>专用账号</strong></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 习惯上我们用 postgres 或 template1 来执行管理操作，因为这些数据库通用且易于管理。</span></span><br><span class="line"><span class="comment"># 主从复制专用用户(因为是源码安装的，所以指定端口为5432)</span></span><br><span class="line">sudo -u postgres psql -h localhost -p 5432 -c <span class="string">&quot;CREATE ROLE replicator WITH REPLICATION LOGIN PASSWORD &#x27;replica_pass&#x27;;&quot;</span></span><br><span class="line"><span class="comment"># 后面使用 repmgr 进行自动化故障切换，还需要 repmgr 用户（介绍 repmgr 时会用到）</span></span><br><span class="line">sudo -u postgres psql -h localhost -p 5432 -c <span class="string">&quot;CREATE ROLE repmgr WITH SUPERUSER LOGIN PASSWORD &#x27;repmgr_pass&#x27;;&quot;</span></span><br></pre></td></tr></table></figure>
+<p><strong>2. 创建 <code>replication</code>专用账号</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 习惯上我们用 postgres 或 template1 来执行管理操作，因为这些数据库通用且易于管理。</span></span><br><span class="line"><span class="comment"># 主从复制专用用户(因为是源码安装的，所以指定端口为5432)</span></span><br><span class="line">sudo -u postgres psql -h localhost -p 5432 -c <span class="string">&quot;CREATE ROLE replicator WITH REPLICATION LOGIN PASSWORD &#x27;replica_pass&#x27;;&quot;</span></span><br></pre></td></tr></table></figure>
 
 <p><strong>3. 编辑 pg_hba.conf</strong><br>允许指定<code>用户</code>从指定 <code>IP</code> 地址以复制 (replication) 权限连接。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">vim /usr/local/pgsql/data/pg_hba.conf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 允许 standby 用 replicator 用户做 replication</span></span><br><span class="line">host replication replicator &lt;STANDBY_IP&gt;/32 md5</span><br><span class="line"><span class="comment"># 如果仲裁节点也需要连接（例如 repmgr 会用到），可以添加：</span></span><br><span class="line">host replication repmgr &lt;WITNESS_IP&gt;/32 md5</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">vim /usr/local/pgsql/data/pg_hba.conf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 允许 standby 用 replicator 用户做 replication</span></span><br><span class="line">host replication replicator &lt;STANDBY_IP&gt;/32 md5</span><br></pre></td></tr></table></figure>
 <p><strong>4. 重启 PostgreSQL 使配置生效</strong></p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pg_ctl restart</span><br></pre></td></tr></table></figure>
-<h2 id="内网组建"><a href="#内网组建" class="headerlink" title="内网组建"></a>内网组建</h2><p>首先我的一台虚拟机和两台服务器不在一个局域网，我选择使用<code>Tailscale</code>进行内网穿透。</p>
+<h2 id="内网组建"><a href="#内网组建" class="headerlink" title="内网组建"></a>内网组建</h2><p>首先我的一台虚拟机和云服务器不在一个局域网，我选择使用<code>Tailscale</code>进行内网穿透。</p>
 <blockquote>
 <p> Tailscale是一个基于 WireGuard 的 点对点网状 VPN (mesh VPN)，每台节点通过加密隧道直接互联，允许分布在不同网络、不同 NAT&#x2F;防火墙后的设备互联。</p>
 </blockquote>
 <ol>
-<li><p>在每台服务器上（主库 + 从库1 + 仲裁&#x2F;见证机）下载<code>Tailscale</code>执行下面的命令，然后登录同一个账号。</p>
+<li><p>在每台服务器上（主库 + 从库 + 仲裁&#x2F;见证机）下载<code>Tailscale</code>执行下面的命令，然后登录同一个账号。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl -fsSL https://tailscale.com/install.sh | sh</span><br><span class="line">sudo tailscale up</span><br></pre></td></tr></table></figure>
 <p>完成后每台机器会加入同一个 <code>Tailnet</code>，并分配一个 <code>Tailscale</code> <strong>私有 IP 地址</strong>（如 100.x.y.z）。</p>
 </li>
 <li><p>查看PostgreSQL监听的端口：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo ss -ltnp | grep postgres</span><br></pre></td></tr></table></figure></li>
-<li><p>测试三台机器之间能相互连通（至少主库能被 Standby 连通，仲裁节点也需要与主&#x2F;从连通）：</p>
+<li><p>测试机器之间能相互连通（至少主库能被 Standby 连通，仲裁节点也需要与主&#x2F;从连通）：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 测试能连到主库的 5432 端口</span></span><br><span class="line">nc -zv &lt;PRIMARY_IP&gt; 5432</span><br></pre></td></tr></table></figure></li>
 </ol>
 <blockquote>
@@ -236,7 +237,7 @@
 <ul>
 <li>-D 指定目标数据目录。</li>
 <li>-Fp 指定格式为 “plain files”（默认格式，不压缩为 tar）。</li>
-<li>-Xs 指定 WAL 文件通过流方式获取（stream）且包括相关 WAL。</li>
+<li>-Xs 指定 <strong>WAL 文件通过流方式获取（stream）且包括相关 WAL</strong>。</li>
 <li>-P 显示进度。</li>
 <li>-R 指示自动创建恢复配置文件（比如 standby.signal 或 recovery.conf 根据 PostgreSQL 版本），使得该节点自动作为 standby 启动。</li>
 </ul>
@@ -270,11 +271,95 @@
 <h3 id="PostgreSQL角色"><a href="#PostgreSQL角色" class="headerlink" title="PostgreSQL角色"></a>PostgreSQL角色</h3><p>在 <code>PostgreSQL</code> 中，<strong>数据库用户</strong>其实是 “角色（role）” 的一种情况。一个角色如果被赋予 <code>LOGIN</code> 属性，就可以作为“用户”登录数据库。没有 <code>LOGIN</code> 的角色更像“组”或“权限集合”。角色拥有或被授予权限（如创建数据库、复制权限、表的所有者、连接权限等），并控制谁能访问哪个数据库、哪个表、执行何种操作。</p>
 <p>数据库角色 不需要与 <code>OS</code> 用户名、UID 对应。容易混淆的是：很多人在安装 <code>PostgreSQL</code> 时，系统自动创建 <code>OS</code> 用户 <code>postgres</code>，数据库也自动创建角色<code> postgres</code>。由于名称相同，人们容易误以为它们是同一个账号。事实上它们是不同层级的账号，但出于便利它们常被“配对”。</p>
 <p><strong>连接默认行为</strong>：在 PostgreSQL 中，如果你使用 <code>OS</code> 用户 <code>wqstage</code> 登录系统然后执行 <code>psql</code> 而未指定<code> -U</code> 参数，很可能 <code>psql</code> 会尝试用角色名 <code>wqstage</code> 登录数据库。因为默认数据库用户名为当前 <code>OS</code> 用户名。正如文档指出：默认连接数据库名为当前 <code>OS</code> 用户。</p>
-<h1 id="故障切换"><a href="#故障切换" class="headerlink" title="故障切换"></a>故障切换</h1><h2 id="手动切换"><a href="#手动切换" class="headerlink" title="手动切换"></a>手动切换</h2><ol>
-<li>在从库上执行命令，将从库提升(promote)为新的主库<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo -u postgres /usr/local/pgsql/bin/pg_ctl -D /usr/local/pgsql/data promote</span><br></pre></td></tr></table></figure>
-之后该从库成功 promotion，<strong>会成为可写的主库</strong>。可以验证其可写性：<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo -u postgres psql -c <span class="string">&quot;CREATE TABLE promoted_test(id serial);&quot;</span></span><br></pre></td></tr></table></figure></li>
-<li>若要退回到未提升前的状态<br>当你在某台从库上执行了 <code>pg_ctl promote</code> 让它成为新的主库后，<strong>原主库就不再自动变成从库</strong>。你必须手动将其变更为从库。</li>
+<h2 id="手动故障切换主从库"><a href="#手动故障切换主从库" class="headerlink" title="手动故障切换主从库"></a>手动故障切换主从库</h2><p><strong>1. 在从库上执行命令，将从库提升(promote)为新的主库</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo -u postgres /usr/local/pgsql/bin/pg_ctl -D /usr/local/pgsql/data promote</span><br></pre></td></tr></table></figure>
+<p>之后该从库成功 promotion，<strong>会成为可写的主库</strong>。可以验证其可写性：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo -u postgres psql -c <span class="string">&quot;CREATE TABLE promoted_test(id serial);&quot;</span></span><br></pre></td></tr></table></figure>
+<p><strong>2. 若要退回到未提升前的状态</strong><br>当你在某台从库上执行了 <code>pg_ctl promote</code> 让它成为新的主库后，<strong>原主库就不再自动变成从库</strong>。</p>
+<p><strong>使用<code>pg_rewind</code>工具进行回退流程：</strong><br>(这里新主库还是指虚拟机实例，旧主库指阿里云的实例)<br>在旧主库节点停止 <code>PostgreSQL</code> 服务： <code>pg_ctl stop</code><br>在旧主库节点执行 <code>pg_rewind</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo -u postgres /usr/local/pgsql/bin/pg_rewind \</span><br><span class="line">  -D /usr/local/pgsql/data \</span><br><span class="line">  --source-server=<span class="string">&quot;host=NEW_PRIMARY_IP port=5432 user=replicator password=replica_pass dbname=postgres&quot;</span></span><br></pre></td></tr></table></figure>
+<p>在旧主库的数据目录中 创建 <code>standby.signal</code> 文件：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo -u postgres <span class="built_in">touch</span> /usr/local/pgsql/data/standby.signal</span><br></pre></td></tr></table></figure>
+<p>编辑 <code>postgresql.auto.conf</code> 或 <code>postgresql.conf</code>，在其中加入或确认：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">primary_conninfo = <span class="string">&#x27;host=NEW_PRIMARY_IP port=5432 user=replicator password=replica_pass&#x27;</span></span><br><span class="line">recovery_target_timeline = <span class="string">&#x27;latest&#x27;</span></span><br></pre></td></tr></table></figure>
+<p>最后启动从库就可以了。</p>
+<blockquote>
+<p>需要注意，使用<code>pg_rewind</code>工具,该工具需要开启 <code>wal_log_hints = on </code>才能生效， 是用来在 <code>WAL</code> 文件中添加额外的日志提示信息的。但是如果启用 <code>wal_log_hints = on</code> 这个设置是在某些 <code>WAL</code> 文件已经生成之后才启用的， 这些已经生成的 <code>WAL</code> 文件将没有 <code>wal_log_hints</code> 信息，因此 <code>pg_rewind</code> 可能无法识别和同步它们。就会报错<code>pg_rewind: error: target server needs to use either data checksums or &quot;wal_log_hints = on&quot;</code></p>
+</blockquote>
+<p>实在没办法可以使用另一种方法，那就是删从库再重新搭建主从，也就是重新执行之前的步骤<a href="#%E4%BB%8E%E5%BA%93%E9%85%8D%E7%BD%AE">从库搭建</a></p>
+<hr>
+<h1 id="使用repmgr工具实现主从同步和自动化故障切换"><a href="#使用repmgr工具实现主从同步和自动化故障切换" class="headerlink" title="使用repmgr工具实现主从同步和自动化故障切换"></a>使用<code>repmgr</code>工具实现主从同步和自动化故障切换</h1><p>通过<code>repmgr</code>实现自动化故障切换。<br><code>repmgr</code>(replication manager)是一套开源工具套件，用于管理 <code>PostgreSQL</code> 服务器集群中的复制和故障转移。它通过提供设置备用服务器、监控复制以及执行故障转移或手动切换操作等管理任务的工具，增强了内置的热备功能。</p>
+<h2 id="安装repmgr"><a href="#安装repmgr" class="headerlink" title="安装repmgr"></a>安装<code>repmgr</code></h2><blockquote>
+<p><strong>特别注意：如果使用源码安装的PostgreSQL，那么也使用源码安装repmgr，否则会导致&#x2F;usr&#x2F;local&#x2F;pgsql&#x2F;lib 缺失repmgr.so文件，导致一系列缺乏拓展的后果，非常严重！！！<br>同样，如果使用apt安装postgreSQL，那么也使用apt安装repmgr。</strong></p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get update</span><br><span class="line">sudo apt-get install postgresql-16-repmgr       <span class="comment"># 16：postgresql的版本</span></span><br></pre></td></tr></table></figure>
+<h2 id="修改主库-postgresql-conf-文件"><a href="#修改主库-postgresql-conf-文件" class="headerlink" title="修改主库 postgresql.conf 文件"></a>修改主库 postgresql.conf 文件</h2><blockquote>
+<p>最好不要在默认<code>postgresql.conf</code> 文件中编辑这些设置，而是创建一个单独的文件，例如<code>postgresql.replication.conf</code>，并将其从主配置文件的末尾包含进来，如下所示： <code>include &#39;postgresql.replication.conf&#39;</code>。</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">max_wal_senders = 10</span><br><span class="line">max_replication_slots = 10</span><br><span class="line">wal_level = replica</span><br><span class="line">hot_standby = on</span><br><span class="line">archive_mode = on   <span class="comment"># repmgr 本身不需要 WAL 文件归档。</span></span><br><span class="line">archive_command = <span class="string">&#x27;/usr/local/src/archive&#x27;</span>      <span class="comment"># 需要自己创建文件夹</span></span><br><span class="line">wal_log_hints = on      <span class="comment">#如果打算使用pg_rewind，并且集群未使用数据校验和进行初始化，则需要考虑启用 </span></span><br></pre></td></tr></table></figure>
+<h2 id="在主库实例上创建-repmgr-用户和数据库"><a href="#在主库实例上创建-repmgr-用户和数据库" class="headerlink" title="在主库实例上创建 repmgr 用户和数据库"></a>在主库实例上创建 repmgr 用户和数据库</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> repmgr <span class="keyword">WITH</span> PASSWORD <span class="string">&#x27;repmgr_pass&#x27;</span> SUPERUSER;</span><br><span class="line"><span class="keyword">CREATE</span> DATABASE repmgr OWNER repmgr; </span><br></pre></td></tr></table></figure>
+<h2 id="修改主库-pg-hba-conf-文件"><a href="#修改主库-pg-hba-conf-文件" class="headerlink" title="修改主库 pg_hba.conf 文件"></a>修改主库 pg_hba.conf 文件</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ vim pg_hba.conf</span><br><span class="line"><span class="comment"># 示例ip</span></span><br><span class="line"><span class="built_in">local</span>   replication   repmgr                              trust</span><br><span class="line">host    replication   repmgr      100.119.50.59/32        trust</span><br><span class="line">host    replication   repmgr      0.0.0.0/0               trust</span><br><span class="line"></span><br><span class="line"><span class="built_in">local</span>   repmgr        repmgr                              trust</span><br><span class="line">host    repmgr        repmgr      100.119.50.59/32        trust</span><br><span class="line">host    repmgr        repmgr      0.0.0.0/0               trust</span><br></pre></td></tr></table></figure>
+
+<h2 id="在主库上创建repmgr-conf-配置文件"><a href="#在主库上创建repmgr-conf-配置文件" class="headerlink" title="在主库上创建repmgr.conf 配置文件"></a>在主库上创建<code>repmgr.conf</code> 配置文件</h2><p><code>repmgr.conf</code>不应将其存储在 <code>PostgreSQL</code> 数据目录中，因为在设置或重新初始化 <code>PostgreSQL</code> 服务器时可能会被覆盖。<br><strong>可以放在<code>/etc/repmgr.conf</code>目录</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">node_id=1</span><br><span class="line">node_name=<span class="string">&#x27;node1&#x27;</span></span><br><span class="line">conninfo=<span class="string">&#x27;host=100.89.48.112 user=repmgr dbname=repmgr password=repmgr_pass connect_timeout=30&#x27;</span></span><br><span class="line">data_directory=<span class="string">&#x27;/usr/local/pgsql/data&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># failover设置</span></span><br><span class="line">failover=automatic</span><br><span class="line">promote_command=<span class="string">&#x27;/usr/bin/repmgr -f /etc/repmgr.conf standby promote  --log-to-file&#x27;</span>                                     </span><br><span class="line">follow_command=<span class="string">&#x27;/usr/bin/repmgr -f /etc/repmgr.conf  standby follow --log-to-file --upstream-node-id=%n&#x27;</span> </span><br></pre></td></tr></table></figure>
+
+<h2 id="注册主服务器"><a href="#注册主服务器" class="headerlink" title="注册主服务器"></a>注册主服务器</h2><p>要使 <code>repmgr</code> 支持复制集群，必须使用 <code>repmgr</code> 注册主节点（repmgr primary register）。这将安装<code>repmgr</code>的扩展和元数据对象，并为主服务器添加元数据记录。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">repmgr -f /etc/repmgr.conf primary register</span><br><span class="line"></span><br><span class="line"><span class="comment">#成功会出现以下信息</span></span><br><span class="line"><span class="comment">#INFO: connecting to primary database...</span></span><br><span class="line"><span class="comment">#NOTICE: attempting to install extension &quot;repmgr&quot;</span></span><br><span class="line"><span class="comment">#NOTICE: &quot;repmgr&quot; extension successfully installed</span></span><br><span class="line"><span class="comment">#NOTICE: primary node record (id: 1) registered</span></span><br></pre></td></tr></table></figure>
+
+<p>注册后查看集群信息命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">repmgr -f /etc/repmgr.conf cluster show</span><br></pre></td></tr></table></figure>
+
+<h2 id="在从库上创建repmgr-conf配置文件"><a href="#在从库上创建repmgr-conf配置文件" class="headerlink" title="在从库上创建repmgr.conf配置文件"></a>在从库上创建<code>repmgr.conf</code>配置文件</h2><p>&#x2F;etc&#x2F;repmgr.conf</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">node_id=2</span><br><span class="line">node_name=<span class="string">&#x27;node2&#x27;</span></span><br><span class="line">conninfo=<span class="string">&#x27;host=100.119.50.59 user=repmgr dbname=repmgr password=repmgr_pass connect_timeout=30&#x27;</span></span><br><span class="line">data_directory=<span class="string">&#x27;/usr/local/pgsql/data&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># failover设置</span></span><br><span class="line">failover=automatic</span><br><span class="line">promote_command=<span class="string">&#x27;/usr/bin/repmgr -f /etc/repmgr.conf standby promote  --log-to-file&#x27;</span>                                     </span><br><span class="line">follow_command=<span class="string">&#x27;/usr/bin/repmgr -f /etc/repmgr.conf  standby follow --log-to-file --upstream-node-id=%n&#x27;</span> </span><br><span class="line"><span class="comment"># 显示复制进度</span></span><br><span class="line">pg_basebackup_options = <span class="string">&#x27;-P&#x27;</span>  </span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><code>repmgr standby clone</code> 是基于 <code>pg_basebackup</code> 来实现克隆的，原生 <code>pg_basebackup</code> 支持<code>-P</code>选项以显示复制进度</p>
+</blockquote>
+<h2 id="克隆从库"><a href="#克隆从库" class="headerlink" title="克隆从库"></a>克隆从库</h2><p>在从库上，不要创建 <code>PostgreSQL</code> 实例（即不要执行 <code>initdb</code> 或任何包提供的数据库创建脚本），但要确保目标数据目录（以及希望 <code>PostgreSQL</code> 使用的任何其他目录）存在并归其所有 <code>postgres</code> 系统用户。权限必须设置为<code> 0700 (drwx------)</code>。<br>使用<code>--dry-run</code>测试是否具备复制的条件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">repmgr -h 100.89.48.112 -U repmgr -d repmgr -f /etc/repmgr.conf standby <span class="built_in">clone</span> --dry-run</span><br></pre></td></tr></table></figure>
+<p>没有问题的话直接执行就行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">repmgr -h 100.89.48.112 -U repmgr -d repmgr -f /etc/repmgr.conf standby <span class="built_in">clone</span></span><br></pre></td></tr></table></figure>
+<p>执行过程图如下：<br><img src="../../img/repmgr -P.png"></p>
+<p>如果报错需要密码，可以配置密码：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># su postgres</span></span><br><span class="line">$ vim ~/.pgpass</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加以下内容到 ~/.pgpass 文件，用户、数据库和密码修改为自己的即可</span></span><br><span class="line"><span class="comment">#hostname:port:database:username:password</span></span><br><span class="line">100.89.48.112:5432:repmgr:repmgr:repmgr_pass</span><br><span class="line"><span class="comment"># 修改 ~/.pgpass 文件权限</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">chmod</span> 600 ~/.pgpass</span><br></pre></td></tr></table></figure>
+
+<h2 id="注册从库"><a href="#注册从库" class="headerlink" title="注册从库"></a>注册从库</h2><p>首先先启动从库<code>pg_ctl start</code></p>
+<blockquote>
+<p>这里遇到了一个问题，启动时报错<code>FATAL:  could not access file &quot;repmgr&quot;</code>，其实是因为通过<code>apt</code>安装的<code>repmgr</code>的默认库文件存放目录是<code>/usr/lib/postgresql/16/lib/repmgr.so</code>，而通过源码安装的<code>PostgreSQL</code> 的库文件在：<code>pg_config --pkglibdir</code> 显示的 <code>/usr/local/pgsql/lib</code>，可以直接<code>cp</code> <code>.so</code>文件过去来解决。</p>
+</blockquote>
+<p>验证复制功能是否正常(会显示一条记录)：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> pg_stat_replication;</span><br></pre></td></tr></table></figure>
+<p>没问题就可以注册从库啦：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">repmgr -f /etc/repmgr.conf standby register</span><br><span class="line"></span><br><span class="line"><span class="comment"># 或者提供主服务器的连接参数：</span></span><br><span class="line"><span class="comment"># repmgr -f /etc/repmgr.conf standby register -h 100.119.50.59 -p 5432 -U repmgr -d repmgr</span></span><br></pre></td></tr></table></figure>
+
+<p>同样可以查看注册信息：<code>repmgr -f /etc/repmgr.conf cluster show</code></p>
+<h2 id="注册见证节点（witness）"><a href="#注册见证节点（witness）" class="headerlink" title="注册见证节点（witness）"></a>注册见证节点（witness）</h2><p>发生故障转移的情况下，<strong>见证节点</strong>提供证据表明是主服务器本身是不可用的，而不是例如不同的物理位置之间的网络分离（<strong>防止脑裂问题出现</strong>） ，只有在使用 repmgrd 时，见证服务器才有用。<br>在与集群主服务器位于同一网段的服务器上设置一个普通 <code>PostgreSQL</code> 实例，此实例不应与主服务器位于同一物理主机上，否则，如果主服务器因硬件问题发生故障，见证服务器也会丢失。安装 <code>repmgr</code>、<code>repmgrd</code>，注册该实例为<code> witness</code>（repmgr witness register）</p>
+<ol>
+<li>启动节点 <code>postgres</code> 服务：<code>pg_ctl start</code></li>
+<li>添加 <code>repmgr.conf</code> 配置，基本配置与主库相同，保持 <code>node_id</code>、<code>node_name</code>、<code>conninfo</code> 与主库不同即可。</li>
+<li>修改 postgresql.conf 文件，加入repmgr 共享库<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">shared_preload_libraries = <span class="string">&#x27;passwordcheck, repmgr&#x27;</span></span><br></pre></td></tr></table></figure></li>
+<li>重启数据库 pg_ctl restart</li>
 </ol>
+<p><strong>5. 注册见证节点</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">repmgr -f /etc/repmgr.conf witness  register</span><br></pre></td></tr></table></figure>
+<ol start="6">
+<li>启动 repmgrd<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">repmgrd -f /etc/repmgr.conf start</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h2 id="启动-repmgrd-守护进程"><a href="#启动-repmgrd-守护进程" class="headerlink" title="启动 repmgrd 守护进程"></a>启动 repmgrd 守护进程</h2><p><code>repmgrd</code>（replication manager daemon）是一个管理和监控守护进程，它可以<strong>自动执行故障转移和更新备用节点以跟随新的主节点</strong>等操作，是自动化故障切换的核心。它在复制集群中的每个节点上运行。并提供有关每个备用节点状态的监控信息。</p>
+<ol>
+<li><p>要使用<code>repmgrd</code> ，必须在<code>postgresql.conf</code>进行配置：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">shared_preload_libraries = <span class="string">&#x27;repmgr&#x27;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>配置从库的 <code>failover</code> 设置<br>已在上面步骤的 <a href="#%E5%9C%A8%E4%BB%8E%E5%BA%93%E4%B8%8A%E5%88%9B%E5%BB%BArepmgrconf%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6">repmgr.conf</a> 配置过了</p>
+</li>
+<li><p>在主库、从库和见证节点上分别启动 <code>repmgrd</code> 进程</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">repmgrd -f /etc/repmgr.conf start</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h2 id="关于-repmgr-conf-文件"><a href="#关于-repmgr-conf-文件" class="headerlink" title="关于 repmgr.conf 文件"></a>关于 repmgr.conf 文件</h2><ul>
+<li><p>若修改了元数据关键参数（如 node_id, node_name, data_directory），需要在每个节点执行</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ repmgr primary register --force -f path/to/repmgr.conf</span><br><span class="line">$ repmgr standby register --force -f path/to/repmgr.conf</span><br><span class="line">$ repmgr witness register --force -f path/to/repmgr.conf -h primary_host</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>若使用 repmgrd 守护进程并修改了其相关参数 → 重载或重启守护进程：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo systemctl reload repmgrd</span><br></pre></td></tr></table></figure></li>
+</ul>
  
       <!-- reward -->
       
