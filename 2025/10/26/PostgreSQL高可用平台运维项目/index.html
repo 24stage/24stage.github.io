@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">6k</span>
+            <span class="post-count">6.2k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">24 min</span>
+            <span class="post-count">25 min</span>
         </span>
     </span>
 </div>
@@ -301,7 +301,7 @@
 <h2 id="修改主库-pg-hba-conf-文件"><a href="#修改主库-pg-hba-conf-文件" class="headerlink" title="修改主库 pg_hba.conf 文件"></a>修改主库 pg_hba.conf 文件</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ vim pg_hba.conf</span><br><span class="line"><span class="comment"># 示例ip</span></span><br><span class="line"><span class="built_in">local</span>   replication   repmgr                              trust</span><br><span class="line">host    replication   repmgr      100.119.50.59/32        trust</span><br><span class="line">host    replication   repmgr      0.0.0.0/0               trust</span><br><span class="line"></span><br><span class="line"><span class="built_in">local</span>   repmgr        repmgr                              trust</span><br><span class="line">host    repmgr        repmgr      100.119.50.59/32        trust</span><br><span class="line">host    repmgr        repmgr      0.0.0.0/0               trust</span><br></pre></td></tr></table></figure>
 
 <h2 id="在主库上创建repmgr-conf-配置文件"><a href="#在主库上创建repmgr-conf-配置文件" class="headerlink" title="在主库上创建repmgr.conf 配置文件"></a>在主库上创建<code>repmgr.conf</code> 配置文件</h2><p><code>repmgr.conf</code>不应将其存储在 <code>PostgreSQL</code> 数据目录中，因为在设置或重新初始化 <code>PostgreSQL</code> 服务器时可能会被覆盖。<br><strong>可以放在<code>/etc/repmgr.conf</code>目录</strong></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">node_id=1</span><br><span class="line">node_name=<span class="string">&#x27;node1&#x27;</span></span><br><span class="line">conninfo=<span class="string">&#x27;host=100.89.48.112 user=repmgr dbname=repmgr password=repmgr_pass connect_timeout=30&#x27;</span></span><br><span class="line">data_directory=<span class="string">&#x27;/usr/local/pgsql/data&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># failover设置</span></span><br><span class="line">failover=automatic</span><br><span class="line">promote_command=<span class="string">&#x27;/usr/bin/repmgr -f /etc/repmgr.conf standby promote  --log-to-file&#x27;</span>                                     </span><br><span class="line">follow_command=<span class="string">&#x27;/usr/bin/repmgr -f /etc/repmgr.conf  standby follow --log-to-file --upstream-node-id=%n&#x27;</span> </span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">node_id=1</span><br><span class="line">node_name=<span class="string">&#x27;node1&#x27;</span></span><br><span class="line">conninfo=<span class="string">&#x27;host=100.89.48.112 user=repmgr dbname=repmgr password=repmgr_pass connect_timeout=30&#x27;</span></span><br><span class="line">data_directory=<span class="string">&#x27;/usr/local/pgsql/data&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># failover设置</span></span><br><span class="line">failover=automatic</span><br><span class="line">promote_command=<span class="string">&#x27;/usr/bin/repmgr -f /etc/repmgr.conf standby promote  --log-to-file&#x27;</span>                                     </span><br><span class="line">follow_command=<span class="string">&#x27;/usr/bin/repmgr -f /etc/repmgr.conf  standby follow --log-to-file --upstream-node-id=%n&#x27;</span> </span><br><span class="line"><span class="comment"># 日志管理</span></span><br><span class="line">log_level=INFO</span><br><span class="line">log_file=<span class="string">&#x27;/data/pglog/repmgr/repmgrd.log&#x27;</span>      <span class="comment"># log 文件需要提前创建</span></span><br><span class="line">log_status_interval=300                         <span class="comment"># 此设置导致 repmgrd 以指定的时间间隔（以秒为单位，默认为 300）发出状态日志行，描述 repmgrd 的当前状态， </span></span><br></pre></td></tr></table></figure>
 
 <h2 id="注册主服务器"><a href="#注册主服务器" class="headerlink" title="注册主服务器"></a>注册主服务器</h2><p>要使 <code>repmgr</code> 支持复制集群，必须使用 <code>repmgr</code> 注册主节点（repmgr primary register）。这将安装<code>repmgr</code>的扩展和元数据对象，并为主服务器添加元数据记录。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">repmgr -f /etc/repmgr.conf primary register</span><br><span class="line"></span><br><span class="line"><span class="comment">#成功会出现以下信息</span></span><br><span class="line"><span class="comment">#INFO: connecting to primary database...</span></span><br><span class="line"><span class="comment">#NOTICE: attempting to install extension &quot;repmgr&quot;</span></span><br><span class="line"><span class="comment">#NOTICE: &quot;repmgr&quot; extension successfully installed</span></span><br><span class="line"><span class="comment">#NOTICE: primary node record (id: 1) registered</span></span><br></pre></td></tr></table></figure>
@@ -334,13 +334,20 @@
 <p>同样可以查看注册信息：<code>repmgr -f /etc/repmgr.conf cluster show</code></p>
 <h2 id="注册见证节点（witness）"><a href="#注册见证节点（witness）" class="headerlink" title="注册见证节点（witness）"></a>注册见证节点（witness）</h2><p>发生故障转移的情况下，<strong>见证节点</strong>提供证据表明是主服务器本身是不可用的，而不是例如不同的物理位置之间的网络分离（<strong>防止脑裂问题出现</strong>） ，只有在使用 repmgrd 时，见证服务器才有用。<br>在与集群主服务器位于同一网段的服务器上设置一个普通 <code>PostgreSQL</code> 实例，此实例不应与主服务器位于同一物理主机上，否则，如果主服务器因硬件问题发生故障，见证服务器也会丢失。安装 <code>repmgr</code>、<code>repmgrd</code>，注册该实例为<code> witness</code>（repmgr witness register）</p>
 <ol>
-<li>启动节点 <code>postgres</code> 服务：<code>pg_ctl start</code></li>
-<li>添加 <code>repmgr.conf</code> 配置，基本配置与主库相同，保持 <code>node_id</code>、<code>node_name</code>、<code>conninfo</code> 与主库不同即可。</li>
-<li>修改 postgresql.conf 文件，加入repmgr 共享库<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">shared_preload_libraries = <span class="string">&#x27;passwordcheck, repmgr&#x27;</span></span><br></pre></td></tr></table></figure></li>
-<li>重启数据库 pg_ctl restart</li>
+<li><p>启动节点 <code>postgres</code> 服务：<code>pg_ctl start</code></p>
+</li>
+<li><p>添加 <code>repmgr.conf</code> 配置，基本配置与主库相同，保持 <code>node_id</code>、<code>node_name</code>、<code>conninfo</code> 与主库不同即可。</p>
+</li>
+<li><p>修改 postgresql.conf 文件，加入repmgr 共享库</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">shared_preload_libraries = <span class="string">&#x27;passwordcheck, repmgr&#x27;</span></span><br></pre></td></tr></table></figure>
+<p>连接数据库，执行：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> repmgr <span class="keyword">WITH</span> PASSWORD <span class="string">&#x27;repmgr_pass&#x27;</span> SUPERUSER;</span><br><span class="line"><span class="keyword">CREATE</span> DATABASE repmgr OWNER repmgr; </span><br><span class="line"></span><br><span class="line"># 在repmgr数据库执行添加拓展</span><br><span class="line"><span class="keyword">CREATE</span> EXTENSION repmgr;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>重启数据库 <code>pg_ctl restart</code></p>
+</li>
 </ol>
 <p><strong>5. 注册见证节点</strong></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">repmgr -f /etc/repmgr.conf witness  register</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">repmgr -h 100.89.48.112 -f /etc/repmgr.conf witness  register</span><br></pre></td></tr></table></figure>
 <ol start="6">
 <li>启动 repmgrd<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">repmgrd -f /etc/repmgr.conf start</span><br></pre></td></tr></table></figure></li>
 </ol>
@@ -353,7 +360,12 @@
 <li><p>在主库、从库和见证节点上分别启动 <code>repmgrd</code> 进程</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">repmgrd -f /etc/repmgr.conf start</span><br></pre></td></tr></table></figure></li>
 </ol>
-<h2 id="关于-repmgr-conf-文件"><a href="#关于-repmgr-conf-文件" class="headerlink" title="关于 repmgr.conf 文件"></a>关于 repmgr.conf 文件</h2><ul>
+<h2 id="故障测试"><a href="#故障测试" class="headerlink" title="故障测试"></a>故障测试</h2><ol>
+<li>关闭主库<code>node1</code></li>
+<li>在从库<code>node2</code>执行 <code>repmgr -f /etc/repmgr.conf cluster show</code>可以看到原主库连接不上了，而一个从库<code>node2</code>被自动提升为<code>primary</code>，</li>
+<li>如果<code>node1</code>恢复，可以选择将其作为从库重新加入集群<br>首先停止<code>node1</code>的postgreSQL服务<code>pg_ctl stop</code> ,然后使用repmgr的<code>rejoin</code>命令：<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">repmgr -f /etc/repmgr.conf node rejoin -h 100.89.48.112 -U repmgr -d repmgr --force-rewind</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h2 id="编写自动化-bash-脚本自动将恢复的节点加入"><a href="#编写自动化-bash-脚本自动将恢复的节点加入" class="headerlink" title="编写自动化 bash 脚本自动将恢复的节点加入"></a>编写自动化 bash 脚本自动将恢复的节点加入</h2><h2 id="关于-repmgr-conf-文件"><a href="#关于-repmgr-conf-文件" class="headerlink" title="关于 repmgr.conf 文件"></a>关于 repmgr.conf 文件</h2><ul>
 <li><p>若修改了元数据关键参数（如 node_id, node_name, data_directory），需要在每个节点执行</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ repmgr primary register --force -f path/to/repmgr.conf</span><br><span class="line">$ repmgr standby register --force -f path/to/repmgr.conf</span><br><span class="line">$ repmgr witness register --force -f path/to/repmgr.conf -h primary_host</span><br></pre></td></tr></table></figure>
 </li>
