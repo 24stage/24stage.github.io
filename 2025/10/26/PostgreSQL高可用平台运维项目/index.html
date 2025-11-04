@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">9.3k</span>
+            <span class="post-count">9.9k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">39 min</span>
+            <span class="post-count">41 min</span>
         </span>
     </span>
 </div>
@@ -425,23 +425,27 @@
 <li>编辑从库的postgresql.conf文件，<code>restore_command = cp /usr/local/src/archive/%f %p</code>，然后通过NFS<strong>共享主库的归档目录</strong>，这样当从库缺少某个 WAL 文件时，它会执行 <code>restore_command</code> 里写的命令，从共享归档目录取这个文件。</li>
 </ul>
 <hr>
-<h1 id="可视化监控"><a href="#可视化监控" class="headerlink" title="可视化监控"></a>可视化监控</h1><h2 id="PostgreSLQ-Explore"><a href="#PostgreSLQ-Explore" class="headerlink" title="PostgreSLQ Explore"></a>PostgreSLQ Explore</h2><p><strong>1. 下载 exporter</strong>（prometheus-community 版本）</p>
+<h1 id="可视化监控"><a href="#可视化监控" class="headerlink" title="可视化监控"></a>可视化监控</h1><p>使用 Grafana + Prometheus + PostgreSQL Exporter 来实现可视化监控。</p>
+<h2 id="PostgreSLQ-Explore"><a href="#PostgreSLQ-Explore" class="headerlink" title="PostgreSLQ Explore"></a>PostgreSLQ Explore</h2><p>从数据库中采集性能指标（连接数、TPS、缓存命中率等）并暴露给 Prometheus</p>
+<p><strong>1. 下载 exporter</strong>（prometheus-community 版本）</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">wget https://github.com/prometheus-community/postgres_exporter/releases/download/v0.18.1/postgres_exporter-0.18.1.linux-amd64.tar.gz</span><br><span class="line">tar -xzf postgres_exporter-0.18.1.linux-amd64.tar.gz</span><br><span class="line"><span class="built_in">cd</span> postgres_exporter-0.18.1.linux-amd64</span><br><span class="line"><span class="built_in">mv</span> postgres_exporter /usr/local/bin/</span><br></pre></td></tr></table></figure>
 <p><strong>2. 创建监控专用数据库用户</strong></p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">CREATE USER pgmon WITH PASSWORD <span class="string">&#x27;pgmon_pass&#x27;</span>;</span><br><span class="line">GRANT pg_monitor TO pgmon;</span><br></pre></td></tr></table></figure>
 <p><strong>3. 启动 exporter</strong></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> DATA_SOURCE_NAME=<span class="string">&quot;postgresql://pgmon:pgmon_pass@100.89.48.112:5432/postgres?sslmode=disable&quot;</span></span><br><span class="line"><span class="built_in">nohup</span> postgres_exporter --web.listen-address=<span class="string">&quot;:9187&quot;</span> &gt;&gt; /usr/local/src/pg_exporter.log 2&gt;&amp;1 &amp;</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> DATA_SOURCE_NAME=<span class="string">&quot;postgresql://pgmon:pgmon_pass@100.89.48.112:5432/postgres?sslmode=disable&quot;</span></span><br><span class="line"><span class="built_in">nohup</span> postgres_exporter --web.listen-address=<span class="string">&quot;:9187&quot;</span> &gt;&gt; /usr/local/src/pg_exporter.log 2&gt;&amp;1 &amp;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 <blockquote>
 <p>默认 <code>exporter</code> 端口是 9187，<code>Prometheus</code> 就会通过这个端口采集。</p>
 </blockquote>
-<h2 id="prometheus"><a href="#prometheus" class="headerlink" title="prometheus"></a>prometheus</h2><p><strong>1. 下载</strong></p>
+<h2 id="prometheus"><a href="#prometheus" class="headerlink" title="prometheus"></a>prometheus</h2><p>定期抓取 exporter 暴露的指标并保存为时序数据</p>
+<p><strong>1. 下载</strong></p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">wget https://github.com/prometheus/prometheus/releases/download/v3.7.3/prometheus-3.7.3.linux-amd64.tar.gz</span><br><span class="line">tar -xzf prometheus-3.7.3.linux-amd64.tar.gz</span><br><span class="line"><span class="built_in">cd</span> prometheus-3.7.3.linux-amd64</span><br><span class="line"><span class="built_in">mv</span> prometheus promtool /usr/local/bin/</span><br><span class="line"><span class="built_in">mkdir</span> -p /usr/local/prometheus/&#123;data,conf&#125;</span><br></pre></td></tr></table></figure>
 <p><strong>2. 启动</strong></p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">nohup</span> prometheus --config.file=/usr/local/prometheus/conf/prometheus.yml \</span><br><span class="line">  --storage.tsdb.path=/usr/local/prometheus/data \</span><br><span class="line">  --web.listen-address=<span class="string">&quot;:9090&quot;</span> \</span><br><span class="line">  &gt;&gt; /usr/local/src/prometheus.log 2&gt;&amp;1 &amp;</span><br><span class="line"></span><br><span class="line"><span class="comment"># nohup 进程关闭时保持终端不会关闭</span></span><br><span class="line"><span class="comment"># &amp; 后台运行</span></span><br></pre></td></tr></table></figure>
 <p>默认端口9090，访问 Prometheus WebUI: </p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://&lt;监控机IP&gt;:9090</span><br></pre></td></tr></table></figure>
-<h2 id="Grafana"><a href="#Grafana" class="headerlink" title="Grafana"></a>Grafana</h2><p><strong>1. 安装启动</strong></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">wget https://dl.grafana.com/oss/release/grafana-12.2.1.linux-amd64.tar.gz</span><br><span class="line">tar -zxvf grafana-12.2.1.linux-amd64.tar.gz</span><br><span class="line"><span class="built_in">cd</span> grafana-12.2.1</span><br><span class="line"><span class="built_in">nohup</span> ./bin/grafana-server --homepath $(<span class="built_in">pwd</span>) &gt;&gt; /usr/local/src/grafana.log 2&gt;&amp;1 &amp;</span><br></pre></td></tr></table></figure>
+<h2 id="Grafana"><a href="#Grafana" class="headerlink" title="Grafana"></a>Grafana</h2><p>从 Prometheus 查询数据并可视化展示、配置告警</p>
+<p><strong>1. 安装启动</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">wget https://dl.grafana.com/oss/release/grafana-12.2.1.linux-amd64.tar.gz</span><br><span class="line">tar -zxvf grafana-12.2.1.linux-amd64.tar.gz</span><br><span class="line"><span class="built_in">cd</span> grafana-12.2.1</span><br><span class="line"><span class="comment"># 启动</span></span><br><span class="line"><span class="built_in">nohup</span> ./bin/grafana-server --homepath $(<span class="built_in">pwd</span>) &gt;&gt; /usr/local/src/grafana.log 2&gt;&amp;1 &amp;</span><br></pre></td></tr></table></figure>
 <p><strong>2. 访问控制台</strong><br>Grafana的默认监听端口是 3000，，使用浏览器访问控制台：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://&lt;你的服务器IP&gt;:3000</span><br></pre></td></tr></table></figure>
 <p>默认账号&#x2F;密码：admin &#x2F; admin。</p>
@@ -463,7 +467,17 @@
 <td><strong>455</strong></td>
 </tr>
 </tbody></table>
-<p>然后点击Load→ 选择数据源（Prometheus）→ 保存。<br>455模板如图所示：<br><img src="/img/grafana1.png" name="grafana455"></p>
+<p>然后点击Load→ 选择数据源（Prometheus）→ 保存。<br>455仪表盘如图所示：<br><img src="/img/grafana1.png" name="grafana455"></p>
+<h2 id="异常自动警告"><a href="#异常自动警告" class="headerlink" title="异常自动警告"></a>异常自动警告</h2><p>在<code>Grafana</code> 的<code>Altering</code> 设置规则，实现性能异常时自动向飞书发出警告。实现方法是在飞书群组内设置自定义<code>webhook</code>机器人，在主库安装<code>PrometheusAlert</code>一个开源的运维告警中心消息转发系统，将从<code>Grafana</code>发送的警告信息转发到飞书<code>webhook</code>机器人。</p>
+<p><strong>1. 部署 PrometheusAlert</strong><br>首先安装运行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">wget https://github.com/feiyu563/PrometheusAlert/releases/download/v4.9.1/linux.zip </span><br><span class="line">unzip linux.zip </span><br><span class="line"><span class="built_in">cd</span> linux/</span><br><span class="line"></span><br><span class="line"><span class="comment">#运行PrometheusAlert</span></span><br><span class="line">./PrometheusAlert (<span class="comment">#后台运行请执行 nohup ./PrometheusAlert &amp;)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#启动后可使用浏览器打开以下地址查看：http://127.0.0.1:8080 或者 http://localhost:8080</span></span><br><span class="line"><span class="comment">#默认登录帐号和密码在app.conf中有配置</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用 supervisor 来守护启动。</span></span><br><span class="line"><span class="comment"># 配置参考 example/supervisor/prometheusalert.ini</span></span><br><span class="line"><span class="comment"># 如果需要将日志输出到控制台，请修改 app.conf 中 logtype=console</span></span><br></pre></td></tr></table></figure>
+
+<p>然后编辑conf&#x2F;app.config文件，开启飞书告警通道，并设置飞书群机器人的webhook地址(地址在飞书群组创建机器人时会给,只有pc客户端才可以)</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">vim app.conf</span><br><span class="line"></span><br><span class="line"><span class="comment">#是否开启飞书告警通道,可同时开始多个通道0为关闭,1为开启</span></span><br><span class="line">open-feishu=1</span><br><span class="line"><span class="comment">#默认飞书机器人地址</span></span><br><span class="line">fsurl=https://open.feishu.cn/open-apis/bot/v2/hook/aa02d5c1-c936-430a-a62a-05225a5df3c0</span><br></pre></td></tr></table></figure>
+
+<p><strong>2. 在 Grafana 配置警告联络点(contact points)</strong><br>添加一个新的联络点，配置名称和URL，注意此处的URL地址需要去<code>PrometheusAlert</code>的模版页面(浏览器内打开<a href="http://localhost:8080)获取，如发送给飞书的`grafana`模版:`http://100.89.48.112:8080/prometheusalert?type=fs&tpl=grafana-fs&fsurl=飞书机器人地址`">http://localhost:8080)获取，如发送给飞书的`grafana`模版:`http://100.89.48.112:8080/prometheusalert?type=fs&amp;tpl=grafana-fs&amp;fsurl=飞书机器人地址`</a><br>经过Test后能够正常发出警告就可以保存了。</p>
+<p><strong>3. 在 Grafana 配置警报规则</strong><br>示例设置连接数监控：<br>首先在<code>Metric </code>选择 <code>pg_stat_activity_count</code>选项，然后在<code>Alert condition</code>部分设置<code>WHEN query (A) IS ABOVE 200</code>，即连接数超过200就告警，可以点击<code>Preview alert rule condition”</code> 进行测试。接着在<code>Add folder and labels</code>给规则打标签或分类，方便管理。再任何在<code>Set evaluation behavior</code>（评估频率）这一部分控制“多久检测一次”和“多久后才触发”。最后设置刚刚配置的<code>contact points</code>就完成了。<br><img src="/img/grafana2.png"></p>
+<p>最后展示在飞书上告警的结果：<br><img src="/img/飞书webhook.png"></p>
 <hr>
  
       <!-- reward -->
