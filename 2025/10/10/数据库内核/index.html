@@ -106,8 +106,7 @@
   
     <div class="article-entry" itemprop="articleBody">
        
-  <h1 id="数据库架构"><a href="#数据库架构" class="headerlink" title="数据库架构"></a>数据库架构</h1><img src="../../img/数据库架构.jpg" title="数据库架构图">
-
+  <h1 id="数据库架构"><a href="#数据库架构" class="headerlink" title="数据库架构"></a>数据库架构</h1><p><img src="/img/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9E%B6%E6%9E%84.jpg"></p>
 <h2 id="一、总体流程"><a href="#一、总体流程" class="headerlink" title="一、总体流程"></a>一、总体流程</h2><p>客户端发来 SQL → <strong>Parser（解析）</strong> → 看 <strong>Query Result Cache（结果缓存）</strong>（若命中直接返回）<br>否则继续 → <strong>Resolver（语义解析&#x2F;名称解析）</strong> → 看 <strong>Plan Cache（计划缓存）</strong>（若命中直接取计划）<br>否则 → <strong>Transformer（重写&#x2F;规范化）</strong> → <strong>Optimizer（优化器，选物理计划）</strong> → <strong>Code Generator（生成可执行计划或代码）</strong> → <strong>Executor（执行器）</strong> 执行并通过 <strong>Buffer Pool（缓冲池）&#x2F;存储管理器</strong> 访问磁盘数据，整个执行受 <strong>事务管理器</strong>、<strong>日志与恢复</strong>、<strong>并发控制（锁&#x2F;MVCC）</strong> 协调和约束。</p>
 <p>图上“命中”（命中）分别标注在 Query Result Cache 与 Plan Cache — 命中时能大幅跳过后续环节，提升响应速度。</p>
 <hr>
