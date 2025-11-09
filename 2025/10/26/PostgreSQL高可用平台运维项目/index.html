@@ -158,7 +158,7 @@
 <p>使用<code>Tailscale</code>后发现阿里云的<code>Workbench</code>一键连接会断开连接，转用<code>ssh</code>连接解决</p>
 </blockquote>
 <blockquote>
-<p>在使用<code>tailscale</code>构建的虚拟局域网内，如果想要使用内网<code>ip</code>执行<code>scp</code>命令，需要在开始时添加<code>--ssh</code>选项并登录账号进行授权：<code>sudo tailscale up --ssh</code></p>
+<p>在使用<code>tailscale</code>构建的虚拟局域网内，如果想要使用内网<code>ip</code>执行<code>scp</code>或者<code>rsync</code>命令，需要在开始时添加<code>--ssh</code>选项并登录账号进行授权：<code>sudo tailscale up --ssh</code></p>
 </blockquote>
 <h2 id="从库配置"><a href="#从库配置" class="headerlink" title="从库配置"></a>从库配置</h2><p>把 主库 <code>PostgreSQL</code>安装的 <strong>整个数据目录</strong>（包括系统库、所有用户库、配置、WAL 日志等） 拷贝到从库目标目录。它拉取的是 <code>PostgreSQL</code> 集群所有数据库和相关文件的物理拷贝。这样从库就可以基于这个拷贝启动，与主库同步进行复制。</p>
 <p><strong>1. 停止从库服务</strong>（确保数据目录没被占用）</p>
@@ -308,7 +308,7 @@
 </li>
 <li><p>在从库<code>node2</code>执行 <code>repmgr -f /etc/repmgr.conf cluster show</code>可以看到原主库连接不上了，而一个从库<code>node2</code>被自动提升为<code>primary</code></p>
 </li>
-<li><p>如果<code>node1</code>恢复，可以选择将其作为从库重新加入集群<br>首先停止<code>node1</code>的postgreSQL服务<code>pg_ctl stop</code> ,然后使用repmgr的<code>rejoin</code>命令：</p>
+<li><p>如果<code>node1</code>恢复，可以选择将其作为从库重新加入集群<br>首先停止<code>node1</code>的postgreSQL服务<code>pg_ctl stop</code> ,然后使用repmgr的<code>rejoin</code>命令,若还是不行就得重新克隆从库了。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">repmgr -f /etc/repmgr.conf node rejoin -h 100.89.48.112 -U repmgr -d repmgr --force-rewind</span><br><span class="line"><span class="comment"># --force-rewind 其实就是在加入前执行pg_rewind来确保时间点一致</span></span><br></pre></td></tr></table></figure>
 <blockquote>
 <p>解决了一个问题，在执行rejoin命令时报错<code>ERROR: this node ahead of the rejoin target on the same timeline </code>，重启主库和从库的postgresql服务就好了。具体原因不确定，推测是因为多次切换主从导致时间点错误，通过重启触发了清理未完事务、生成新的 <code>timeline</code> 或 <code>checkpoint</code>，从而让本地和目标之间的时间点差异消除</p>
