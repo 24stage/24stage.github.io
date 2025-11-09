@@ -155,7 +155,10 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 测试能连到主库的 5432 端口</span></span><br><span class="line">nc -zv &lt;PRIMARY_IP&gt; 5432</span><br></pre></td></tr></table></figure></li>
 </ol>
 <blockquote>
-<p>使用<code>Tailscale</code>后发现阿里云的<code>Workbench</code>一键连接会断开连接，试了半天也不行，转用<code>ssh</code>连接解决</p>
+<p>使用<code>Tailscale</code>后发现阿里云的<code>Workbench</code>一键连接会断开连接，转用<code>ssh</code>连接解决</p>
+</blockquote>
+<blockquote>
+<p>在使用<code>tailscale</code>构建的虚拟局域网内，如果想要使用内网<code>ip</code>执行<code>scp</code>命令，需要在开始时添加<code>--ssh</code>选项并登录账号进行授权：<code>sudo tailscale up --ssh</code></p>
 </blockquote>
 <h2 id="从库配置"><a href="#从库配置" class="headerlink" title="从库配置"></a>从库配置</h2><p>把 主库 <code>PostgreSQL</code>安装的 <strong>整个数据目录</strong>（包括系统库、所有用户库、配置、WAL 日志等） 拷贝到从库目标目录。它拉取的是 <code>PostgreSQL</code> 集群所有数据库和相关文件的物理拷贝。这样从库就可以基于这个拷贝启动，与主库同步进行复制。</p>
 <p><strong>1. 停止从库服务</strong>（确保数据目录没被占用）</p>
