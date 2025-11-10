@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">8.8k</span>
+            <span class="post-count">8.9k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">37 min</span>
+            <span class="post-count">38 min</span>
         </span>
     </span>
 </div>
@@ -161,6 +161,9 @@
 <p>在使用<code>tailscale</code>构建的虚拟局域网内，如果想要使用内网<code>ip</code>执行<code>scp</code>或者<code>rsync</code>命令，需要在开始时添加<code>--ssh</code>选项并登录账号进行授权：<code>sudo tailscale up --ssh</code></p>
 </blockquote>
 <h2 id="从库配置"><a href="#从库配置" class="headerlink" title="从库配置"></a>从库配置</h2><p>把 主库 <code>PostgreSQL</code>安装的 <strong>整个数据目录</strong>（包括系统库、所有用户库、配置、WAL 日志等） 拷贝到从库目标目录。它拉取的是 <code>PostgreSQL</code> 集群所有数据库和相关文件的物理拷贝。这样从库就可以基于这个拷贝启动，与主库同步进行复制。</p>
+<blockquote>
+<p>注意，默认状态下复制是异步的，若要开启同步复制，需要修改<code>postgresql.conf</code>的配置参数<code>synchronous_standby_names</code> 和 <code>synchronous_commit = on</code></p>
+</blockquote>
 <p><strong>1. 停止从库服务</strong>（确保数据目录没被占用）</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo -u postgres pg_ctl -D /usr/local/pgsql/data stop</span><br></pre></td></tr></table></figure>
 <p><strong>2. 创建一个负责管理的Linux用户postgres</strong></p>
@@ -309,7 +312,7 @@
 <li><p>在从库<code>node2</code>执行 <code>repmgr -f /etc/repmgr.conf cluster show</code>可以看到原主库连接不上了，而一个从库<code>node2</code>被自动提升为<code>primary</code></p>
 </li>
 <li><p>如果<code>node1</code>恢复，可以选择将其作为从库重新加入集群<br>首先停止<code>node1</code>的postgreSQL服务<code>pg_ctl stop</code> ,然后使用repmgr的<code>rejoin</code>命令,若还是不行就得重新克隆从库了。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">repmgr -f /etc/repmgr.conf node rejoin -h 100.89.48.112 -U repmgr -d repmgr --force-rewind</span><br><span class="line"><span class="comment"># --force-rewind 其实就是在加入前执行pg_rewind来确保时间点一致</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">repmgr -f /etc/repmgr.conf node rejoin -h 100.89.48.112 -U repmgr -d repmgr --force-rewind --verbose</span><br><span class="line"><span class="comment"># --force-rewind 其实就是在加入前执行pg_rewind来确保时间点一致</span></span><br></pre></td></tr></table></figure>
 <blockquote>
 <p>解决了一个问题，在执行rejoin命令时报错<code>ERROR: this node ahead of the rejoin target on the same timeline </code>，重启主库和从库的postgresql服务就好了。具体原因不确定，推测是因为多次切换主从导致时间点错误，通过重启触发了清理未完事务、生成新的 <code>timeline</code> 或 <code>checkpoint</code>，从而让本地和目标之间的时间点差异消除</p>
 </blockquote>
@@ -363,13 +366,15 @@
 </ul>
 <hr>
 <h1 id="可视化监控"><a href="#可视化监控" class="headerlink" title="可视化监控"></a>可视化监控</h1><p>使用 Grafana + Prometheus + PostgreSQL Exporter 来实现可视化监控。</p>
-<h2 id="PostgreSLQ-Explore"><a href="#PostgreSLQ-Explore" class="headerlink" title="PostgreSLQ Explore"></a>PostgreSLQ Explore</h2><p>从数据库中采集性能指标（连接数、TPS、缓存命中率等）并暴露给 Prometheus</p>
+<h2 id="PostgreSLQ-Explore"><a href="#PostgreSLQ-Explore" class="headerlink" title="PostgreSLQ Explore"></a>PostgreSLQ Explore</h2><p>从数据库中采集性能指标（连接数、TPS、缓存命中率等）并暴露给 Prometheus<br>(主从库都需要安装)</p>
 <p><strong>1. 下载 exporter</strong>（prometheus-community 版本）</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">wget https://github.com/prometheus-community/postgres_exporter/releases/download/v0.18.1/postgres_exporter-0.18.1.linux-amd64.tar.gz</span><br><span class="line">tar -xzf postgres_exporter-0.18.1.linux-amd64.tar.gz</span><br><span class="line"><span class="built_in">cd</span> postgres_exporter-0.18.1.linux-amd64</span><br><span class="line"><span class="built_in">mv</span> postgres_exporter /usr/local/bin/</span><br></pre></td></tr></table></figure>
 <p><strong>2. 创建监控专用数据库用户</strong></p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">CREATE USER pgmon WITH PASSWORD <span class="string">&#x27;pgmon_pass&#x27;</span>;</span><br><span class="line">GRANT pg_monitor TO pgmon;</span><br></pre></td></tr></table></figure>
+<p>配置<code>pg_hba.conf</code> 然后重载数据库</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">host    postgres        pgmon           100.89.48.112/32        trust</span><br></pre></td></tr></table></figure>
 <p><strong>3. 启动 exporter</strong></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> DATA_SOURCE_NAME=<span class="string">&quot;postgresql://pgmon:pgmon_pass@100.89.48.112:5432/postgres?sslmode=disable&quot;</span></span><br><span class="line"><span class="built_in">nohup</span> postgres_exporter --web.listen-address=<span class="string">&quot;:9187&quot;</span> &gt;&gt; /usr/local/src/pg_exporter.log 2&gt;&amp;1 &amp;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> DATA_SOURCE_NAME=<span class="string">&quot;postgresql://pgmon:pgmon_pass@100.89.48.112:5432/postgres?sslmode=disable&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">nohup</span> postgres_exporter --web.listen-address=<span class="string">&quot;:9187&quot;</span> &gt;&gt; /usr/local/src/pg_exporter.log 2&gt;&amp;1 &amp;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 <blockquote>
 <p>默认 <code>exporter</code> 端口是 9187，<code>Prometheus</code> 就会通过这个端口采集。</p>
 </blockquote>
@@ -406,7 +411,7 @@
 </tbody></table>
 <p>然后点击Load→ 选择数据源（Prometheus）→ 保存。<br>455仪表盘如图所示：</p>
 <p><img src="/../images/grafana1.png"></p>
-<h2 id="异常自动警告"><a href="#异常自动警告" class="headerlink" title="异常自动警告"></a>异常自动警告</h2><p>在<code>Grafana</code> 的<code>Altering</code> 设置规则，实现性能异常时自动向飞书发出警告。实现方法是在飞书群组内设置自定义<code>webhook</code>机器人，在主库安装<code>PrometheusAlert</code>一个开源的运维告警中心消息转发系统，将从<code>Grafana</code>发送的警告信息转发到飞书<code>webhook</code>机器人。</p>
+<h2 id="异常自动警告"><a href="#异常自动警告" class="headerlink" title="异常自动警告"></a>异常自动警告</h2><p>在<code>Grafana</code> 的<code>Altering</code> 设置ALter规则，实现性能异常或节点掉线时自动向飞书发出警告。实现方法是在飞书群组内设置自定义<code>webhook</code>机器人，在主库安装<code>PrometheusAlert</code>——一个开源的运维告警中心消息转发系统，将从<code>Grafana</code>发送的警告信息转发到飞书<code>webhook</code>机器人。</p>
 <p><strong>1. 部署 PrometheusAlert</strong><br>首先安装运行：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">wget https://github.com/feiyu563/PrometheusAlert/releases/download/v4.9.1/linux.zip </span><br><span class="line">unzip linux.zip </span><br><span class="line"><span class="built_in">cd</span> linux/</span><br><span class="line"></span><br><span class="line"><span class="comment">#运行PrometheusAlert</span></span><br><span class="line">./PrometheusAlert (<span class="comment">#后台运行请执行 nohup ./PrometheusAlert &amp;)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#启动后可使用浏览器打开以下地址查看：http://127.0.0.1:8080 或者 http://localhost:8080</span></span><br><span class="line"><span class="comment">#默认登录帐号和密码在app.conf中有配置</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用 supervisor 来守护启动。</span></span><br><span class="line"><span class="comment"># 配置参考 example/supervisor/prometheusalert.ini</span></span><br><span class="line"><span class="comment"># 如果需要将日志输出到控制台，请修改 app.conf 中 logtype=console</span></span><br></pre></td></tr></table></figure>
 
