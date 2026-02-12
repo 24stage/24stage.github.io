@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">1k</span>
+            <span class="post-count">1.8k</span>
         </span>
     </span>
 
@@ -91,7 +91,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">3 min</span>
+            <span class="post-count">6 min</span>
         </span>
     </span>
 </div>
@@ -106,7 +106,61 @@
   
     <div class="article-entry" itemprop="articleBody">
        
-  <p><strong>MVCC 是一种并发控制机制</strong>，通过保存数据的多个版本，使得 <strong>读操作（SELECT）不需要阻塞写操作（UPDATE&#x2F;DELETE</strong>），从而实现高并发下的“读写不冲突”。</p>
+  <h1 id="事务的并发控制"><a href="#事务的并发控制" class="headerlink" title="事务的并发控制"></a>事务的并发控制</h1><p>并发执行的事务可能会读、写相同的记录，如果不对事务进行并发控制，可能会出现事务之间相互干扰的现象，导致数据不一致或者其<br>他异常。通过<strong>锁机制</strong>、<strong>多版本并发控制</strong>（MVCC）以及<strong>事务的隔离级别</strong>（IsolationLevel）来控制多个事务的并发操作，以保证数据库事务的ACID属性。</p>
+<h2 id="事务并发可能导致的问题"><a href="#事务并发可能导致的问题" class="headerlink" title="事务并发可能导致的问题"></a>事务并发可能导致的问题</h2><ul>
+<li><strong>脏读：</strong> 事务1读取了事务2未提交的数据。</li>
+<li><strong>不可重复读：</strong> 事务在执行的过程中，刚刚读取过的数据被别的事务修改了，事务再次读取同一批数据时发现数据时不一样的</li>
+<li><strong>幻读：</strong> 在同一事务的操作过程中进行两次查询，第二次查询的结果包含了第一次查询中未出现的数据或者缺少了第一次查询中出现的数据（期间被别的事务插入或者删除了数据）。</li>
+</ul>
+<h2 id="锁机制"><a href="#锁机制" class="headerlink" title="锁机制"></a>锁机制</h2><p>分为表锁和行锁，<strong>表级锁</strong>用于锁定整个表，表锁有不同的等级，不同等级间的表锁可以相容，也可以互斥；<strong>行级锁</strong>则用于锁定单个行，更新数据时行锁是互斥的。DML（SELECT 除外）操作不仅会在行上加排他的行锁，还会在表上加相容的表锁，而 DDL操作通常会在表上加互斥的表锁。通过表锁与行锁，从而实现对DML、DDL的并发控制，确保数据的一致性和完整性。</p>
+<blockquote>
+<p>可能会互相等待，出现死锁</p>
+</blockquote>
+<h2 id="多版本并发控制-MVCC"><a href="#多版本并发控制-MVCC" class="headerlink" title="多版本并发控制(MVCC)"></a>多版本并发控制(MVCC)</h2><p>MVCC 机制是一种用于提高数据库并发性能的技术，允许多个用户同时访问数据库而不会导致数据冲突和不一致性。</p>
+<p>当 T2 事务只是读取时：<br><img src="/../images/MVCC2.png"></p>
+<h3 id="MVCC和锁的结合"><a href="#MVCC和锁的结合" class="headerlink" title="MVCC和锁的结合"></a>MVCC和锁的结合</h3><p>通过锁与多版本并发控制（MVCC）机制⼀起来控制并发的读、写操作，实现了读不加锁，避免读写冲突，并能保证数据的完整性和一致性。</p>
+<p>当 事务2 也包含写操作时就要加锁了：<br><img src="/../images/MVCC%E5%92%8C%E9%94%81.png"></p>
+<h2 id="隔离级别"><a href="#隔离级别" class="headerlink" title="隔离级别"></a>隔离级别</h2><p>隔离级别用于描述事务并发执行时互相干扰的程度。不同的隔离级别下事务间的相互影响程度不同，隔离级别越高，事务间的相互影响越小，允许出现的异常情况越少。<br>ANSI&#x2F;ISO SQL 标准基于事务执行过程中必须避免的异常情况，定义了四种隔离级别。隔离强度由低到高排序：</p>
+<table>
+<thead>
+<tr>
+<th>隔离级别</th>
+<th>英文名</th>
+<th>能否出现脏读</th>
+<th>能否出现不可重复读</th>
+<th>能否出现幻读</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>读未提交</strong></td>
+<td>Read Uncommitted</td>
+<td>✅ 可能</td>
+<td>✅ 可能</td>
+<td>✅ 可能</td>
+</tr>
+<tr>
+<td><strong>读已提交</strong></td>
+<td>Read Committed</td>
+<td>❌ 不会</td>
+<td>✅ 可能</td>
+<td>✅ 可能</td>
+</tr>
+<tr>
+<td><strong>可重复读</strong></td>
+<td>Repeatable Read</td>
+<td>❌ 不会</td>
+<td>❌ 不会</td>
+<td>✅ 可能（标准定义）</td>
+</tr>
+<tr>
+<td><strong>可串行化</strong></td>
+<td>Serializable</td>
+<td>❌ 不会</td>
+<td>❌ 不会</td>
+<td>❌ 不会</td>
+</tr>
+</tbody></table>
+<p><strong>MVCC 即多版本并发控制</strong>，通过保存数据的多个版本，使得 <strong>读操作（SELECT）不需要阻塞写操作（UPDATE&#x2F;DELETE</strong>），从而实现高并发下的“读写不冲突”。</p>
 <p>MVCC 适用于哪些隔离级别:</p>
 <table>
 <thead>
@@ -263,7 +317,7 @@
     <ul>
       <li>
         Copyrights &copy;
-        2023-2025
+        2023-2026
         <i class="ri-heart-fill heart_icon"></i> Hexo
       </li>
     </ul>

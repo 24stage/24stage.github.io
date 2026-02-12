@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-hans">
+  
+
+    <head>
+      <meta charset="utf-8" />
+        
+      <meta name="description" content="24stage Blog" />
+      
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>MySQL循环复制集群项目 |  24stage</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/smile.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-MySQL循环复制集群项目"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  MySQL循环复制集群项目
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2025/09/24/MySQL%E5%BE%AA%E7%8E%AF%E5%A4%8D%E5%88%B6%E9%9B%86%E7%BE%A4%E9%A1%B9%E7%9B%AE/" class="article-date">
+  <time datetime="2025-09-24T07:38:53.000Z" itemprop="datePublished">2025-09-24</time>
+</a>   
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> Word count:</span>
+            <span class="post-count">2.7k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> Reading time≈</span>
+            <span class="post-count">13 min</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="安装MySQL"><a href="#安装MySQL" class="headerlink" title="安装MySQL"></a>安装MySQL</h1><h2 id="Docker安装"><a href="#Docker安装" class="headerlink" title="Docker安装"></a>Docker安装</h2><p>在Ubuntu 24.04.3 下安装Docker<br><strong>1. 卸载旧版本</strong><br>Docker 的旧版本叫 docker，docker.io 或 docker-engine 。如果已安装，就先卸载</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo apt-get remove docker docker-engine docker.io containerd runc</span><br></pre></td></tr></table></figure>
+
+<p><strong>2. 准备安装</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加 Docker 官方 GPG key</span></span><br><span class="line">curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">阿里源（推荐使用阿里的gpg KEY）</span></span><br><span class="line">curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加 apt 源:</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">Docker官方源</span></span><br><span class="line">echo &quot;deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable&quot; | sudo tee /etc/apt/sources.list.d/docker.list &gt; /dev/null</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">阿里apt源</span></span><br><span class="line">echo &quot;deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://mirrors.aliyun.com/docker-ce/linux/ubuntu $(lsb_release -cs) stable&quot; | sudo tee /etc/apt/sources.list.d/docker.list &gt; /dev/null</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">更新源</span></span><br><span class="line">sudo apt update</span><br><span class="line">sudo apt-get update</span><br></pre></td></tr></table></figure>
+
+<p><strong>3. 安装最新版本的 Docker Engine-Community 和 containerd</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#安装最新版本的Docker</span></span><br><span class="line">sudo apt install docker-ce docker-ce-cli containerd.io</span><br><span class="line"><span class="comment">#等待安装完成</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#查看Docker版本</span></span><br><span class="line">sudo docker version</span><br><span class="line"></span><br><span class="line"><span class="comment">#查看Docker运行状态</span></span><br><span class="line">sudo systemctl status docker</span><br></pre></td></tr></table></figure>
+
+<p><strong>(4. 允许非Root用户执行docker 命令)</strong><br>可以让当前用户在不切root，或者不加sudo 的情况下正常使用 docker 命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 添加docker用户组</span></span><br><span class="line">sudo groupadd docker</span><br><span class="line"></span><br><span class="line"><span class="comment">#将当前用户添加到用户组</span></span><br><span class="line">sudo usermod -aG docker <span class="variable">$USER</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#使权限生效</span></span><br><span class="line">newgrp docker</span><br><span class="line"></span><br><span class="line"><span class="comment">#测试一下</span></span><br><span class="line"><span class="comment">#查看所有容器</span></span><br><span class="line">docker ps -a</span><br><span class="line"></span><br><span class="line"><span class="comment">#最后更新.bashrc文件</span></span><br><span class="line"><span class="comment">#如果没有此行命令，当每次打开新的终端时都必须先执行一次 “newgrp docker” 命令，否则当前用户还是不可以执行docker命令</span></span><br><span class="line">groupadd -f docker</span><br></pre></td></tr></table></figure>
+
+<h2 id="拉取MySQL镜像"><a href="#拉取MySQL镜像" class="headerlink" title="拉取MySQL镜像"></a>拉取MySQL镜像</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker pull mysql:8.0</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>使用道客云(<a target="_blank" rel="noopener" href="https://github.com/DaoCloud/public-image-mirror">https://github.com/DaoCloud/public-image-mirror</a>) 进行加速，使用方法就是增加前缀：<code>docker pull m.daocloud.io/docker.io/library/mysql:8.0</code></p>
+</blockquote>
+<h2 id="创建三个容器"><a href="#创建三个容器" class="headerlink" title="创建三个容器"></a>创建三个容器</h2><p>这一步首先创建一个docker网络，并把三个mysql节点连入其中，此外为每个 MySQL 容器准备 独立的配置文件（my.cnf），使它们之间能正确支持 GTID + 二进制日志 + 唯一 server-id，这是建立循环复制的基础。</p>
+<h3 id="创建docker网络"><a href="#创建docker网络" class="headerlink" title="创建docker网络"></a>创建docker网络</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker network create mysql-net</span><br></pre></td></tr></table></figure>
+<h3 id="为每个容器准备不同的-MySQL-配置"><a href="#为每个容器准备不同的-MySQL-配置" class="headerlink" title="为每个容器准备不同的 MySQL 配置"></a>为每个容器准备不同的 MySQL 配置</h3><p>在宿主机准备三个不同的配置文件（分别包括 GTID、server-id 不同等），并挂载进每个容器里<br>下面时 3 个节点分别的内容。三个节点的 server-id 和 auto_increment_offset 是不同的：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># mysql1.cnf（节点 1）</span></span><br><span class="line">[mysqld]</span><br><span class="line">server-id=1</span><br><span class="line">gtid_mode=ON</span><br><span class="line">enforce_gtid_consistency=ON</span><br><span class="line">log_bin=mysql-bin</span><br><span class="line">binlog_format=ROW</span><br><span class="line">log_slave_updates=ON</span><br><span class="line">auto_increment_increment=3</span><br><span class="line">auto_increment_offset=1</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># mysql2.cnf（节点 2）</span></span><br><span class="line">[mysqld]</span><br><span class="line">server-id=2</span><br><span class="line">gtid_mode=ON</span><br><span class="line">enforce_gtid_consistency=ON</span><br><span class="line">log_bin=mysql-bin</span><br><span class="line">binlog_format=ROW</span><br><span class="line">log_slave_updates=ON</span><br><span class="line">auto_increment_increment=3</span><br><span class="line">auto_increment_offset=2</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># mysql3.cnf（节点 3）</span></span><br><span class="line">[mysqld]</span><br><span class="line">server-id=3</span><br><span class="line">gtid_mode=ON</span><br><span class="line">enforce_gtid_consistency=ON</span><br><span class="line">log_bin=mysql-bin</span><br><span class="line">binlog_format=ROW</span><br><span class="line">log_slave_updates=ON</span><br><span class="line">auto_increment_increment=3</span><br><span class="line">auto_increment_offset=3</span><br></pre></td></tr></table></figure>
+
+
+<p>可以把这三个文件放在宿主机目录下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">/home/user/mysql1.cnf</span><br><span class="line">/home/user/mysql2.cnf</span><br><span class="line">/home/user/mysql3.cnf</span><br></pre></td></tr></table></figure>
+<h3 id="启动三个容器"><a href="#启动三个容器" class="headerlink" title="启动三个容器"></a>启动三个容器</h3><blockquote>
+<p>启动容器要基于同一网络启动，要挂载不同的my.cnf文件，确保<code>server_id</code>不同</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># mysql1</span></span><br><span class="line">docker run -d --name mysql1 --network mysql-net \</span><br><span class="line">  -v /home/user/mysql1.cnf:/etc/mysql/conf.d/my.cnf \</span><br><span class="line">  -e MYSQL_ROOT_PASSWORD=root123 \</span><br><span class="line">  mysql:8.0</span><br><span class="line"></span><br><span class="line"><span class="comment"># mysql2</span></span><br><span class="line">docker run -d --name mysql2 --network mysql-net \</span><br><span class="line">  -v /home/user/mysql2.cnf:/etc/mysql/conf.d/my.cnf \</span><br><span class="line">  -e MYSQL_ROOT_PASSWORD=root123 \</span><br><span class="line">  mysql:8.0</span><br><span class="line"></span><br><span class="line"><span class="comment"># mysql3</span></span><br><span class="line">docker run -d --name mysql3 --network mysql-net \</span><br><span class="line">  -v /home/user/mysql3.cnf:/etc/mysql/conf.d/my.cnf \</span><br><span class="line">  -e MYSQL_ROOT_PASSWORD=root123 \</span><br><span class="line">  mysql:8.0</span><br></pre></td></tr></table></figure>
+<h3 id="启动后确认配置是否生效"><a href="#启动后确认配置是否生效" class="headerlink" title="启动后确认配置是否生效"></a>启动后确认配置是否生效</h3><p>进入任意容器：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker <span class="built_in">exec</span> -it mysql1 mysql -uroot -p</span><br></pre></td></tr></table></figure>
+<p>然后检查关键变量：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">SHOW VARIABLES LIKE <span class="string">&#x27;server_id&#x27;</span>;</span><br><span class="line">SHOW VARIABLES LIKE <span class="string">&#x27;gtid_mode&#x27;</span>;</span><br><span class="line">SHOW VARIABLES LIKE <span class="string">&#x27;log_bin&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p>只要每个节点的 server_id 不同且 GTID、binlog 都开启，则配置成功。</p>
+<h2 id="建立循环复制关系"><a href="#建立循环复制关系" class="headerlink" title="建立循环复制关系"></a>建立循环复制关系</h2><p>mysql1 -&gt; mysql2 -&gt; mysql3 -&gt; mysql1</p>
+<h3 id="只在-mysql1-创建复制账户"><a href="#只在-mysql1-创建复制账户" class="headerlink" title="只在 mysql1 创建复制账户"></a>只在 mysql1 创建复制账户</h3><p>在mysql1 内执行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">CREATE USER <span class="string">&#x27;repl&#x27;</span>@<span class="string">&#x27;%&#x27;</span> IDENTIFIED BY <span class="string">&#x27;replpass&#x27;</span>;</span><br><span class="line"><span class="comment">#对于mysql8.0等老版本，使用下面mysql_native_passowrd认证来兼容老版本</span></span><br><span class="line"><span class="comment">#CREATE USER &#x27;repl&#x27;@&#x27;%&#x27; IDENTIFIED WITH mysql_native_password BY &#x27;replpass&#x27;; </span></span><br><span class="line"></span><br><span class="line">GRANT REPLICATION SLAVE ON *.* TO <span class="string">&#x27;repl&#x27;</span>@<span class="string">&#x27;%&#x27;</span>;</span><br><span class="line">FLUSH PRIVILEGES;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>如果后面报错Last_IO_Errno: 2061 Last_IO_Error: Error connecting to source ‘repl@mysql3:3306’. This was attempt 6&#x2F;86400, with a delay of 60 seconds between attempts. Message: Authentication plugin ‘caching_sha2_password’ reported error: Authentication requires secure connection.<br>这是因为默认 MySQL 8.x 用户使用的是 caching_sha2_password 插件，该插件默认要求安全的连接（例如 SSL&#x2F;TLS 或公钥加密），当前从库的 I&#x2F;O 线程尝试建立连接时没有满足这个要求，所以认证失败，无法连接到主库&#x2F;binlog 源。<br>解决办法：让 repl 用户使用更兼容的认证插件 mysql_native_password，<br><code>ALTER USER &#39;repl&#39;@&#39;%&#39; IDENTIFIED WITH mysql_native_password BY &#39;replpass&#39;; FLUSH PRIVILEGES;</code></p>
+</blockquote>
+<h3 id="在每个节点的配置"><a href="#在每个节点的配置" class="headerlink" title="在每个节点的配置"></a>在每个节点的配置</h3><p>在每个节点执行 <code>CHANGE MASTER TO ...</code> 指向另一个容器,然后启动 <code>START SLAVE</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#mysql1节点示例：</span></span><br><span class="line"></span><br><span class="line">CHANGE MASTER TO</span><br><span class="line">MASTER_HOST=<span class="string">&#x27;mysql3&#x27;</span>,</span><br><span class="line">MASTER_USER=<span class="string">&#x27;repl&#x27;</span>,</span><br><span class="line">MASTER_PASSWORD=<span class="string">&#x27;replpass&#x27;</span>,</span><br><span class="line">MASTER_AUTO_POSITION=1;</span><br><span class="line"></span><br><span class="line">START SLAVE;</span><br></pre></td></tr></table></figure>
+
+<h3 id="查看是否搭建成功："><a href="#查看是否搭建成功：" class="headerlink" title="查看是否搭建成功："></a>查看是否搭建成功：</h3><p><strong>1. 查看状态</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SHOW SLAVE STATUS\G;</span><br></pre></td></tr></table></figure>
+
+<p>核心期望输出：<br>Replica_IO_Running: Yes<br>Replica_SQL_Running: Yes<br>Seconds_Behind_Source: 0 或较小</p>
+<p><strong>2. 验证数据同步正确性（功能验证）</strong><br>测试流程确认写入是否在三个节点复制一致：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 进入 mysql1</span></span><br><span class="line">CREATE DATABASE test_sync;</span><br><span class="line">USE test_sync;</span><br><span class="line">CREATE TABLE t1(<span class="built_in">id</span> INT PRIMARY KEY AUTO_INCREMENT, val VARCHAR(50));</span><br><span class="line">INSERT INTO t1(val) VALUES(<span class="string">&#x27;replica check&#x27;</span>);</span><br></pre></td></tr></table></figure>
+<p>然后分别到 mysql2、mysql3 上执行：</p>
+<p><code>SELECT * FROM test_sync.t1;</code></p>
+<p>如果所有节点都能看到相同数据，则表示复制真实生效。</p>
+<h3 id="注意的点"><a href="#注意的点" class="headerlink" title="注意的点"></a>注意的点</h3><p>在配置mysql1-&gt;mysql3 的过程中会出现报错：<br><code>Last_SQL_Errno: 1396 Last_SQL_Error: Coordinator stopped because there were error(s) in the worker(s). The most recent failure being: Worker 1 failed executing transaction &#39;b640ad31-0036-11f1-9073-52e71b298e3c:6&#39; at source log mysql-bin.000003, end_log_pos 516...</code><br>这是因为在常规 主从复制 中，通常主库创建一次复制账户，它的 binlog 会在从库上回放，从而让从库拥有该账号，这没有问题。<br>但在 循环复制拓扑（A→B→C→A） 下：</p>
+<ul>
+<li>在 A 创建 repl</li>
+<li>B 会在复制过程中创建 repl（因为回放 A 的 binlog）</li>
+<li>C 会在复制过程中创建 repl（因为回放 B 的 binlog）</li>
+<li>然后当 A 再从 C 复制时就遇到“用户已存在”的冲突</li>
+</ul>
+<p>这是因为 <code>CREATE USER</code> 语句 不是幂等操作，也就是说，同样的语句重复执行会失败。</p>
+<p><strong>解决办法</strong>：手动跳过这个导致复制失败的事务<br>在出错结果中看到：<br><code>Worker 1 failed executing transaction &#39;b640ad31-0036-11f1-9073-52e71b298e3c:6&#39;</code><br>这里：<code>b640ad31-0036-11f1-9073-52e71b298e3c</code> 是 GTID 组 UUID,<code>:6 </code>是事务号,这个就是失败的 GTID。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># mysql1内执行：</span></span><br><span class="line">STOP replica;</span><br><span class="line"><span class="comment"># 把 GTID_NEXT 设置成失败事务的 GTID,提交一个空事务让本地“应用”它</span></span><br><span class="line">SET GTID_NEXT=<span class="string">&#x27;b640ad31-0036-11f1-9073-52e71b298e3c:6&#x27;</span>;</span><br><span class="line">BEGIN;</span><br><span class="line">COMMIT;</span><br><span class="line">SET GTID_NEXT=<span class="string">&#x27;AUTOMATIC&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<h1 id="性能压测"><a href="#性能压测" class="headerlink" title="性能压测"></a>性能压测</h1><p>使用sysbench对docker环境下的mysql集群进行压力测试，分析吞吐量，延迟和复制延迟。</p>
+<h2 id="安装-sysbench"><a href="#安装-sysbench" class="headerlink" title="安装 sysbench"></a>安装 sysbench</h2><p><a href="./PostgreSQL%E9%AB%98%E5%8F%AF%E7%94%A8%E5%B9%B3%E5%8F%B0%E8%BF%90%E7%BB%B4%E9%A1%B9%E7%9B%AE.md#%E5%8E%8B%E6%B5%8B%E4%B8%8E%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90">安装流程</a></p>
+<h2 id="使用-Docker-网络内部地址"><a href="#使用-Docker-网络内部地址" class="headerlink" title="使用 Docker 网络内部地址"></a>使用 Docker 网络内部地址</h2><p>由于没有没有端口映射，因此需要查询 Docker 网络内部地址，运行命令查看容器 IP：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker inspect -f <span class="string">&#x27;&#123;&#123;range .NetworkSettings.Networks&#125;&#125;&#123;&#123;.IPAddress&#125;&#125;&#123;&#123;end&#125;&#125;&#x27;</span> mysql1</span><br></pre></td></tr></table></figure>
+
+<h2 id="准备数据库与用户"><a href="#准备数据库与用户" class="headerlink" title="准备数据库与用户"></a>准备数据库与用户</h2><p>在一个 MySQL 主节点（或某个节点）执行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">CREATE DATABASE sbtest;</span><br><span class="line">CREATE USER <span class="string">&#x27;sbtest&#x27;</span>@<span class="string">&#x27;%&#x27;</span> IDENTIFIED WITH mysql_native_password BY <span class="string">&#x27;sbpass&#x27;</span>;</span><br><span class="line">GRANT ALL ON sbtest.* TO <span class="string">&#x27;sbtest&#x27;</span>@<span class="string">&#x27;%&#x27;</span>;</span><br><span class="line">FLUSH PRIVILEGES;</span><br></pre></td></tr></table></figure>
+
+<h2 id="准备测试数据（Prepare-阶段）"><a href="#准备测试数据（Prepare-阶段）" class="headerlink" title="准备测试数据（Prepare 阶段）"></a>准备测试数据（Prepare 阶段）</h2><p>在目标数据库里创建表并插入数据，供压力测试使用。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">sysbench --db-driver=mysql \</span><br><span class="line">--mysql-host=172.18.0.2 \</span><br><span class="line">--mysql-port=3306 \</span><br><span class="line">--mysql-user=sbtest \</span><br><span class="line">--mysql-password=sbpass \</span><br><span class="line">--mysql-db=sbtest \</span><br><span class="line">--tables=10 \</span><br><span class="line">--table-size=100000 \</span><br><span class="line">oltp_read_write prepare</span><br></pre></td></tr></table></figure>
+<p>创建 10 个测试表,每表 100 000 条数据,oltp_read_write：混合读写负载模式</p>
+<h2 id="运行压力测试（run）"><a href="#运行压力测试（run）" class="headerlink" title="运行压力测试（run）"></a>运行压力测试（run）</h2><p>正式压测，下面示例用 50 个并发线程压测 120 秒：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">sysbench \</span><br><span class="line">  --db-driver=mysql \</span><br><span class="line">  --mysql-host=172.18.0.2 \</span><br><span class="line">  --mysql-port=3306 \</span><br><span class="line">  --mysql-user=sbtest \</span><br><span class="line">  --mysql-password=sbpass \</span><br><span class="line">  --mysql-db=sbtest \</span><br><span class="line">  --tables=10 \</span><br><span class="line">  --table-size=100000 \</span><br><span class="line">  --threads=50 \</span><br><span class="line">  --time=120 \</span><br><span class="line">  --report-interval=10 \</span><br><span class="line">  oltp_read_write run</span><br></pre></td></tr></table></figure>
+<h2 id="测试结果与分析"><a href="#测试结果与分析" class="headerlink" title="测试结果与分析"></a>测试结果与分析</h2><p><img src="/../images/docker_mysql%E5%8E%8B%E6%B5%8B.png"></p>
+<p>30220 transactions 总数，251.41 transactions&#x2F;sec (TPS)，这表示数据库每秒能成功提交大约251个事务，这属于中等负载水平表现，可以视为基础性能基线。</p>
+<p>queries: 604400 (5028.15 per sec.)表示每秒数据库执行了约 5028 条 SQL 操作。</p>
+<p>至于延迟：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">min: 11.51 ms  </span><br><span class="line">avg: 198.73 ms  </span><br><span class="line">max: 908.61 ms  </span><br><span class="line">95th percentile: 337.94 ms</span><br></pre></td></tr></table></figure>
+<p>平均延迟约 199 ms：表示在压测期间，大部分事务平均需要约 0.2 秒处理完毕。<br>95% 338 ms：说明 95% 的事务响应时间小于 338 毫秒，越低越好。<br>最大延迟 ~909 ms：有少数较慢的响应，可能由于瞬时压力、锁争用或资源波动。<br>在 OLTP 场景里，对于简单的读写压力测试来说，平均 &lt;100 ms 是理想，200+ms 表示在当前硬件&#x2F;配置&#x2F;负载组合下尚未达到最优，存在优化空间。</p>
+<p>结论：系统能够稳定处理 OLTP 负载，数据库在 Docker 环境下可用性良好，<br>但Docker 容器化部署稍弱于物理或纯 VM，循环复制带来的复制延迟与开销是主要影响因素。</p>
+<h2 id="测试结束后清理数据（cleanup）"><a href="#测试结束后清理数据（cleanup）" class="headerlink" title="测试结束后清理数据（cleanup）"></a>测试结束后清理数据（cleanup）</h2><p>压测结束后清理 sysbench 在库里创建的表和数据：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">sysbench \</span><br><span class="line">  --db-driver=mysql \</span><br><span class="line">  --mysql-host=172.18.0.2 \</span><br><span class="line">  --mysql-port=3306 \</span><br><span class="line">  --mysql-user=sbtest \</span><br><span class="line">  --mysql-password=sbpass \</span><br><span class="line">  --mysql-db=sbtest \</span><br><span class="line">  --tables=10 \</span><br><span class="line">  --table-size=100000 \</span><br><span class="line">  oltp_read_write cleanup</span><br></pre></td></tr></table></figure>
+
+<h1 id="集群监控和维护"><a href="#集群监控和维护" class="headerlink" title="集群监控和维护"></a>集群监控和维护</h1><h2 id="创建监控脚本"><a href="#创建监控脚本" class="headerlink" title="创建监控脚本"></a>创建监控脚本</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line">MYSQL_CONT=<span class="string">&quot;<span class="variable">$1</span>&quot;</span>                 <span class="comment"># 容器名或服务名</span></span><br><span class="line">MYSQL_USER=<span class="string">&quot;monitor&quot;</span></span><br><span class="line">MYSQL_PASS=<span class="string">&quot;monitor_password&quot;</span></span><br><span class="line"></span><br><span class="line">ALERT_LAG=30</span><br><span class="line">ALERT_CONN=80</span><br><span class="line"></span><br><span class="line"><span class="comment"># 主从延迟</span></span><br><span class="line">SLAVE_STATUS=$(docker <span class="built_in">exec</span> <span class="string">&quot;<span class="variable">$MYSQL_CONT</span>&quot;</span> mysql -uroot -p<span class="string">&quot;<span class="variable">$MYSQL_PASS</span>&quot;</span> -sN -e <span class="string">&quot;SHOW SLAVE STATUS\G&quot;</span>)</span><br><span class="line">LAG=$(<span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$SLAVE_STATUS</span>&quot;</span> | grep <span class="string">&quot;Seconds_Behind_Master&quot;</span> | awk <span class="string">&#x27;&#123;print $2&#125;&#x27;</span>)</span><br><span class="line"><span class="keyword">if</span> [ <span class="string">&quot;<span class="variable">$LAG</span>&quot;</span> -gt <span class="variable">$ALERT_LAG</span> ]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;[WARN] Replication lag <span class="variable">$LAG</span>&quot;</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;[OK] Replication lag <span class="variable">$LAG</span>&quot;</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 复制线程状态</span></span><br><span class="line">IO=$(<span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$SLAVE_STATUS</span>&quot;</span> | grep <span class="string">&quot;Replica_IO_Running:&quot;</span> | awk <span class="string">&#x27;&#123;print $2&#125;&#x27;</span>)</span><br><span class="line">SQL=$(<span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$SLAVE_STATUS</span>&quot;</span> | grep <span class="string">&quot;Replica_SQL_Running:&quot;</span> | awk <span class="string">&#x27;&#123;print $2&#125;&#x27;</span>)</span><br><span class="line"><span class="keyword">if</span> [[ <span class="string">&quot;<span class="variable">$IO</span>&quot;</span> != <span class="string">&quot;Yes&quot;</span> || <span class="string">&quot;<span class="variable">$SQL</span>&quot;</span> != <span class="string">&quot;Yes&quot;</span> ]]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;[ERR] Replication threads <span class="variable">$IO</span>/<span class="variable">$SQL</span>&quot;</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;[OK] Rep threads <span class="variable">$IO</span>/<span class="variable">$SQL</span>&quot;</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 当前连接数</span></span><br><span class="line">CONN=$(docker <span class="built_in">exec</span> <span class="string">&quot;<span class="variable">$MYSQL_CONT</span>&quot;</span> mysql -uroot -p<span class="string">&quot;<span class="variable">$MYSQL_PASS</span>&quot;</span> -sN -e <span class="string">&quot;SHOW STATUS LIKE &#x27;Threads_connected&#x27;;&quot;</span> | awk <span class="string">&#x27;&#123;print $2&#125;&#x27;</span>)</span><br><span class="line">MAX=$(docker <span class="built_in">exec</span> <span class="string">&quot;<span class="variable">$MYSQL_CONT</span>&quot;</span> mysql -uroot -p<span class="string">&quot;<span class="variable">$MYSQL_PASS</span>&quot;</span> -sN -e <span class="string">&quot;SHOW VARIABLES LIKE &#x27;max_connections&#x27;;&quot;</span> | awk <span class="string">&#x27;&#123;print $2&#125;&#x27;</span>)</span><br><span class="line">PCT=$(<span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$CONN</span> * 100 / <span class="variable">$MAX</span>&quot;</span> | bc)</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;[INFO] Conn usage: <span class="variable">$CONN</span>/<span class="variable">$MAX</span> (<span class="variable">$PCT</span>%)&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># QPS &amp; TPS（1秒差值）</span></span><br><span class="line">Q1=$(docker <span class="built_in">exec</span> <span class="string">&quot;<span class="variable">$MYSQL_CONT</span>&quot;</span> mysql -uroot -p<span class="string">&quot;<span class="variable">$MYSQL_PASS</span>&quot;</span> -sN -e <span class="string">&quot;SHOW GLOBAL STATUS LIKE &#x27;Queries&#x27;;&quot;</span> | awk <span class="string">&#x27;&#123;print $2&#125;&#x27;</span>)</span><br><span class="line">C1=$(docker <span class="built_in">exec</span> <span class="string">&quot;<span class="variable">$MYSQL_CONT</span>&quot;</span> mysql -uroot -p<span class="string">&quot;<span class="variable">$MYSQL_PASS</span>&quot;</span> -sN -e <span class="string">&quot;SHOW GLOBAL STATUS LIKE &#x27;Com_commit&#x27;;&quot;</span> | awk <span class="string">&#x27;&#123;print $2&#125;&#x27;</span>)</span><br><span class="line">R1=$(docker <span class="built_in">exec</span> <span class="string">&quot;<span class="variable">$MYSQL_CONT</span>&quot;</span> mysql -uroot -p<span class="string">&quot;<span class="variable">$MYSQL_PASS</span>&quot;</span> -sN -e <span class="string">&quot;SHOW GLOBAL STATUS LIKE &#x27;Com_rollback&#x27;;&quot;</span> | awk <span class="string">&#x27;&#123;print $2&#125;&#x27;</span>)</span><br><span class="line"><span class="built_in">sleep</span> 1</span><br><span class="line">Q2=$(docker <span class="built_in">exec</span> <span class="string">&quot;<span class="variable">$MYSQL_CONT</span>&quot;</span> mysql -uroot -p<span class="string">&quot;<span class="variable">$MYSQL_PASS</span>&quot;</span> -sN -e <span class="string">&quot;SHOW GLOBAL STATUS LIKE &#x27;Queries&#x27;;&quot;</span> | awk <span class="string">&#x27;&#123;print $2&#125;&#x27;</span>)</span><br><span class="line">C2=$(docker <span class="built_in">exec</span> <span class="string">&quot;<span class="variable">$MYSQL_CONT</span>&quot;</span> mysql -uroot -p<span class="string">&quot;<span class="variable">$MYSQL_PASS</span>&quot;</span> -sN -e <span class="string">&quot;SHOW GLOBAL STATUS LIKE &#x27;Com_commit&#x27;;&quot;</span> | awk <span class="string">&#x27;&#123;print $2&#125;&#x27;</span>)</span><br><span class="line">R2=$(docker <span class="built_in">exec</span> <span class="string">&quot;<span class="variable">$MYSQL_CONT</span>&quot;</span> mysql -uroot -p<span class="string">&quot;<span class="variable">$MYSQL_PASS</span>&quot;</span> -sN -e <span class="string">&quot;SHOW GLOBAL STATUS LIKE &#x27;Com_rollback&#x27;;&quot;</span> | awk <span class="string">&#x27;&#123;print $2&#125;&#x27;</span>)</span><br><span class="line">QPS=$((Q2-Q1))</span><br><span class="line">TPS=$(((C2-C1)+(R2-R1)))</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;[INFO] QPS:<span class="variable">$QPS</span> TPS:<span class="variable">$TPS</span>&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+
+ 
+      <!-- reward -->
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <footer class="article-footer">
+       
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DBA/" rel="tag">DBA</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%A1%B9%E7%9B%AE/" rel="tag">项目</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2025/09/28/Postgre%E5%9C%A8Linux%E4%B8%8A%E7%9A%84%E5%AE%89%E8%A3%85/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            Postgre在Linux上的安装
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2025/06/24/%E5%AE%89%E5%8D%93Room/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">安卓Room数据库</div>
+      </a>
+    
+  </nav>
+
+  
+   
+  
+   
+    <script src="https://cdn.staticfile.org/twikoo/1.4.18/twikoo.all.min.js"></script>
+    <div id="twikoo" class="twikoo"></div>
+    <script>
+        twikoo.init({
+            envId: ""
+        })
+    </script>
+ 
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2023-2026
+        <i class="ri-heart-fill heart_icon"></i> Hexo
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/smile-circle-side.svg" alt="24stage"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2023/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.jpg">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    
+
+  </div>
+</body>
+
+</html>
